@@ -2,20 +2,17 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>dotnetCampus.Cli.Performance</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Legacy\dotnetCampus.CommandLine.Legacy.csproj" />
-  </ItemGroup>
   
   <ItemGroup>
-    <Compile Include="..\dotnetCampus.CommandLine.Tests\Fakes\*.cs" Link="Fakes\%(FileName).cs" />
+    <Compile Remove="**\*.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
 
 </Project>

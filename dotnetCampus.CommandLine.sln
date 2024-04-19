@@ -13,8 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		build\Version.props = build\Version.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Legacy", "src\dotnetCampus.CommandLine.Legacy\dotnetCampus.CommandLine.Legacy.csproj", "{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Analyzer", "src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj", "{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7DDA8183-3606-4B08-86E3-A4537860448F}"
@@ -27,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F26E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Sample", "samples\dotnetCampus.CommandLine.Sample\dotnetCampus.CommandLine.Sample.csproj", "{B44D0273-A584-4845-899A-597D52387DC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnetCampus.CommandLine", "src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj", "{B61424A0-02C5-4C24-819B-8153D52BC0B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,14 +35,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Debug|x86.Build.0 = Debug|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Release|x86.ActiveCfg = Release|Any CPU
-		{EE3640D1-C870-4C4E-869E-AE3DCC6CB3C4}.Release|x86.Build.0 = Release|Any CPU
 		{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}.Debug|x86.ActiveCfg = Debug|Any CPU
@@ -75,6 +67,14 @@ Global
 		{B44D0273-A584-4845-899A-597D52387DC7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B44D0273-A584-4845-899A-597D52387DC7}.Release|x86.ActiveCfg = Release|Any CPU
 		{B44D0273-A584-4845-899A-597D52387DC7}.Release|x86.Build.0 = Release|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Debug|x86.Build.0 = Debug|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Release|x86.ActiveCfg = Release|Any CPU
+		{B61424A0-02C5-4C24-819B-8153D52BC0B8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

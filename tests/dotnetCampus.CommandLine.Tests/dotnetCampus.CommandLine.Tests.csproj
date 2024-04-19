@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
@@ -24,7 +24,23 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj" />
-    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Legacy\dotnetCampus.CommandLine.Legacy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Fakes\**" />
+    <Compile Remove="Analyzers\**" />
+    <Compile Remove="CommandLineTests.cs" />
+    <Compile Remove="CommandLineTests.ValueRange.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Fakes\**" />
+    <EmbeddedResource Remove="Analyzers\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Fakes\**" />
+    <None Remove="Analyzers\**" />
   </ItemGroup>
 
 </Project>

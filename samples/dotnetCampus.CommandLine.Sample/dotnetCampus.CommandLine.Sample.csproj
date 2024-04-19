@@ -2,17 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>dotnetCampus.Cli</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Legacy\dotnetCampus.CommandLine.Legacy.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\LocalizableStrings.resx" Generator="ResXFileCodeGenerator" LastGenOutput="LocalizableStrings.Designer.cs" />
-    <Compile Update="Properties\LocalizableStrings.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="LocalizableStrings.resx" />
+    <Compile Remove="**\*.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
 
 </Project>
