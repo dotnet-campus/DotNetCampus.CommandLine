@@ -2,10 +2,26 @@
 
   <Import Project="build\Version.props" />
 
+  <!-- 框架和语言信息 -->
   <PropertyGroup>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)</PackageOutputPath>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- NU1803: 使用了 http 不安全的 NuGet 源
+  -->
+    <NoWarn>$(NU1803);NU1803</NoWarn>
+    <!-- CA1416: 平台兼容性警告
+  -->
+    <WarningsAsErrors>$(WarningAsErrors);CA1416</WarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- 库和项目信息 -->
+  <PropertyGroup>
+    <Description>使用源生成器高性能地辅助你的应用程序解析几种主流风格的命令行。</Description>
     <Authors>walterlv</Authors>
     <Company>dotnet-campus</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
