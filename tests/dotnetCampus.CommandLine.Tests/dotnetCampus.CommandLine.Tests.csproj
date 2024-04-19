@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj" />
-    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj" />
+    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Legacy\dotnetCampus.CommandLine.Legacy.csproj" />
   </ItemGroup>
 
 </Project>

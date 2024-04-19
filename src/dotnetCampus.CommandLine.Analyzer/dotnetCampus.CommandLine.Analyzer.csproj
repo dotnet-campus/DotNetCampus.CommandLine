@@ -14,12 +14,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\dotnetCampus.CommandLine.Legacy\Utils\NamingHelper.cs">
+      <Link>Utils\NamingHelper.cs</Link>
+    </Compile>
     <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
     <Compile Update="Properties\Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\dotnetCampus.CommandLine\Utils\NamingHelper.cs" Link="Utils\NamingHelper.cs" />
   </ItemGroup>
 
 </Project>
