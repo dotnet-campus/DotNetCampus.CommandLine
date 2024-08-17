@@ -1,4 +1,6 @@
-﻿namespace dotnetCampus.Cli;
+﻿using dotnetCampus.Cli.Compiler;
+
+namespace dotnetCampus.Cli;
 
 class Program
 {
@@ -10,10 +12,37 @@ class Program
         //     .AddHandler<SampleOptions>(o => o.Run())
         //     .Run();
 
-        CommandLine.Parse(args).Run<DemoCommandLineParsingContext>();
+        CommandLine.Parse(args)
+            .AddHandlers<AssemblyCommandHandler>()
+            .Run();
     }
 }
 
-internal partial class DemoCommandLineParsingContext : CommandLineParsingContext
+[AssemblyCommands]
+internal partial class AssemblyCommandHandler;
+
+partial class AssemblyCommandHandler : ICommandHandlerCollection
 {
+    public ICommandHandler? TryMatch(string verb, CommandLine commandLine)
+    {
+        return verb switch
+        {
+            "demo" => new DemoCommandHandler
+            {
+                Argument = commandLine.EnsureGetValue<string>(),
+                Option = commandLine.EnsureGetOption<string>("Option"),
+            },
+            _ => null,
+        };
+    }
+}
+
+[Verb("demo")]
+internal class DemoCommandHandler : CommandHandler
+{
+    [Option("Option")]
+    public required string Option { get; init; }
+
+    [Value]
+    public required string Argument { get; init; }
 }

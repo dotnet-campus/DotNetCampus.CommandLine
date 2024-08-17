@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using dotnetCampus.Cli.Compiler;
 using dotnetCampus.Cli.Utils;
 
 namespace dotnetCampus.Cli;
@@ -40,13 +41,13 @@ public record CommandLine
         return new CommandLine(args);
     }
 
-    public int Run<T>()
-        where T : CommandLineParsingContext, new()
+    public T EnsureGetOption<T>(T option)
     {
-        return 0;
+        throw new NotImplementedException();
     }
-}
 
-public abstract class CommandLineParsingContext
-{
+    public T EnsureGetValue<T>()
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -1,18 +1,18 @@
 namespace dotnetCampus.Cli.Compiler;
 
 /// <summary>
-/// 标记一个属性为命令行变量。
+/// 标记一个属性为命令行值。
 /// </summary>
 /// <remarks>
 /// 示例用法：
 /// <code>
-/// [Argument]
-/// public required string Argument { get; init; }
+/// [Value]
+/// public required string Value { get; init; }
 /// </code>
 /// 如果支持传入多个参数，则可以使用数组类型：
 /// <code>
-/// [Argument]
-/// public string[] Arguments { get; init; }
+/// [Value]
+/// public string[] Values { get; init; }
 /// </code>
 /// 常用的集合类型（包括接口）都是支持的，例如：
 /// <list type="bullet">
@@ -29,4 +29,4 @@ namespace dotnetCampus.Cli.Compiler;
 /// 等。
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class ArgumentAttribute : CommandLineAttribute;
+public sealed class ValueAttribute : CommandLineAttribute;
