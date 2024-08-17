@@ -18,7 +18,7 @@ public abstract class CommandLineAttribute : Attribute
     /// 此命令行类/属性的描述信息（会在命令行输出帮助信息时使用）。
     /// </summary>
     /// <remarks>
-    /// 如需支持本地话，请 // TODO: 添加本地化支持。
+    /// 如需支持本地化，请 // TODO: 添加本地化支持。
     /// </remarks>
     [DisallowNull]
     public string? Description { get; set; }

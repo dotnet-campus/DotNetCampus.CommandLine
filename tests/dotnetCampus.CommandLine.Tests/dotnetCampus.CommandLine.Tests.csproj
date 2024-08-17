@@ -29,7 +29,7 @@
   <ItemGroup>
     <Compile Remove="Fakes\**" />
     <Compile Remove="Analyzers\**" />
-    <Compile Remove="CommandLineTests.cs" />
+    <Compile Remove="CommandLineTests.bak.cs" />
     <Compile Remove="CommandLineTests.ValueRange.cs" />
   </ItemGroup>
 
