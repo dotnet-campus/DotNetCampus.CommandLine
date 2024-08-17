@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using dotnetCampus.Cli.Utils;
 
 namespace dotnetCampus.Cli;
 
@@ -28,57 +29,15 @@ public record CommandLine
         return new CommandLine([..args]);
     }
 
-    public static CommandLine Parse(string arguments)
+    /// <summary>
+    /// 解析一整行命令（所有参数被放在了同一个字符串中），并获得一个通用的命令行解析类型。
+    /// </summary>
+    /// <param name="singleLineCommandLineArgs">一整行命令。</param>
+    /// <returns>统一的命令行参数解析中间类型。</returns>
+    public static CommandLine Parse(string singleLineCommandLineArgs)
     {
-        if (string.IsNullOrWhiteSpace(arguments))
-        {
-            return new CommandLine(ImmutableArray<string>.Empty);
-        }
-
-        var parts = ImmutableArray.CreateBuilder<Range>();
-
-        var start = 0;
-        var length = 0;
-        var quoteDepth = 0;
-        for (var i = 0; i < arguments.Length; i++)
-        {
-            var c = arguments[i];
-            if (quoteDepth == 0)
-            {
-                if (c == ' ')
-                {
-                    if (length > 0)
-                    {
-                        parts.Add(new Range(start, start + length));
-                    }
-
-                    start = i + 1;
-                    length = 0;
-                }
-                else if (c == '"')
-                {
-                    quoteDepth++;
-                }
-                else
-                {
-                    length++;
-                }
-            }
-            else
-            {
-                if (c == '"')
-                {
-                    quoteDepth--;
-                }
-            }
-        }
-
-        if (length > 0)
-        {
-            parts.Add(new Range(start, start + length));
-        }
-
-        return new CommandLine([..parts.Select(part => arguments[part])]);
+        var args = CommandLineConverter.SingleLineCommandLineArgsToArrayCommandLineArgs(singleLineCommandLineArgs);
+        return new CommandLine(args);
     }
 
     public int Run<T>()
