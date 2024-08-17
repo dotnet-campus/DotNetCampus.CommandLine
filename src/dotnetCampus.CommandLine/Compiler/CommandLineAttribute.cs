@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace dotnetCampus.Cli;
+namespace dotnetCampus.Cli.Compiler;
 
 /// <summary>
 /// 为命令行参数与类型属性的关联提供特性基类。
@@ -13,6 +13,15 @@ public abstract class CommandLineAttribute : Attribute
     internal CommandLineAttribute()
     {
     }
+
+    /// <summary>
+    /// 获取或设置是否忽略大小写。
+    /// </summary>
+    /// <remarks>
+    /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性。
+    /// 如果都没有指定，则默认为大小写敏感。
+    /// </remarks>
+    public bool IgnoreCase { get; init; }
 
     /// <summary>
     /// 此命令行类/属性的描述信息（会在命令行输出帮助信息时使用）。
