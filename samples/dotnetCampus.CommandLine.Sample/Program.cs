@@ -14,7 +14,7 @@ class Program
         //     .Run();
 
         CommandLine.Parse(args)
-            // .AddHandler<DemoCommandHandler>("demo")
+            // .AddHandler<DemoCommandHandler>("demo", DemoCommandHandlerCreator)
             .AddHandlers<AssemblyCommandHandler>()
             .Run();
     }
@@ -25,14 +25,11 @@ internal partial class AssemblyCommandHandler;
 
 partial class AssemblyCommandHandler : ICommandHandlerCollection
 {
-    public ICommandHandler? TryMatch(string verb, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string? verb, CommandLine commandLine) => verb switch
     {
-        return verb switch
-        {
-            "demo" => new DemoVerbCreator().CreateInstance(commandLine),
-            _ => null,
-        };
-    }
+        "demo" => new DemoVerbCreator().CreateInstance(commandLine),
+        _ => null,
+    };
 }
 
 [Verb("demo")]

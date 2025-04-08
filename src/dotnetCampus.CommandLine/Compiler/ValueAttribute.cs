@@ -1,7 +1,7 @@
 namespace dotnetCampus.Cli.Compiler;
 
 /// <summary>
-/// 标记一个属性为命令行值。
+/// 标记一个属性为命令行位置参数。
 /// </summary>
 /// <remarks>
 /// 示例用法：
