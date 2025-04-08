@@ -4,29 +4,31 @@ namespace dotnetCampus.Cli.Utils.Handlers;
 
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
-    private IVerbCreator<ICommandHandler>? _defaultHandlerCreator;
-    private readonly Dictionary<string, IVerbCreator<ICommandHandler>> _verbHandlers = [];
+    private Func<CommandLine, ICommandHandler>? _defaultHandlerCreator;
+    private readonly Dictionary<string, Func<CommandLine, ICommandHandler>> _verbHandlers = [];
 
-    public void AddHandler(IVerbCreator<ICommandHandler> handlerCreator)
+    public void AddHandler(string? verbName, Func<CommandLine, ICommandHandler> handlerCreator)
     {
-        if (_defaultHandlerCreator is not null)
+        if (verbName is null)
         {
-            throw new InvalidOperationException($"Duplicate default handler creator. Existed: {_defaultHandlerCreator}, new: {handlerCreator}");
+            if (_defaultHandlerCreator is not null)
+            {
+                throw new InvalidOperationException($"Duplicate default handler creator. Existed: {_defaultHandlerCreator}, new: {handlerCreator}");
+            }
+            _defaultHandlerCreator = handlerCreator;
         }
-        _defaultHandlerCreator = handlerCreator;
-    }
-
-    public void AddHandler(string verbName, IVerbCreator<ICommandHandler> handlerCreator)
-    {
-        _verbHandlers[verbName] = handlerCreator;
+        else
+        {
+            _verbHandlers[verbName] = handlerCreator;
+        }
     }
 
     public ICommandHandler? TryMatch(string? verb, CommandLine commandLine)
     {
         return verb is null
-            ? _defaultHandlerCreator?.CreateInstance(commandLine)
+            ? _defaultHandlerCreator?.Invoke(commandLine)
             : _verbHandlers.TryGetValue(verb, out var handlerCreator)
-                ? handlerCreator.CreateInstance(commandLine)
+                ? handlerCreator.Invoke(commandLine)
                 : null;
     }
 }

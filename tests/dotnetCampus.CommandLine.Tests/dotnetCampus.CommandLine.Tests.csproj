@@ -23,23 +23,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj" />
+    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Fakes\**" />
     <Compile Remove="Analyzers\**" />
+    <Compile Remove="Fakes\**" />
     <Compile Remove="CommandLineTests.bak.cs" />
     <Compile Remove="CommandLineTests.ValueRange.cs" />
+    <Compile Include="Fakes\AssemblyCommandHandler.cs" />
+    <Compile Include="Fakes\DefaultVerbCommandHandler.cs" />
+    <Compile Include="Fakes\FakeVerbCommandHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Remove="Fakes\**" />
     <EmbeddedResource Remove="Analyzers\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Fakes\**" />
     <None Remove="Analyzers\**" />
   </ItemGroup>
 

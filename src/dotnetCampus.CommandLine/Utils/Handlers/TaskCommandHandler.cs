@@ -3,8 +3,7 @@ using dotnetCampus.Cli.Compiler;
 namespace dotnetCampus.Cli.Utils.Handlers;
 
 internal sealed class TaskCommandHandler<TOptions>(
-    CommandLine commandLine,
-    IVerbCreator<TOptions> optionsCreator,
+    Func<TOptions> optionsCreator,
     Func<TOptions, Task<int>> handler) : ICommandHandler, IVerbCreator<TaskCommandHandler<TOptions>>
     where TOptions : class
 {
@@ -17,7 +16,7 @@ internal sealed class TaskCommandHandler<TOptions>(
 
     public Task<int> RunAsync()
     {
-        _options ??= optionsCreator.CreateInstance(commandLine);
+        _options ??= optionsCreator();
         if (_options is null)
         {
             throw new InvalidOperationException($"No options of type {typeof(TOptions)} were created.");

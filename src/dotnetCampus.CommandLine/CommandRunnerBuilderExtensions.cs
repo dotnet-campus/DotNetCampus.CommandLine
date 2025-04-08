@@ -1,5 +1,4 @@
 using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Utils.Handlers;
 
 namespace dotnetCampus.Cli;
 
@@ -9,55 +8,30 @@ namespace dotnetCampus.Cli;
 public static class CommandRunnerBuilderExtensions
 {
     /// <summary>
-    /// 添加一个没有谓词的默认命令处理器。
+    /// 添加一个命令处理器。
     /// </summary>
+    /// <param name="commandLine">已解析的命令行参数。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    public static CommandRunner AddHandler<T>(this CommandLine commandLine,
-        IVerbCreator<T> optionsCreator, Func<T, Task<int>> handler)
-        where T : class
+    public static CommandRunner AddHandler<T>(this CommandLine commandLine)
+        where T : class, ICommandHandler
     {
         return new CommandRunner(commandLine)
-            .AddHandler(new TaskCommandHandler<T>(commandLine, optionsCreator, handler));
+            .AddHandler<T>();
     }
 
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
+    /// <param name="commandLine">已解析的命令行参数。</param>
+    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    public static CommandRunner AddHandler<T>(this CommandLine commandLine, string verbName,
-        IVerbCreator<T> optionsCreator, Func<T, Task<int>> handler)
+    public static CommandRunner AddHandler<T>(this CommandLine commandLine, Func<T, Task<int>> handler)
         where T : class
     {
         return new CommandRunner(commandLine)
-            .AddHandler(verbName, new TaskCommandHandler<T>(commandLine, optionsCreator, handler));
-    }
-
-    /// <summary>
-    /// 添加一个没有谓词的默认命令处理器。
-    /// </summary>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    public static CommandRunner AddHandler<T>(this CommandLine commandLine,
-        IVerbCreator<T> handlerCreator)
-        where T : class, ICommandHandler
-    {
-        return new CommandRunner(commandLine)
-            .AddHandler(handlerCreator);
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    public static CommandRunner AddHandler<T>(this CommandLine commandLine, string verbName,
-        IVerbCreator<T> handlerCreator)
-        where T : class, ICommandHandler
-    {
-        return new CommandRunner(commandLine)
-            .AddHandler(verbName, handlerCreator);
+            .AddHandler<T>(handler);
     }
 
     public static CommandRunner AddHandlers<T>(this CommandLine commandLine)
