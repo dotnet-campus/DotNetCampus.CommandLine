@@ -15,6 +15,11 @@ public record CommandLine
     public ImmutableArray<string> CommandLineArguments { get; }
 
     /// <summary>
+    /// 获取命令行参数中猜测的谓词名称。
+    /// </summary>
+    public string? GuessedVerbName { get; }
+
+    /// <summary>
     /// 从命令行中解析出来的长名称选项。
     /// </summary>
     public ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues { get; }
@@ -32,7 +37,7 @@ public record CommandLine
     private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         CommandLineArguments = arguments;
-        (LongOptionValues, ShortOptionValues, PositionalArguments) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
+        (GuessedVerbName, LongOptionValues, ShortOptionValues, PositionalArguments) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
     }
 
     /// <summary>
@@ -59,27 +64,15 @@ public record CommandLine
         return new CommandLine(args, parsingOptions);
     }
 
+    /// <summary>
+    /// 尝试获取命令行参数中猜测的谓词名称。
+    /// </summary>
+    /// <param name="verbName">谓词名称。</param>
+    /// <returns>如果命令行参数中包含谓词名称，则返回 <see langword="true" />；否则返回 <see langword="false" />。</returns>
     internal bool TryGuessVerbName([NotNullWhen(true)] out string? verbName)
     {
-        // 如果没有参数，则返回 false。
-        if (CommandLineArguments.Length is 0)
-        {
-            verbName = null;
-            return false;
-        }
-
-        var firstArgument = CommandLineArguments[0];
-
-        // 如果第一个参数是一个选项，则返回 false。
-        if (firstArgument.StartsWith("-"))
-        {
-            verbName = null;
-            return false;
-        }
-
-        // 否则，猜测第一个参数是谓词名称。
-        verbName = firstArgument;
-        return true;
+        verbName = GuessedVerbName;
+        return verbName is not null;
     }
 
     /// <summary>
