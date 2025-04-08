@@ -20,6 +20,30 @@ public static class CommandRunnerBuilderExtensions
             .AddHandler<T>();
     }
 
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static CommandRunner AddHandler<T>(this CommandLine commandLine, Action<T> handler)
+        where T : class
+    {
+        return new CommandRunner(commandLine)
+            .AddHandler<T>(handler);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static CommandRunner AddHandler<T>(this CommandLine commandLine, Func<T, int> handler)
+        where T : class
+    {
+        return new CommandRunner(commandLine)
+            .AddHandler<T>(handler);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static CommandRunner AddHandler<T>(this CommandLine commandLine, Func<T, Task> handler)
+        where T : class
+    {
+        return new CommandRunner(commandLine)
+            .AddHandler<T>(handler);
+    }
+
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>

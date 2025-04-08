@@ -56,6 +56,26 @@ public class CommandRunner
         return this;
     }
 
+    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
+    public CommandRunner AddHandler<T>(Action<T> handler)
+        where T : class => AddHandler<T>(t =>
+    {
+        handler(t);
+        return Task.FromResult(0);
+    });
+
+    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
+    public CommandRunner AddHandler<T>(Func<T, int> handler)
+        where T : class => AddHandler<T>(t => Task.FromResult(handler(t)));
+
+    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
+    public CommandRunner AddHandler<T>(Func<T, Task> handler)
+        where T : class => AddHandler<T>(async t =>
+    {
+        await handler(t);
+        return 0;
+    });
+
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>

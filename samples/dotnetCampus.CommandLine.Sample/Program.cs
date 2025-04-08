@@ -16,7 +16,7 @@ class Program
         //     .Run();
 
         CommandLine.Parse(args)
-            // .AddHandler<SampleCommandHandler>("demo", DemoCommandHandlerCreator)
+            .AddHandler<SampleCommandHandler>(o => 0)
             .AddHandlers<AssemblyCommandHandler>()
             .Run();
     }
