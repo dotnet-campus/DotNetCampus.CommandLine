@@ -63,6 +63,7 @@ public static class CommandRunnerBuilderExtensions
     public static CommandRunner AddHandlers<T>(this CommandLine commandLine)
         where T : ICommandHandlerCollection, new()
     {
-        throw new NotImplementedException();
+        return new CommandRunner(commandLine)
+            .AddHandlers<T>();
     }
 }

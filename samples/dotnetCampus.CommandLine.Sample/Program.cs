@@ -1,4 +1,6 @@
-﻿using dotnetCampus.Cli.Compiler;
+﻿using System;
+using System.Threading.Tasks;
+using dotnetCampus.Cli.Compiler;
 using dotnetCampus.Cli.Generated;
 
 namespace dotnetCampus.Cli;
@@ -14,7 +16,7 @@ class Program
         //     .Run();
 
         CommandLine.Parse(args)
-            // .AddHandler<DemoCommandHandler>("demo", DemoCommandHandlerCreator)
+            // .AddHandler<SampleCommandHandler>("demo", DemoCommandHandlerCreator)
             .AddHandlers<AssemblyCommandHandler>()
             .Run();
     }
@@ -27,17 +29,24 @@ partial class AssemblyCommandHandler : ICommandHandlerCollection
 {
     public ICommandHandler? TryMatch(string? verb, CommandLine commandLine) => verb switch
     {
-        "demo" => new DemoVerbCreator().CreateInstance(commandLine),
+        "sample" => new SampleVerbCreator().CreateInstance(commandLine),
         _ => null,
     };
 }
 
-[Verb("demo")]
-internal class DemoCommandHandler : CommandHandler
+[Verb("sample")]
+internal class SampleCommandHandler : ICommandHandler
 {
-    [Option("Option")]
+    [Option("SampleProperty")]
     public required string Option { get; init; }
 
     [Value]
-    public required string Argument { get; init; }
+    public string? Argument { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        Console.WriteLine($"Option: {Option}");
+        Console.WriteLine($"Argument: {Argument}");
+        return Task.FromResult(0);
+    }
 }

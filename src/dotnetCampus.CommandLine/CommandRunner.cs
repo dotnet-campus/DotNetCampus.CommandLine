@@ -40,16 +40,26 @@ public class CommandRunner
 
     public int Run()
     {
-        return 0;
+        return RunAsync().Result;
     }
 
-    public async Task<int> RunAsync()
+    public Task<int> RunAsync()
     {
         var verbName = _commandLine.GuessedVerbName;
+
         if (_dictionaryVerbHandlers.TryMatch(verbName, _commandLine) is { } h1)
         {
+            return h1.RunAsync();
         }
 
-        return 0;
+        foreach (var handler in _assemblyVerbHandlers)
+        {
+            if (handler.TryMatch(verbName, _commandLine) is { } h2)
+            {
+                return h2.RunAsync();
+            }
+        }
+
+        throw new InvalidOperationException($"No command handler found for verb '{verbName}'. Please ensure that the command handler is registered correctly.");
     }
 }
