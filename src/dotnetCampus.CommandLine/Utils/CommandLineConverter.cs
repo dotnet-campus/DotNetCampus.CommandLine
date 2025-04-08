@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using dotnetCampus.Cli.Utils.Parsers;
 
 namespace dotnetCampus.Cli.Utils;
 
@@ -65,12 +66,10 @@ internal static class CommandLineConverter
         return [..parts.Select(part => singleLineCommandLineArgs[part])];
     }
 
-    public static (
-        ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues,
-        ImmutableDictionary<char, ImmutableArray<string>> ShortOptionValues,
-        ImmutableArray<string> PositionalArguments
-        ) ParseCommandLineArguments(ImmutableArray<string> arguments)
+    public static CommandLineParsedResult ParseCommandLineArguments(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        throw new NotImplementedException();
+        var style = parsingOptions?.Style ?? CommandLineStyle.Auto;
+        var parser = new GnuStyleParser();
+        return parser.Parse(arguments);
     }
 }
