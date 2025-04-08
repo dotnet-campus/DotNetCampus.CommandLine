@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="**\*.cs" />
+    <Compile Include="Generated\DemoVerbCreator.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
 

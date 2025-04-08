@@ -1,4 +1,5 @@
 ﻿using dotnetCampus.Cli.Compiler;
+using dotnetCampus.Cli.Generated;
 
 namespace dotnetCampus.Cli;
 
@@ -13,6 +14,7 @@ class Program
         //     .Run();
 
         CommandLine.Parse(args)
+            // .AddHandler<DemoCommandHandler>("demo")
             .AddHandlers<AssemblyCommandHandler>()
             .Run();
     }
@@ -27,11 +29,7 @@ partial class AssemblyCommandHandler : ICommandHandlerCollection
     {
         return verb switch
         {
-            "demo" => new DemoCommandHandler
-            {
-                Argument = commandLine.EnsureGetValue<string>(),
-                Option = commandLine.EnsureGetOption<string>("Option"),
-            },
+            "demo" => new DemoVerbCreator().CreateInstance(commandLine),
             _ => null,
         };
     }

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.Cli.Compiler;
+using System.Diagnostics.CodeAnalysis;
 using dotnetCampus.Cli.Utils;
 
 namespace dotnetCampus.Cli;
@@ -12,11 +12,27 @@ public record CommandLine
     /// <summary>
     /// 获取此命令行解析类型所关联的命令行参数。
     /// </summary>
-    public readonly ImmutableArray<string> Arguments;
+    public ImmutableArray<string> CommandLineArguments { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的长名称选项。
+    /// </summary>
+    public ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的短名称选项。
+    /// </summary>
+    public ImmutableDictionary<char, ImmutableArray<string>> ShortOptionValues { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的位置参数。
+    /// </summary>
+    public ImmutableArray<string> PositionalArguments { get; }
 
     private CommandLine(ImmutableArray<string> arguments)
     {
-        Arguments = arguments;
+        CommandLineArguments = arguments;
+        (LongOptionValues, ShortOptionValues, PositionalArguments) = CommandLineConverter.ParseCommandLineArguments(arguments);
     }
 
     /// <summary>
@@ -41,13 +57,184 @@ public record CommandLine
         return new CommandLine(args);
     }
 
-    public T EnsureGetOption<T>(T option)
+    internal bool TryGuessVerbName([NotNullWhen(true)] out string? verbName)
     {
-        throw new NotImplementedException();
+        // 如果没有参数，则返回 false。
+        if (CommandLineArguments.Length is 0)
+        {
+            verbName = null;
+            return false;
+        }
+
+        var firstArgument = CommandLineArguments[0];
+
+        // 如果第一个参数是一个选项，则返回 false。
+        if (firstArgument.StartsWith("-"))
+        {
+            verbName = null;
+            return false;
+        }
+
+        // 否则，猜测第一个参数是谓词名称。
+        verbName = firstArgument;
+        return true;
     }
 
-    public T EnsureGetValue<T>()
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。</returns>
+    public T? GetOption<T>(string optionName) where T : notnull
     {
-        throw new NotImplementedException();
+        return TryGetOption<T>(optionName, out var result) ? result : default;
     }
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。</returns>
+    public T? GetOption<T>(char shortOption) where T : notnull
+    {
+        return TryGetOption<T>(shortOption, out var result) ? result : default;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
+    /// <param name="value">返回选项的值。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>如果选项存在，则返回 true；否则返回 false。</returns>
+    public bool TryGetOption<T>(string optionName, [NotNullWhen(true)] out T? value) where T : notnull
+    {
+        if (LongOptionValues.TryGetValue(optionName, out var values))
+        {
+            value = CommandLineValueConverter.OptionStringsToValue<T>(values);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <param name="value">返回选项的值。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>如果选项存在，则返回 true；否则返回 false。</returns>
+    public bool TryGetOption<T>(char shortOption, [NotNullWhen(true)] out T? value) where T : notnull
+    {
+        if (ShortOptionValues.TryGetValue(shortOption, out var values))
+        {
+            value = CommandLineValueConverter.OptionStringsToValue<T>(values);
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中位置参数的值。
+    /// </summary>
+    /// <param name="mergeIfSpaceOutOfQuoteExists">如果选项值中包含空格（但用户忘记将其放入引号中），是否将其合并为一个值。</param>
+    /// <returns>命令行参数中位置参数的值。</returns>
+    public string? GetPositionalArgument(bool mergeIfSpaceOutOfQuoteExists = false)
+    {
+        return (Values: PositionalArguments, mergeIfSpaceOutOfQuoteExists) switch
+        {
+            ({ Length: 0 }, _) => null,
+            ({ Length: 1 }, _) => PositionalArguments[0],
+            (_, true) => string.Join(", ", PositionalArguments),
+            _ => PositionalArguments[0],
+        };
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定位置的位置参数的值。
+    /// </summary>
+    /// <param name="position">位置参数的位置。</param>
+    /// <returns>命令行参数中位置参数的值。如果指定位置处没有参数，则返回 <see langword="null" />。</returns>
+    public string? GetPositionalArgument(int position)
+    {
+        if (position < 0 || position >= PositionalArguments.Length)
+        {
+            return null;
+        }
+
+        return PositionalArguments[position];
+    }
+
+    /// <summary>
+    /// 获取命令行参数中的位置参数的值的集合。
+    /// </summary>
+    /// <returns>命令行参数中位置参数的值的集合。</returns>
+    public ImmutableArray<string> GetPositionalArguments()
+    {
+        return PositionalArguments;
+    }
+}
+
+/// <summary>
+/// This version of ps accepts several kinds of options:
+/// 1. UNIX options, which may be grouped and must be preceded by a dash.
+/// 2. BSD options, which may be grouped and must not be used with a dash.
+/// 3. GNU long options, which are preceded by two dashes.
+/// </summary>
+[Flags]
+public enum CommandLineStyle
+{
+    /// <summary>
+    /// 单破折线（-）风格，通过空格赋值。
+    /// </summary>
+    /// <remarks>
+    /// 这种风格既不能和古典的 POSIX/UNIX 风格兼容，也不能和 GNU 风格兼容，所以不应该在新程序中使用，除非遵循老式的X约定看起来价值很高。<br/>
+    /// <code>
+    /// do -option value
+    /// </code>
+    /// </remarks>
+    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。")]
+    XToolkit = -1,
+
+    /// <summary>
+    /// 自动风格。<br/>
+    /// 根据实际传入的参数，自动在 <see cref="GNU"/>、XXX、XXX 中选择风格。
+    /// </summary>
+    Auto,
+
+    /// <summary>
+    /// 双破折线（--）风格，通过等号或空格赋值。
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// do --option=value
+    /// do --option value
+    /// do -o=value
+    /// do -o value
+    /// do value1 value2 --option value
+    /// do --option value -- value1 value2
+    /// </code>
+    /// </remarks>
+    GNU,
+
+    POSIX,
+
+    /// <summary>
+    /// Windows 传统风格。左下划线（/）+ 单个字符 + 选项参数；不使用空格分开。
+    /// </summary>
+    /// <remarks>
+    /// 在此风格下，选项名称仅支持单个字符，其多个字符的本名不起作用。
+    /// <code>
+    /// do /ovalue
+    /// o /o/s
+    /// </code>
+    /// </remarks>
+    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。")]
+    DOS,
 }

@@ -5,7 +5,7 @@ namespace dotnetCampus.Cli.Utils;
 /// <summary>
 /// 命令行参数转换器。
 /// </summary>
-internal class CommandLineConverter
+internal static class CommandLineConverter
 {
     /// <summary>
     /// 将一整行命令转换为命令行参数数组。
@@ -63,5 +63,14 @@ internal class CommandLineConverter
         }
 
         return [..parts.Select(part => singleLineCommandLineArgs[part])];
+    }
+
+    public static (
+        ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues,
+        ImmutableDictionary<char, ImmutableArray<string>> ShortOptionValues,
+        ImmutableArray<string> PositionalArguments
+        ) ParseCommandLineArguments(ImmutableArray<string> arguments)
+    {
+        throw new NotImplementedException();
     }
 }
