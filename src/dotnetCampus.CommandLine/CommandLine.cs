@@ -76,6 +76,13 @@ public record CommandLine
     }
 
     /// <summary>
+    /// 尝试将命令行参数转换为指定类型的实例。
+    /// </summary>
+    /// <typeparam name="T">要转换的类型。</typeparam>
+    /// <returns>转换后的实例。</returns>
+    public T As<T>() where T : class => CommandRunner.CreateInstance<T>(this);
+
+    /// <summary>
     /// 获取命令行参数中指定名称的选项的值。
     /// </summary>
     /// <param name="optionName">选项的名称。</param>
