@@ -2,14 +2,5 @@
 
 namespace dotnetCampus.Cli.Tests.Fakes;
 
-[AssemblyCommandHandlers]
+[CollectCommandHandlersFromThisAssembly]
 internal partial class AssemblyCommandHandler;
-
-partial class AssemblyCommandHandler : ICommandHandlerCollection
-{
-    public ICommandHandler? TryMatch(string? verb, CommandLine commandLine) => verb switch
-    {
-        // "fake" => new FakeVerbCommandHandler().CreateInstance(commandLine),
-        _ => null,
-    };
-}

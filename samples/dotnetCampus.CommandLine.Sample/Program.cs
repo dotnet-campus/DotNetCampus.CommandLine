@@ -21,7 +21,7 @@ class Program
     }
 }
 
-[AssemblyCommandHandlers]
+[CollectCommandHandlersFromThisAssembly]
 internal partial class AssemblyCommandHandler;
 
 [Verb("sample")]

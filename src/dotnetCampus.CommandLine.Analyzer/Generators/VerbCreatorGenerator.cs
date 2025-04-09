@@ -135,7 +135,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.C
 {
     public global::dotnetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::dotnetCampus.Cli.CommandLine cl) => verb switch
     {
-{{string.Join("\n", models.Select(GenerateAssemblyCommandHandlerMatchCode))}}
+{{string.Join("\n", models.GroupBy(x => x.VerbName).Select(GenerateAssemblyCommandHandlerMatchCode))}}
         _ => null,
     };
 }
@@ -143,10 +143,22 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.C
 """;
     }
 
-    private string GenerateAssemblyCommandHandlerMatchCode(CommandOptionsGeneratingModel model)
+    private string GenerateAssemblyCommandHandlerMatchCode(IGrouping<string?, CommandOptionsGeneratingModel> group)
     {
-        return $"""
-        {(model.VerbName is { } vn ? $"\"{vn}\"" : "null")} => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl),
+        var models = group.ToList();
+        if (models.Count is 1)
+        {
+            var model = models[0];
+            return $"""
+        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl),
 """;
+        }
+        else
+        {
+            var verbCode = group.Key is { } vn ? $"\"{vn}\"" : "null";
+            return $"""
+        {verbCode} => throw new global::dotnetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.OptionsType.Name))}.", {verbCode}),
+""";
+        }
     }
 }
