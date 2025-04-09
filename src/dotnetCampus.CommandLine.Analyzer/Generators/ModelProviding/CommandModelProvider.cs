@@ -166,7 +166,12 @@ internal record OptionPropertyGeneratingModel
 
     public required ImmutableArray<string> Aliases { get; init; }
 
-    public string GetCommandOption()
+    public string GetNormalizedLongName()
+    {
+        return NamingHelper.MakeKebabCase(LongName ?? PropertyName);
+    }
+
+    public string GetDisplayCommandOption()
     {
         if (LongName is { } longName)
         {

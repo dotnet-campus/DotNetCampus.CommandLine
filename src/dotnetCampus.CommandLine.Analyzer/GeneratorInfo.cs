@@ -22,6 +22,14 @@ internal static class GeneratorInfo
         SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
         SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+    private static readonly SymbolDisplayFormat NotNullGlobalDisplayFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        miscellaneousOptions:
+        SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+        SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
     private static readonly SymbolDisplayFormat GlobalTypeOfDisplayFormat = new SymbolDisplayFormat(
         globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -34,6 +42,11 @@ internal static class GeneratorInfo
     public static string ToGlobalDisplayString(this ISymbol symbol)
     {
         return symbol.ToDisplayString(GlobalDisplayFormat);
+    }
+
+    public static string ToNotNullGlobalDisplayString(this ISymbol symbol)
+    {
+        return symbol.ToDisplayString(NotNullGlobalDisplayFormat);
     }
 
     public static string ToGlobalTypeOfDisplayString(this INamedTypeSymbol symbol)

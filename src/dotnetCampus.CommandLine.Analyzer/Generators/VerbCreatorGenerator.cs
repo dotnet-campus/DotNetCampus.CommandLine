@@ -81,14 +81,14 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
         // | 1        | 1        | 1   | 赋值       |
 
         return $"""
-        {property.PropertyName} = commandLine.GetOption<{property.Type.ToGlobalDisplayString()}>("{property.LongName}") ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default")},
+        {property.PropertyName} = commandLine.GetOption<{property.Type.ToNotNullGlobalDisplayString()}>("{property.GetNormalizedLongName()}") ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default")},
 """;
     }
 
     private string GenerateValuePropertyAssignment(ValuePropertyGeneratingModel property)
     {
         return $"""
-        {property.PropertyName} = commandLine.GetValue<{property.Type.ToGlobalDisplayString()}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default")},
+        {property.PropertyName} = commandLine.GetValue<{property.Type.ToNotNullGlobalDisplayString()}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default")},
 """;
     }
 
