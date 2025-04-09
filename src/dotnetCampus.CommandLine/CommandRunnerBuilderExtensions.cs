@@ -92,4 +92,17 @@ public static class CommandRunnerBuilderExtensions
         return builder.GetOrCreateRunner()
             .AddHandlers<T>();
     }
+
+    /// <summary>
+    /// 添加支持 GNU 标准的命令行通用参数。这将在无参数，带 --help 参数和带 --version 参数时得到通用的响应。<br/>
+    /// 考虑到几乎没有开发者认为这个方法的行为符合预期，我们移除了这个功能。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    /// <exception cref="NotSupportedException">任何时候调用这个方法都会抛出这个异常。</exception>
+    [Obsolete("Considering that almost no developer thinks the behavior of this method meets expectations, we removed this feature.", true)]
+    public static IAsyncCommandRunnerBuilder AddStandardHandlers(this ICoreCommandRunnerBuilder builder)
+    {
+        throw new NotSupportedException("Considering that almost no developer thinks the behavior of this method meets expectations, we removed this feature.");
+    }
 }

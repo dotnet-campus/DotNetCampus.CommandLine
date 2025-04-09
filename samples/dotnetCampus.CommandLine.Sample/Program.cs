@@ -8,13 +8,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        // CommandLine.Parse(args, LocalizableStrings.ResourceManager)
-        //     .AddStandardHandlers()
-        //     .AddHandler<DefaultOptions>(o => o.Run())
-        //     .AddHandler<SampleOptions>(o => o.Run())
-        //     .Run();
-
-        await CommandLine.Parse(args)
+        await CommandLine.Parse(args /* , LocalizableStrings.ResourceManager */)
+            // .AddStandardHandlers()
             .AddHandler<DefaultOptions>(o => o.Run())
             .AddHandler<SampleOptions>(o => o.Run())
             .AddHandlers<AssemblyCommandHandler>()
