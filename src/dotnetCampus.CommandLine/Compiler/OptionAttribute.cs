@@ -3,7 +3,7 @@ namespace dotnetCampus.Cli.Compiler;
 /// <summary>
 /// 标记一个属性为命令行选项。
 /// </summary>
-/// <param name="name">
+/// <param name="longName">
 /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
 /// </param>
 /// <remarks>
@@ -15,12 +15,33 @@ namespace dotnetCampus.Cli.Compiler;
 /// 其中，<c>required</c> 为可选的修饰符，表示该选项为必填项；如果没有在命令行中传入，则会抛出异常或输出错误信息。
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
-public sealed class OptionAttribute(string name) : CommandLineAttribute
+public sealed class OptionAttribute : CommandLineAttribute
 {
     /// <summary>
-    /// 获取选项名称。
+    /// 标记一个属性为命令行选项，其长名称为属性名。
     /// </summary>
-    public string Name { get; } = name;
+    public OptionAttribute()
+    {
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称。
+    /// </summary>
+    /// <param name="longName">指定的长名称。</param>
+    public OptionAttribute(string longName)
+    {
+        LongName = longName;
+    }
+
+    /// <summary>
+    /// 获取或初始化选项的短名称。
+    /// </summary>
+    public char ShortName { get; init; } = '\0';
+
+    /// <summary>
+    /// 获取选项的长名称。
+    /// </summary>
+    public string? LongName { get; }
 
     /// <summary>
     /// 获取或设置选项的别名。

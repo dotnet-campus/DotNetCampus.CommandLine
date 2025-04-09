@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Generated;
 
 namespace dotnetCampus.Cli;
 
@@ -40,8 +39,8 @@ internal class SampleCommandHandler : ICommandHandler
     [Option("SampleProperty")]
     public required string Option { get; init; }
 
-    [Value]
-    public string? Argument { get; init; }
+    [Value(Length = int.MaxValue)]
+    public required string Argument { get; init; }
 
     public Task<int> RunAsync()
     {

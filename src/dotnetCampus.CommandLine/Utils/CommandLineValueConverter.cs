@@ -3,15 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace dotnetCampus.Cli.Utils;
 
-internal class CommandLineValueConverter
+internal static class CommandLineValueConverter
 {
     [return: NotNullIfNotNull(nameof(arguments))]
-    internal static T? OptionStringsToValue<T>(ImmutableArray<string>? arguments)
+    internal static T? ArgumentStringsToValue<T>(ImmutableArray<string>? arguments)
     {
         var type = typeof(T);
         if (type == typeof(bool))
         {
-            return (T)(object)OptionStringsToBoolean(arguments);
+            return (T)(object)ArgumentStringsToBoolean(arguments);
         }
         if (arguments is null or { Length: 0 })
         {
@@ -22,25 +22,25 @@ internal class CommandLineValueConverter
         {
             return Enum.TryParse(type, values[0], true, out var result) ? (T)result : default!;
         }
-        return type == typeof(byte) ? (T)(object)OptionStringsToByte(arguments) :
-            type == typeof(sbyte) ? (T)(object)OptionStringsToSByte(arguments) :
-            type == typeof(char) ? (T)(object)OptionStringsToChar(arguments) :
-            type == typeof(decimal) ? (T)(object)OptionStringsToDecimal(arguments) :
-            type == typeof(double) ? (T)(object)OptionStringsToDouble(arguments) :
-            type == typeof(float) ? (T)(object)OptionStringsToSingle(arguments) :
-            type == typeof(int) ? (T)(object)OptionStringsToInt32(arguments) :
-            type == typeof(uint) ? (T)(object)OptionStringsToUInt32(arguments) :
-            type == typeof(nint) ? (T)(object)OptionStringsToIntPtr(arguments) :
-            type == typeof(nuint) ? (T)(object)OptionStringsToUIntPtr(arguments) :
-            type == typeof(long) ? (T)(object)OptionStringsToInt64(arguments) :
-            type == typeof(ulong) ? (T)(object)OptionStringsToUInt64(arguments) :
-            type == typeof(short) ? (T)(object)OptionStringsToInt16(arguments) :
-            type == typeof(ushort) ? (T)(object)OptionStringsToUInt16(arguments) :
-            type == typeof(string) ? (T)(object)OptionStringsToString(arguments) :
+        return type == typeof(byte) ? (T)(object)ArgumentStringsToByte(arguments) :
+            type == typeof(sbyte) ? (T)(object)ArgumentStringsToSByte(arguments) :
+            type == typeof(char) ? (T)(object)ArgumentStringsToChar(arguments) :
+            type == typeof(decimal) ? (T)(object)ArgumentStringsToDecimal(arguments) :
+            type == typeof(double) ? (T)(object)ArgumentStringsToDouble(arguments) :
+            type == typeof(float) ? (T)(object)ArgumentStringsToSingle(arguments) :
+            type == typeof(int) ? (T)(object)ArgumentStringsToInt32(arguments) :
+            type == typeof(uint) ? (T)(object)ArgumentStringsToUInt32(arguments) :
+            type == typeof(nint) ? (T)(object)ArgumentStringsToIntPtr(arguments) :
+            type == typeof(nuint) ? (T)(object)ArgumentStringsToUIntPtr(arguments) :
+            type == typeof(long) ? (T)(object)ArgumentStringsToInt64(arguments) :
+            type == typeof(ulong) ? (T)(object)ArgumentStringsToUInt64(arguments) :
+            type == typeof(short) ? (T)(object)ArgumentStringsToInt16(arguments) :
+            type == typeof(ushort) ? (T)(object)ArgumentStringsToUInt16(arguments) :
+            type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments) :
             throw new NotSupportedException($"Option type {type} is not supported.");
     }
 
-    internal static bool OptionStringsToBoolean(ImmutableArray<string>? arguments) => arguments switch
+    internal static bool ArgumentStringsToBoolean(ImmutableArray<string>? arguments) => arguments switch
     {
         // 没传选项时，相当于传了 false。
         null => false,
@@ -50,98 +50,98 @@ internal class CommandLineValueConverter
         { } values => bool.TryParse(values[0], out var result) && result,
     };
 
-    internal static T OptionStringsToEnum<T>(ImmutableArray<string>? arguments) where T : unmanaged, Enum => arguments switch
+    internal static T ArgumentStringsToEnum<T>(ImmutableArray<string>? arguments) where T : unmanaged, Enum => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => Enum.TryParse<T>(values[0], out var result) ? result : default,
     };
 
-    internal static byte OptionStringsToByte(ImmutableArray<string>? arguments) => arguments switch
+    internal static byte ArgumentStringsToByte(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => byte.TryParse(values[0], out var result) ? result : default,
     };
 
-    internal static sbyte OptionStringsToSByte(ImmutableArray<string>? arguments) => arguments switch
+    internal static sbyte ArgumentStringsToSByte(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => sbyte.TryParse(values[0], out var result) ? result : default,
     };
 
-    internal static char OptionStringsToChar(ImmutableArray<string>? arguments) => arguments switch
+    internal static char ArgumentStringsToChar(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => char.TryParse(values[0], out var result) ? result : '\0',
     };
 
-    internal static decimal OptionStringsToDecimal(ImmutableArray<string>? arguments) => arguments switch
+    internal static decimal ArgumentStringsToDecimal(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => decimal.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static double OptionStringsToDouble(ImmutableArray<string>? arguments) => arguments switch
+    internal static double ArgumentStringsToDouble(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => double.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static float OptionStringsToSingle(ImmutableArray<string>? arguments) => arguments switch
+    internal static float ArgumentStringsToSingle(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => float.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static int OptionStringsToInt32(ImmutableArray<string>? arguments) => arguments switch
+    internal static int ArgumentStringsToInt32(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => int.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static uint OptionStringsToUInt32(ImmutableArray<string>? arguments) => arguments switch
+    internal static uint ArgumentStringsToUInt32(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => uint.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static nint OptionStringsToIntPtr(ImmutableArray<string>? arguments) => arguments switch
+    internal static nint ArgumentStringsToIntPtr(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => nint.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static nuint OptionStringsToUIntPtr(ImmutableArray<string>? arguments) => arguments switch
+    internal static nuint ArgumentStringsToUIntPtr(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => nuint.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static long OptionStringsToInt64(ImmutableArray<string>? arguments) => arguments switch
+    internal static long ArgumentStringsToInt64(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => long.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static ulong OptionStringsToUInt64(ImmutableArray<string>? arguments) => arguments switch
+    internal static ulong ArgumentStringsToUInt64(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => ulong.TryParse(values[0], out var result) ? result : 0,
     };
 
-    internal static short OptionStringsToInt16(ImmutableArray<string>? arguments) => arguments switch
+    internal static short ArgumentStringsToInt16(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => short.TryParse(values[0], out var result) ? result : default,
     };
 
-    internal static ushort OptionStringsToUInt16(ImmutableArray<string>? arguments) => arguments switch
+    internal static ushort ArgumentStringsToUInt16(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
         { } values => ushort.TryParse(values[0], out var result) ? result : default,
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
-    internal static string? OptionStringsToString(ImmutableArray<string>? arguments) => arguments switch
+    internal static string? ArgumentStringsToString(ImmutableArray<string>? arguments) => arguments switch
     {
         null => null,
         { Length: 0 } => "",

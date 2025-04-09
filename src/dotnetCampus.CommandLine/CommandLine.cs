@@ -115,7 +115,7 @@ public record CommandLine
     {
         if (LongOptionValues.TryGetValue(optionName, out var values))
         {
-            value = CommandLineValueConverter.OptionStringsToValue<T>(values);
+            value = CommandLineValueConverter.ArgumentStringsToValue<T>(values);
             return true;
         }
 
@@ -134,7 +134,7 @@ public record CommandLine
     {
         if (ShortOptionValues.TryGetValue(shortOption, out var values))
         {
-            value = CommandLineValueConverter.OptionStringsToValue<T>(values);
+            value = CommandLineValueConverter.ArgumentStringsToValue<T>(values);
             return true;
         }
 
@@ -145,39 +145,63 @@ public record CommandLine
     /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
-    /// <param name="mergeIfSpaceOutOfQuoteExists">如果选项值中包含空格（但用户忘记将其放入引号中），是否将其合并为一个值。</param>
-    /// <returns>命令行参数中位置参数的值。</returns>
-    public string? GetPositionalArgument(bool mergeIfSpaceOutOfQuoteExists = false)
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>位置参数的值。</returns>
+    public T? GetValue<T>() where T : notnull
     {
-        return (Values: PositionalArguments, mergeIfSpaceOutOfQuoteExists) switch
-        {
-            ({ Length: 0 }, _) => null,
-            ({ Length: 1 }, _) => PositionalArguments[0],
-            (_, true) => string.Join(", ", PositionalArguments),
-            _ => PositionalArguments[0],
-        };
+        return TryGetValue<T>(out var result) ? result : default;
     }
 
     /// <summary>
-    /// 获取命令行参数中指定位置的位置参数的值。
+    /// 获取命令行参数中位置参数的值。
     /// </summary>
-    /// <param name="position">位置参数的位置。</param>
-    /// <returns>命令行参数中位置参数的值。如果指定位置处没有参数，则返回 <see langword="null" />。</returns>
-    public string? GetPositionalArgument(int position)
+    /// <param name="index">获取指定索引处的参数值。</param>
+    /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>位置参数的值。</returns>
+    public T? GetValue<T>(int index, int length) where T : notnull
     {
-        if (position < 0 || position >= PositionalArguments.Length)
+        return TryGetValue<T>(index, length, out var result) ? result : default;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中位置参数的值。
+    /// </summary>
+    /// <param name="value">返回选项的值。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>如果位置参数存在，则返回 true；否则返回 false。</returns>
+    public bool TryGetValue<T>([NotNullWhen(true)] out T? value) where T : notnull
+    {
+        value = CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments);
+        return true;
+    }
+
+
+    /// <summary>
+    /// 获取命令行参数中位置参数的值。
+    /// </summary>
+    /// <param name="index">获取指定索引处的参数值。</param>
+    /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
+    /// <param name="value">返回选项的值。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>如果位置参数存在，则返回 true；否则返回 false。</returns>
+    public bool TryGetValue<T>(int index, int length, [NotNullWhen(true)] out T? value) where T : notnull
+    {
+        if (index < 0 || index >= PositionalArguments.Length)
         {
-            return null;
+            value = default;
+            return false;
         }
 
-        return PositionalArguments[position];
+        value = CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
+        return true;
     }
 
     /// <summary>
-    /// 获取命令行参数中的位置参数的值的集合。
+    /// 获取命令行参数中所有位置参数值的集合。
     /// </summary>
-    /// <returns>命令行参数中位置参数的值的集合。</returns>
-    public ImmutableArray<string> GetPositionalArguments()
+    /// <returns>命令行参数中位置参数值的集合。</returns>
+    public ImmutableArray<string> GetValues()
     {
         return PositionalArguments;
     }
