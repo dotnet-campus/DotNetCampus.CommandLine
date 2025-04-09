@@ -18,7 +18,7 @@ public enum CommandLineStyle
     /// do -option value
     /// </code>
     /// </remarks>
-    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。")]
+    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。暂未实现。", true)]
     XToolkit = -1,
 
     /// <summary>
@@ -54,6 +54,6 @@ public enum CommandLineStyle
     /// o /o/s
     /// </code>
     /// </remarks>
-    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。")]
+    [Obsolete("我们提供此风格的选项，仅为兼容老程序使用。暂未实现。", true)]
     DOS,
 }
