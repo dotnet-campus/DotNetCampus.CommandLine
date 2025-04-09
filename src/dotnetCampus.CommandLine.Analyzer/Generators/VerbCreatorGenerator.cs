@@ -34,10 +34,16 @@ public class VerbCreatorGenerator : IIncrementalGenerator
         (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
     {
         var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
+        commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetVerbCreatorTypeName())];
 
+        var moduleInitializerCode = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
+        context.AddSource("_ModuleInitializer.g.cs", moduleInitializerCode);
 
-        var code = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
-        context.AddSource("_ModuleInitializer.g.cs", code);
+        foreach (var assemblyCommandsGeneratingModel in assemblyCommandsGeneratingModels)
+        {
+            var code = GenerateAssemblyCommandHandlerCode(assemblyCommandsGeneratingModel, commandOptionsGeneratingModels);
+            context.AddSource($"{assemblyCommandsGeneratingModel.AssemblyCommandHandlerType.Name}.g.cs", code);
+        }
     }
 
     private string GenerateVerbCreatorCode(CommandOptionsGeneratingModel model)
@@ -113,6 +119,34 @@ internal static class CommandLineModuleInitializer
         global::dotnetCampus.Cli.CommandRunner.Register<{model.OptionsType.ToGlobalDisplayString()}>(
             {(model.VerbName is { } vn ? $"\"{vn}\"" : "null")},
             cl => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl));
+""";
+    }
+
+    private string GenerateAssemblyCommandHandlerCode(AssemblyCommandsGeneratingModel model, ImmutableArray<CommandOptionsGeneratingModel> models)
+    {
+        return $$"""
+#nullable enable
+namespace {{model.Namespace}};
+
+/// <summary>
+/// 提供一种辅助自动搜集并执行本程序集中所有命令行处理器的方式。
+/// </summary>
+partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.Cli.Compiler.ICommandHandlerCollection
+{
+    public global::dotnetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::dotnetCampus.Cli.CommandLine cl) => verb switch
+    {
+{{string.Join("\n", models.Select(GenerateAssemblyCommandHandlerMatchCode))}}
+        _ => null,
+    };
+}
+
+""";
+    }
+
+    private string GenerateAssemblyCommandHandlerMatchCode(CommandOptionsGeneratingModel model)
+    {
+        return $"""
+        {(model.VerbName is { } vn ? $"\"{vn}\"" : "null")} => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl),
 """;
     }
 }

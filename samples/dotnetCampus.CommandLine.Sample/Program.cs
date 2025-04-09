@@ -21,17 +21,8 @@ class Program
     }
 }
 
-[AssemblyCommands]
+[AssemblyCommandHandlers]
 internal partial class AssemblyCommandHandler;
-
-partial class AssemblyCommandHandler : ICommandHandlerCollection
-{
-    public ICommandHandler? TryMatch(string? verb, CommandLine commandLine) => verb switch
-    {
-        "sample" => new SampleVerbCreator().CreateInstance(commandLine),
-        _ => null,
-    };
-}
 
 [Verb("sample")]
 internal class SampleCommandHandler : ICommandHandler

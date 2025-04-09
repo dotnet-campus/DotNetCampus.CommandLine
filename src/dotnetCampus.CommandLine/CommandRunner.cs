@@ -34,7 +34,7 @@ public class CommandRunner
     /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static void Register<T>(string? verbName, Func<CommandLine, T> creator)
-        where T : class, ICommandOptions
+        where T : class
     {
         VerbCreationInfos[typeof(T)] = new VerbCreationInfo(verbName, creator);
     }
@@ -157,5 +157,5 @@ public class CommandRunner
         return handler.RunAsync();
     }
 
-    private readonly record struct VerbCreationInfo(string? VerbName, Func<CommandLine, ICommandOptions> Creator);
+    private readonly record struct VerbCreationInfo(string? VerbName, Func<CommandLine, object> Creator);
 }

@@ -84,7 +84,7 @@ internal static class CommandModelProvider
 
     public static IncrementalValuesProvider<AssemblyCommandsGeneratingModel> SelectAssemblyCommands(this IncrementalGeneratorInitializationContext context)
     {
-        return context.SyntaxProvider.ForAttributeWithMetadataName(typeof(AssemblyCommandsAttribute).FullName!, (node, ct) =>
+        return context.SyntaxProvider.ForAttributeWithMetadataName(typeof(AssemblyCommandHandlersAttribute).FullName!, (node, ct) =>
         {
             if (node is not ClassDeclarationSyntax cds)
             {
@@ -99,7 +99,7 @@ internal static class CommandModelProvider
             var rootNamespace = typeSymbol.ContainingNamespace.ToDisplayString();
             var typeName = typeSymbol.Name;
             var attribute = typeSymbol.GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<AssemblyCommandsAttribute>());
+                .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<AssemblyCommandHandlersAttribute>());
 
             return new AssemblyCommandsGeneratingModel
             {

@@ -2,7 +2,7 @@
 
 namespace dotnetCampus.Cli.Tests.Fakes;
 
-[AssemblyCommands]
+[AssemblyCommandHandlers]
 internal partial class AssemblyCommandHandler;
 
 partial class AssemblyCommandHandler : ICommandHandlerCollection
