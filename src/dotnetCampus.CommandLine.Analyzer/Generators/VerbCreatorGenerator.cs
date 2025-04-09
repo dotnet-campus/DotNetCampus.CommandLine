@@ -59,8 +59,8 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 {
     public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::dotnetCampus.Cli.CommandLine commandLine) => new()
     {
-{{string.Join("\n", model.OptionProperties.Select(GenerateOptionPropertyAssignment))}}
-{{string.Join("\n", model.ValueProperties.Select(GenerateValuePropertyAssignment))}}
+{{(model.OptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", model.OptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(model.ValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", model.ValueProperties.Select(GenerateValuePropertyAssignment)))}}
     };
 }
 

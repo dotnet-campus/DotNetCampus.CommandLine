@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-
 using dotnetCampus.Cli.Utils;
 using dotnetCampus.CommandLine.Properties;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,10 +10,10 @@ namespace dotnetCampus.CommandLine.Analyzers
 {
     /// <summary>
     /// [Option("LongName")]
-    /// The LongName must be PascalCase. If not, this analyzer report diagnostics.
+    /// The LongName must be kebab-case. If not, this analyzer report diagnostics.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class OptionLongNameMustBePascalCaseAnalyzer : DiagnosticAnalyzer
+    public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>
         /// Recognize these attributes.
@@ -29,14 +24,14 @@ namespace dotnetCampus.CommandLine.Analyzers
         /// Supported diagnostics.
         /// </summary>
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticIds.OptionLongNameMustBePascalCase,
-            LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBePascalCaseTitle)),
-            LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBePascalCaseMessage)),
+            DiagnosticIds.OptionLongNameMustBeKebabCase,
+            LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseTitle)),
+            LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseMessage)),
             "dotnetCampus.Naming",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,
-            description: LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBePascalCaseDescription)),
-            helpLinkUri: DiagnosticUrls.Get(DiagnosticIds.OptionLongNameMustBePascalCase));
+            description: LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseDescription)),
+            helpLinkUri: DiagnosticUrls.Get(DiagnosticIds.OptionLongNameMustBeKebabCase));
 
         /// <summary>
         /// Supported diagnostics.
@@ -101,29 +96,19 @@ namespace dotnetCampus.CommandLine.Analyzers
             var argumentList = attributeSyntax.ChildNodes().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
             if (argumentList != null)
             {
-                var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>();
-                foreach (var attributeArgument in attributeArguments)
+                var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
+                var longNameExpression = attributeArguments.FirstOrDefault()?.Expression as LiteralExpressionSyntax;
+                var longName = longNameExpression?.Token.ValueText;
+                var ignoreCaseExpression =
+                    attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "IgnoreCase")?.Expression as LiteralExpressionSyntax;
+                var ignoreCase = ignoreCaseExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
+                if (longName is not null)
                 {
-                    var expressionSyntax = attributeArgument.Expression;
-                    var expression = expressionSyntax.ToString();
-                    var nameEqualsExists = attributeArgument.ChildNodes().OfType<NameEqualsSyntax>().Any();
-                    var longNameEqualsExists = attributeArgument.ChildNodes().OfType<NameEqualsSyntax>().Any(x => x.Name.ToString() == "LongName");
-                    var mayBeLongName = !nameEqualsExists || longNameEqualsExists;
-                    if (expression != null
-                        && expression.StartsWith("\"", StringComparison.OrdinalIgnoreCase)
-                        && expression.EndsWith("\"", StringComparison.OrdinalIgnoreCase)
-                        && mayBeLongName)
+                    var kebabCase = NamingHelper.MakeKebabCase(longName, ignoreCase, ignoreCase);
+                    var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
+                    if (!isKebabCase)
                     {
-                        var value = expression.Substring(1, expression.Length - 2);
-                        if (value.Length >= 2)
-                        {
-                            var isPascalCase = NamingHelper.CheckIsPascalCase(value);
-                            if (!isPascalCase)
-                            {
-                                return (value, expressionSyntax.GetLocation());
-                            }
-                        }
-                        break;
+                        return (longName, longNameExpression?.GetLocation());
                     }
                 }
             }

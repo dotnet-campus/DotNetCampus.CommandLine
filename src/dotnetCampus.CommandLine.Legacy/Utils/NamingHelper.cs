@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace dotnetCampus.Cli.Utils
 {
@@ -22,6 +18,17 @@ namespace dotnetCampus.Cli.Utils
             }
 
             var testName = MakePascalCase(value);
+            return string.Equals(value, testName, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Check if the specified <paramref name="value"/> is a kebab-case string.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        internal static bool CheckIsKebabCase(string value)
+        {
+            var testName = MakeKebabCase(value, true, true);
             return string.Equals(value, testName, StringComparison.Ordinal);
         }
 
@@ -104,18 +111,30 @@ namespace dotnetCampus.Cli.Utils
             return builder.ToString();
         }
 
-        internal static string MakeKebabCase(string oldName)
+        /// <summary>
+        /// 从其他命名法转换为 kebab-case 命名法。
+        /// </summary>
+        /// <param name="oldName">其他命名法的名称。</param>
+        /// <param name="isUpperSeparator">大写字母是否是单词分隔符。例如 SampleName_Text -> Sample-Name-Text | SampleName-Text。</param>
+        /// <param name="toLower">是否将所有字母转换为小写形式。例如 Sample-Name -> sample-name | Sample-Name。</param>
+        /// <returns>kebab-case 命名法的字符串。</returns>
+        internal static string MakeKebabCase(string oldName, bool isUpperSeparator = true, bool toLower = true)
         {
             var builder = new StringBuilder();
 
             var isFirstLetter = true;
-            var isUpperOrLower = false;
+            var isUpperLetter = false;
+            var isSeparator = false;
             foreach (char c in oldName)
             {
                 if (!char.IsLetterOrDigit(c))
                 {
-                    // Append nothing because kebab-case has no special characters.
-                    isUpperOrLower = false;
+                    isUpperLetter = false;
+                    // Append nothing because kebab-case has no continuous special characters.
+                    if (!isFirstLetter)
+                    {
+                        isSeparator = true;
+                    }
                     continue;
                 }
 
@@ -124,27 +143,28 @@ namespace dotnetCampus.Cli.Utils
                     if (char.IsDigit(c))
                     {
                         // kebab-case does not support digital as the first letter.
-                        isUpperOrLower = false;
-                        continue;
+                        isSeparator = false;
                     }
                     else if (char.IsUpper(c))
                     {
                         // 大写字母。
                         isFirstLetter = false;
-                        isUpperOrLower = true;
-                        builder.Append(char.ToLowerInvariant(c));
+                        isUpperLetter = true;
+                        isSeparator = false;
+                        builder.Append(toLower ? char.ToLowerInvariant(c) : c);
                     }
                     else if (char.IsLower(c))
                     {
                         // 小写字母。
                         isFirstLetter = false;
-                        isUpperOrLower = true;
+                        isUpperLetter = false;
+                        isSeparator = false;
                         builder.Append(c);
                     }
                     else
                     {
                         isFirstLetter = false;
-                        isUpperOrLower = false;
+                        isUpperLetter = false;
                         builder.Append(c);
                     }
                 }
@@ -152,29 +172,37 @@ namespace dotnetCampus.Cli.Utils
                 {
                     if (char.IsDigit(c))
                     {
-                        // kebab-case does not support digital as the first letter.
-                        isUpperOrLower = false;
+                        isUpperLetter = false;
+                        isSeparator = false;
                         builder.Append(c);
                     }
                     else if (char.IsUpper(c))
                     {
-                        builder.Append('-');
-                        builder.Append(char.ToLowerInvariant(c));
-                        isUpperOrLower = true;
+                        if (!isUpperLetter && (isUpperSeparator || isSeparator))
+                        {
+                            builder.Append('-');
+                        }
+                        isUpperLetter = true;
+                        isSeparator = false;
+                        builder.Append(toLower ? char.ToLowerInvariant(c) : c);
                     }
                     else if (char.IsLower(c))
                     {
+                        if (isSeparator)
+                        {
+                            builder.Append('-');
+                        }
+                        isUpperLetter = false;
+                        isSeparator = false;
                         builder.Append(c);
-                        isUpperOrLower = true;
                     }
                     else
                     {
-                        if (isUpperOrLower)
+                        if (isSeparator)
                         {
                             builder.Append('-');
                         }
                         builder.Append(c);
-                        isUpperOrLower = false;
                     }
                 }
             }

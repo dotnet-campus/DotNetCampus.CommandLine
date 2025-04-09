@@ -150,7 +150,7 @@ internal record OptionPropertyGeneratingModel
 {
     public required string PropertyName { get; init; }
 
-    public required INamedTypeSymbol Type { get; init; }
+    public required ITypeSymbol Type { get; init; }
 
     public required bool IsRequired { get; init; }
 
@@ -213,7 +213,7 @@ internal record OptionPropertyGeneratingModel
         return new OptionPropertyGeneratingModel
         {
             PropertyName = propertySymbol.Name,
-            Type = (INamedTypeSymbol)propertySymbol.Type,
+            Type = propertySymbol.Type,
             IsRequired = propertySymbol.IsRequired,
             IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
@@ -229,7 +229,7 @@ internal record ValuePropertyGeneratingModel
 {
     public required string PropertyName { get; init; }
 
-    public required INamedTypeSymbol Type { get; init; }
+    public required ITypeSymbol Type { get; init; }
 
     public required bool IsRequired { get; init; }
 
@@ -259,7 +259,7 @@ internal record ValuePropertyGeneratingModel
         return new ValuePropertyGeneratingModel
         {
             PropertyName = propertySymbol.Name,
-            Type = (INamedTypeSymbol)propertySymbol.Type,
+            Type = propertySymbol.Type,
             IsRequired = propertySymbol.IsRequired,
             IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,

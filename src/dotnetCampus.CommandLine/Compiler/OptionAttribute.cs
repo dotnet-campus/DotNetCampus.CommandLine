@@ -24,6 +24,20 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// <summary>
     /// 标记一个属性为命令行选项，并具有指定的长名称。
     /// </summary>
+    /// <param name="shortName">选项的短名称。必须是单个字符。</param>
+    public OptionAttribute(char shortName)
+    {
+        if (!char.IsLetter(shortName))
+        {
+            throw new ArgumentException($"选项的短名称必须是字母字符，但实际为 '{shortName}'。", nameof(shortName));
+        }
+
+        ShortName = shortName;
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称。
+    /// </summary>
     /// <param name="longName">
     /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
     /// </param>
@@ -33,9 +47,27 @@ public sealed class OptionAttribute : CommandLineAttribute
     }
 
     /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortName">选项的短名称。必须是单个字符。</param>
+    /// <param name="longName">
+    /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
+    /// </param>
+    public OptionAttribute(char shortName, string longName)
+    {
+        if (!char.IsLetter(shortName))
+        {
+            throw new ArgumentException($"选项的短名称必须是字母字符，但实际为 '{shortName}'。", nameof(shortName));
+        }
+
+        LongName = longName;
+        ShortName = shortName;
+    }
+
+    /// <summary>
     /// 获取或初始化选项的短名称。
     /// </summary>
-    public char ShortName { get; init; } = '\0';
+    public char ShortName { get; } = '\0';
 
     /// <summary>
     /// 获取选项的长名称。

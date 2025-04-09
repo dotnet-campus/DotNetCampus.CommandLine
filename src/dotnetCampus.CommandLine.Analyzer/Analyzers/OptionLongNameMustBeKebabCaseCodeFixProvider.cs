@@ -1,27 +1,23 @@
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using dotnetCampus.CommandLine.Properties;
-using System.Text;
 using dotnetCampus.Cli.Utils;
 
 namespace dotnetCampus.CommandLine.Analyzers
 {
     /// <summary>
     /// [Option("LongName")]
-    /// The LongName must be PascalCase. If not, this codefix will fix it.
+    /// The LongName must be kebab-case. If not, this codefix will fix it.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBePascalCaseCodeFixProvider)), Shared]
-    public class OptionLongNameMustBePascalCaseCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBeKebabCaseCodeFixProvider)), Shared]
+    public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OptionLongNameMustBePascalCase);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OptionLongNameMustBeKebabCase);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -51,18 +47,18 @@ namespace dotnetCampus.CommandLine.Analyzers
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: Resources.OptionLongNameMustBePascalCaseFix,
-                        createChangedSolution: c => MakePascalCaseAsync(context.Document, syntax, c),
-                        equivalenceKey: Resources.OptionLongNameMustBePascalCaseFix),
+                        title: Resources.OptionLongNameMustBeKebabCaseFix,
+                        createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
+                        equivalenceKey: Resources.OptionLongNameMustBeKebabCaseFix),
                     diagnostic);
             }
         }
 
-        private async Task<Solution> MakePascalCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
+        private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
         {
             var expression = expressionSyntax.ToString();
             var oldName = expression.Substring(1, expression.Length - 2);
-            var newName = NamingHelper.MakePascalCase(oldName);
+            var newName = NamingHelper.MakeKebabCase(oldName);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is null)

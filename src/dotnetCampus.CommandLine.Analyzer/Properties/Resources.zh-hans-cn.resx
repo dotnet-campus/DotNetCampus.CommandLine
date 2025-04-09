@@ -1,0 +1,72 @@
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+      PublicKeyToken=b77a5c561934e089
+    </value>
+  </resheader>
+  <data name="ConvertOptionPropertyTypeToBooleanFix" xml:space="preserve">
+        <value>命令行选项：改为布尔类型 (bool)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToDictionaryFix" xml:space="preserve">
+        <value>命令行选项：改为字典类型 (IReadOnlyDictionary&lt;string, string&gt;)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToDirectoryInfoFix" xml:space="preserve">
+        <value>命令行选项：改为文件夹类型 (DirectoryInfo)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToDoubleFix" xml:space="preserve">
+        <value>命令行选项：改为小数类型 (double)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToFileInfoFix" xml:space="preserve">
+        <value>命令行选项：改为文件类型 (FileInfo)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToInt32Fix" xml:space="preserve">
+        <value>命令行选项：改为整数类型 (int)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToListFix" xml:space="preserve">
+        <value>命令行选项：改为列表类型 (IReadOnlyList&lt;string&gt;)</value>
+    </data>
+  <data name="ConvertOptionPropertyTypeToStringFix" xml:space="preserve">
+        <value>命令行选项：改为字符串类型 (string)</value>
+    </data>
+  <data name="NotSupportedOptionPropertyTypeDescription" xml:space="preserve">
+        <value>作为命令行选项，此属性的类型 {0} 不被内置支持。 建议使用 bool / string / IList&lt;string&gt; 或代码修复会建议您更改的其他类型，或者在 Value / Option 特性上添加自定义转换器。</value>
+    </data>
+  <data name="NotSupportedOptionPropertyTypeMessage" xml:space="preserve">
+        <value>作为命令行选项，此属性的类型 {0} 不被内置支持。</value>
+    </data>
+  <data name="NotSupportedOptionPropertyTypeTitle" xml:space="preserve">
+        <value>不支持此类型的命令行属性</value>
+    </data>
+  <data name="OptionLongNameMustBeKebabCaseMessage" xml:space="preserve">
+        <value>选项名称 {0} 必须使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义必须是 PascalCase 风格。</value>
+    </data>
+  <data name="OptionLongNameMustBeKebabCaseDescription" xml:space="preserve">
+        <value>选项名称的定义必须使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义必须是 kebab-case 风格。</value>
+    </data>
+  <data name="OptionLongNameMustBeKebabCaseFix" xml:space="preserve">
+        <value>改成 kebab-case 命名法</value>
+    </data>
+  <data name="OptionLongNameMustBeKebabCaseTitle" xml:space="preserve">
+        <value>选项名称必须使用 kebab-case 命名法</value>
+    </data>
+  <data name="SupportedOptionPropertyTypeDescription" xml:space="preserve">
+        <value>此属性的类型 {0} 符合命令行选项的类型要求。</value>
+    </data>
+  <data name="SupportedOptionPropertyTypeMessage" xml:space="preserve">
+        <value>此属性的类型 {0} 符合命令行选项的类型要求。</value>
+    </data>
+  <data name="SupportedOptionPropertyTypeTitle" xml:space="preserve">
+        <value>符合要求的命令行选项类型</value>
+    </data>
+</root>
