@@ -24,16 +24,20 @@ public class VerbCreatorGenerator : IIncrementalGenerator
             Execute);
     }
 
-    private void Execute(SourceProductionContext context,
-        (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
-    {
-        var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
-    }
-
     private void Execute(SourceProductionContext context, CommandOptionsGeneratingModel model)
     {
         var code = GenerateVerbCreatorCode(model);
         context.AddSource($"{model.GetVerbCreatorTypeName()}.g.cs", code);
+    }
+
+    private void Execute(SourceProductionContext context,
+        (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
+    {
+        var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
+
+
+        var code = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
+        context.AddSource("_ModuleInitializer.g.cs", code);
     }
 
     private string GenerateVerbCreatorCode(CommandOptionsGeneratingModel model)
@@ -79,6 +83,36 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
     {
         return $"""
         {property.PropertyName} = commandLine.GetValue<{property.Type.ToGlobalDisplayString()}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default")},
+""";
+    }
+
+    private string GenerateModuleInitializerCode(ImmutableArray<CommandOptionsGeneratingModel> models)
+    {
+        return $$"""
+#nullable enable
+namespace dotnetCampus.Cli;
+
+/// <summary>
+/// 为本程序集中的所有命令行选项、谓词或处理函数编译时信息初始化。
+/// </summary>
+internal static class CommandLineModuleInitializer
+{
+    [global::System.Runtime.CompilerServices.ModuleInitializerAttribute]
+    internal static void Initialize()
+    {
+{{string.Join("\n", models.Select(GenerateCommandRunnerRegisterCode))}}
+    }
+}
+
+""";
+    }
+
+    private string GenerateCommandRunnerRegisterCode(CommandOptionsGeneratingModel model)
+    {
+        return $"""
+        global::dotnetCampus.Cli.CommandRunner.Register<{model.OptionsType.ToGlobalDisplayString()}>(
+            {(model.VerbName is { } vn ? $"\"{vn}\"" : "null")},
+            cl => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl));
 """;
     }
 }
