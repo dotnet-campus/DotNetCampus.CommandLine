@@ -31,7 +31,7 @@ internal class SampleCommandHandler : ICommandHandler
     public required string Option { get; init; }
 
     [Value(Length = int.MaxValue)]
-    public required string Argument { get; init; }
+    public string? Argument { get; init; }
 
     public Task<int> RunAsync()
     {

@@ -27,7 +27,7 @@ public class VerbCreatorGenerator : IIncrementalGenerator
     private void Execute(SourceProductionContext context, CommandOptionsGeneratingModel model)
     {
         var code = GenerateVerbCreatorCode(model);
-        context.AddSource($"{model.GetVerbCreatorTypeName()}.g.cs", code);
+        context.AddSource($"VerbCreators/{model.Namespace}.{model.OptionsType.Name}.cs", code);
     }
 
     private void Execute(SourceProductionContext context,
@@ -42,7 +42,7 @@ public class VerbCreatorGenerator : IIncrementalGenerator
         foreach (var assemblyCommandsGeneratingModel in assemblyCommandsGeneratingModels)
         {
             var code = GenerateAssemblyCommandHandlerCode(assemblyCommandsGeneratingModel, commandOptionsGeneratingModels);
-            context.AddSource($"{assemblyCommandsGeneratingModel.AssemblyCommandHandlerType.Name}.g.cs", code);
+            context.AddSource($"{assemblyCommandsGeneratingModel.Namespace}.{assemblyCommandsGeneratingModel.AssemblyCommandHandlerType.Name}.g.cs", code);
         }
     }
 
@@ -106,7 +106,7 @@ internal static class CommandLineModuleInitializer
     [global::System.Runtime.CompilerServices.ModuleInitializerAttribute]
     internal static void Initialize()
     {
-{{string.Join("\n", models.Select(GenerateCommandRunnerRegisterCode))}}
+{{string.Join("\n\n", models.Select(GenerateCommandRunnerRegisterCode))}}
     }
 }
 
@@ -115,10 +115,12 @@ internal static class CommandLineModuleInitializer
 
     private string GenerateCommandRunnerRegisterCode(CommandOptionsGeneratingModel model)
     {
-        return $"""
-        global::dotnetCampus.Cli.CommandRunner.Register<{model.OptionsType.ToGlobalDisplayString()}>(
-            {(model.VerbName is { } vn ? $"\"{vn}\"" : "null")},
-            cl => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl));
+        var verbCode = model.VerbName is { } vn ? $"\"{vn}\"" : "null";
+        return $$"""
+        // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
+        global::dotnetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
+            {{verbCode}},
+            cl => new global::{{model.Namespace}}.{{model.GetVerbCreatorTypeName()}}().CreateInstance(cl));
 """;
     }
 
@@ -149,9 +151,18 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.C
         if (models.Count is 1)
         {
             var model = models[0];
-            return $"""
+            if (model.IsHandler)
+            {
+                return $"""
         {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl),
 """;
+            }
+            else
+            {
+                return $"""
+        // 类型 {model.OptionsType.Name} 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
+""";
+            }
         }
         else
         {

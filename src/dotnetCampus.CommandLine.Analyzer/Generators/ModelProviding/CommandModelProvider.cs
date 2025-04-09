@@ -40,9 +40,12 @@ internal static class CommandModelProvider
                 // 4. 拥有 [Option] 特性的属性
                 // 5. 拥有 [Value] 特性的属性
 
-                // 1. 实现 ICommandOptions 接口；2. 实现 ICommandHandler 接口。
-                var isImplemented = typeSymbol.AllInterfaces.Any(i =>
-                    i.IsSubclassOrImplementOf(["dotnetCampus.Cli.ICommandOptions", "dotnetCampus.Cli.ICommandHandler"]));
+                // 1. 实现 ICommandOptions 接口。
+                var isOptions = typeSymbol.AllInterfaces.Any(i =>
+                    i.IsSubclassOrImplementOf(["dotnetCampus.Cli.ICommandOptions"], true));
+                // 2. 实现 ICommandHandler 接口。
+                var isHandler = typeSymbol.AllInterfaces.Any(i =>
+                    i.IsSubclassOrImplementOf(["dotnetCampus.Cli.ICommandHandler"], true));
                 // 3. 拥有 [Verb] 特性。
                 var attribute = typeSymbol.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());
@@ -59,7 +62,7 @@ internal static class CommandModelProvider
                     .OfType<ValuePropertyGeneratingModel>()
                     .ToImmutableArray();
 
-                if (!isImplemented && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty)
+                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty)
                 {
                     // 不是命令行选项类型。
                     return null;
@@ -73,6 +76,7 @@ internal static class CommandModelProvider
                     Namespace = @namespace,
                     OptionsType = typeSymbol,
                     VerbName = verbName,
+                    IsHandler = isHandler,
                     OptionProperties = optionProperties,
                     ValueProperties = valueProperties,
                 };
@@ -80,7 +84,6 @@ internal static class CommandModelProvider
             .Where(m => m is not null)
             .Select((m, ct) => m!);
     }
-
 
     public static IncrementalValuesProvider<AssemblyCommandsGeneratingModel> SelectAssemblyCommands(this IncrementalGeneratorInitializationContext context)
     {
@@ -119,6 +122,8 @@ internal record CommandOptionsGeneratingModel
     public required INamedTypeSymbol OptionsType { get; init; }
 
     public required string? VerbName { get; init; }
+
+    public required bool IsHandler { get; init; }
 
     public required ImmutableArray<OptionPropertyGeneratingModel> OptionProperties { get; init; }
 
