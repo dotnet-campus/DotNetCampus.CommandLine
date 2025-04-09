@@ -121,11 +121,13 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return null;
     }
 
+    /// <inheritdoc />
     public int Run()
     {
         return RunAsync().Result;
     }
 
+    /// <inheritdoc />
     public Task<int> RunAsync()
     {
         var handler = MatchHandler();

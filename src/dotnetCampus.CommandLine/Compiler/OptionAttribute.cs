@@ -3,9 +3,6 @@ namespace dotnetCampus.Cli.Compiler;
 /// <summary>
 /// 标记一个属性为命令行选项。
 /// </summary>
-/// <param name="longName">
-/// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
-/// </param>
 /// <remarks>
 /// 示例用法：
 /// <code>
@@ -27,7 +24,9 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// <summary>
     /// 标记一个属性为命令行选项，并具有指定的长名称。
     /// </summary>
-    /// <param name="longName">指定的长名称。</param>
+    /// <param name="longName">
+    /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
+    /// </param>
     public OptionAttribute(string longName)
     {
         LongName = longName;
