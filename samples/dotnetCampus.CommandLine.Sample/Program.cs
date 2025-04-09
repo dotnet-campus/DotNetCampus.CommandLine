@@ -6,7 +6,7 @@ namespace dotnetCampus.Cli;
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         // CommandLine.Parse(args, LocalizableStrings.ResourceManager)
         //     .AddStandardHandlers()
@@ -14,10 +14,11 @@ class Program
         //     .AddHandler<SampleOptions>(o => o.Run())
         //     .Run();
 
-        CommandLine.Parse(args)
-            .AddHandler<SampleCommandHandler>(o => 0)
+        await CommandLine.Parse(args)
+            .AddHandler<DefaultOptions>(o => o.Run())
+            .AddHandler<SampleOptions>(o => o.Run())
             .AddHandlers<AssemblyCommandHandler>()
-            .Run();
+            .RunAsync();
     }
 }
 

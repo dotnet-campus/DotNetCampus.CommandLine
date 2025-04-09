@@ -8,7 +8,7 @@ namespace dotnetCampus.Cli;
 /// <summary>
 /// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
 /// </summary>
-public class CommandRunner
+public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
     private static ConcurrentDictionary<Type, VerbCreationInfo> VerbCreationInfos { get; } = [];
 
@@ -55,12 +55,14 @@ public class CommandRunner
         return (T)info.Creator(commandLine);
     }
 
+    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
+
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    public CommandRunner AddHandler<T>()
+    internal CommandRunner AddHandler<T>()
         where T : class, ICommandHandler
     {
         if (!VerbCreationInfos.TryGetValue(typeof(T), out var info))
@@ -72,33 +74,13 @@ public class CommandRunner
         return this;
     }
 
-    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
-    public CommandRunner AddHandler<T>(Action<T> handler)
-        where T : class => AddHandler<T>(t =>
-    {
-        handler(t);
-        return Task.FromResult(0);
-    });
-
-    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
-    public CommandRunner AddHandler<T>(Func<T, int> handler)
-        where T : class => AddHandler<T>(t => Task.FromResult(handler(t)));
-
-    /// <inheritdoc cref="AddHandler{T}(Func{T, Task{int}})" />
-    public CommandRunner AddHandler<T>(Func<T, Task> handler)
-        where T : class => AddHandler<T>(async t =>
-    {
-        await handler(t);
-        return 0;
-    });
-
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    public CommandRunner AddHandler<T>(Func<T, Task<int>> handler)
+    internal CommandRunner AddHandler<T>(Func<T, Task<int>> handler)
         where T : class
     {
         if (!VerbCreationInfos.TryGetValue(typeof(T), out var info))
@@ -112,7 +94,7 @@ public class CommandRunner
         return this;
     }
 
-    public CommandRunner AddHandlers<T>()
+    internal CommandRunner AddHandlers<T>()
         where T : ICommandHandlerCollection, new()
     {
         _assemblyVerbHandlers.Add(new T());

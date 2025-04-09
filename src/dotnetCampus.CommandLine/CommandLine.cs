@@ -7,7 +7,7 @@ namespace dotnetCampus.Cli;
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。
 /// </summary>
-public record CommandLine
+public record CommandLine : ICoreCommandRunnerBuilder
 {
     /// <summary>
     /// 获取此命令行解析类型所关联的命令行参数。
@@ -63,6 +63,8 @@ public record CommandLine
         var args = CommandLineConverter.SingleLineCommandLineArgsToArrayCommandLineArgs(singleLineCommandLineArgs);
         return new CommandLine(args, parsingOptions);
     }
+
+    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);
 
     /// <summary>
     /// 尝试获取命令行参数中猜测的谓词名称。
