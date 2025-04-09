@@ -89,10 +89,12 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="optionName">选项的名称。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。</returns>
-    public T? GetOption<T>(string optionName) where T : notnull
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOption<T>(string optionName)
     {
-        return TryGetOption<T>(optionName, out var result) ? result : default;
+        return LongOptionValues.TryGetValue(optionName, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            : default;
     }
 
     /// <summary>
@@ -100,48 +102,12 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="shortOption">短名称选项。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。</returns>
-    public T? GetOption<T>(char shortOption) where T : notnull
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOption<T>(char shortOption)
     {
-        return TryGetOption<T>(shortOption, out var result) ? result : default;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
-    /// <param name="optionName">选项的名称。</param>
-    /// <param name="value">返回选项的值。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>如果选项存在，则返回 true；否则返回 false。</returns>
-    public bool TryGetOption<T>(string optionName, [NotNullWhen(true)] out T? value) where T : notnull
-    {
-        if (LongOptionValues.TryGetValue(optionName, out var values))
-        {
-            value = CommandLineValueConverter.ArgumentStringsToValue<T>(values);
-            return true;
-        }
-
-        value = default;
-        return false;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定短名称的选项的值。
-    /// </summary>
-    /// <param name="shortOption">短名称选项。</param>
-    /// <param name="value">返回选项的值。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>如果选项存在，则返回 true；否则返回 false。</returns>
-    public bool TryGetOption<T>(char shortOption, [NotNullWhen(true)] out T? value) where T : notnull
-    {
-        if (ShortOptionValues.TryGetValue(shortOption, out var values))
-        {
-            value = CommandLineValueConverter.ArgumentStringsToValue<T>(values);
-            return true;
-        }
-
-        value = default;
-        return false;
+        return ShortOptionValues.TryGetValue(shortOption, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            : default;
     }
 
     /// <summary>
@@ -149,9 +115,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetValue<T>() where T : notnull
+    public T? GetValue<T>()
     {
-        return TryGetValue<T>(out var result) ? result : default;
+        return PositionalArguments.Length <= 0
+            ? default
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(0, 1));
     }
 
     /// <summary>
@@ -161,42 +129,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetValue<T>(int index, int length) where T : notnull
+    public T? GetValue<T>(int index, int length)
     {
-        return TryGetValue<T>(index, length, out var result) ? result : default;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中位置参数的值。
-    /// </summary>
-    /// <param name="value">返回选项的值。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>如果位置参数存在，则返回 true；否则返回 false。</returns>
-    public bool TryGetValue<T>([NotNullWhen(true)] out T? value) where T : notnull
-    {
-        value = CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments);
-        return true;
-    }
-
-
-    /// <summary>
-    /// 获取命令行参数中位置参数的值。
-    /// </summary>
-    /// <param name="index">获取指定索引处的参数值。</param>
-    /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
-    /// <param name="value">返回选项的值。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>如果位置参数存在，则返回 true；否则返回 false。</returns>
-    public bool TryGetValue<T>(int index, int length, [NotNullWhen(true)] out T? value) where T : notnull
-    {
-        if (index < 0 || index >= PositionalArguments.Length)
-        {
-            value = default;
-            return false;
-        }
-
-        value = CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
-        return true;
+        return index < 0 || index >= PositionalArguments.Length
+            ? default
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
     }
 
     /// <summary>

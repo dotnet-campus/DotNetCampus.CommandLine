@@ -203,11 +203,11 @@ internal record OptionPropertyGeneratingModel
         var ignoreCase = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.IgnoreCase)).Value.Value?.ToString();
         var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
         {
-            { Value: null } => new ImmutableArray<string>(),
-            var value => value.Values.Select(a => a.Value?.ToString())
+            { Kind: TypedConstantKind.Array } typedConstant => typedConstant.Values.Select(a => a.Value?.ToString())
                 .Where(a => !string.IsNullOrEmpty(a))
                 .OfType<string>()
                 .ToImmutableArray(),
+            _ => [],
         };
 
         return new OptionPropertyGeneratingModel
