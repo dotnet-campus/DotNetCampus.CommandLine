@@ -198,8 +198,8 @@ internal record OptionPropertyGeneratingModel
             return null;
         }
 
-        var longName = optionAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        var shortName = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.ShortName)).Value.Value?.ToString();
+        var longName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_String).Value?.ToString();
+        var shortName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_Char).Value?.ToString();
         var ignoreCase = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.IgnoreCase)).Value.Value?.ToString();
         var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
         {

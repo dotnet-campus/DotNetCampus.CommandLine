@@ -111,6 +111,29 @@ public record CommandLine : ICoreCommandRunnerBuilder
     }
 
     /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="shortName">短名称选项。</param>
+    /// <param name="longName">选项的名称。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOption<T>(char shortName, string longName)
+    {
+        // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
+        if (ShortOptionValues.TryGetValue(shortName, out var shortValues))
+        {
+            return CommandLineValueConverter.ArgumentStringsToValue<T>(shortValues);
+        }
+        // 其次使用长名称。
+        if (LongOptionValues.TryGetValue(longName, out var longValues))
+        {
+            return CommandLineValueConverter.ArgumentStringsToValue<T>(longValues);
+        }
+        // 最后使用默认值（表示没有传入此参数）。
+        return default;
+    }
+
+    /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
     /// <typeparam name="T">选项的值的类型。</typeparam>
