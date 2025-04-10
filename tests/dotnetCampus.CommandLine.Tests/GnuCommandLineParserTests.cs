@@ -277,7 +277,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, GNU)
+        CommandLine.Parse(args, GNU with { CaseSensitive = false })
             .AddHandler<GNU11_CaseInsensitiveOptions>(o => value = o.IgnoreCase)
             .Run();
 

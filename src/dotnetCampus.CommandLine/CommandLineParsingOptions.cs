@@ -12,6 +12,13 @@ public record CommandLineParsingOptions
         CaseSensitive = false,
     };
 
+    /// <inheritdoc cref="CommandLineStyle.GNU" />
+    public static CommandLineParsingOptions GNU { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineStyle.GNU,
+        CaseSensitive = true,
+    };
+
     /// <inheritdoc cref="CommandLineStyle.DotNet" />
     public static CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions
     {
@@ -19,11 +26,11 @@ public record CommandLineParsingOptions
         CaseSensitive = false,
     };
 
-    /// <inheritdoc cref="CommandLineStyle.GNU" />
-    public static CommandLineParsingOptions GNU { get; } = new CommandLineParsingOptions
+    /// <inheritdoc cref="CommandLineStyle.PowerShell" />
+    public static CommandLineParsingOptions PowerShell { get; } = new CommandLineParsingOptions
     {
-        Style = CommandLineStyle.GNU,
-        CaseSensitive = true,
+        Style = CommandLineStyle.PowerShell,
+        CaseSensitive = false,
     };
 
     /// <summary>
