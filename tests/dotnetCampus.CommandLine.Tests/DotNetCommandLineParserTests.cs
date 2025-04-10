@@ -425,7 +425,7 @@ public class DotNetCommandLineParserTests
             .Run();
 
         // Assert
-        Assert.AreEqual(string.Empty, value); // 使用初始化时的默认值
+        Assert.AreEqual(null, value); // 使用初始化时的默认值
     }
 
     [TestMethod("6.2. Required, Non-nullable, 无CLI参数，抛出异常。")]
