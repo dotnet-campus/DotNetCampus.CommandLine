@@ -255,7 +255,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-invalid-format"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX01_ShortOptions>(_ => { })
@@ -411,7 +411,7 @@ internal record POSIX10_RequiredOptions
 
 internal record POSIX11_LongOptionTest
 {
-    [Option("option")]  // 这个会被POSIX风格拒绝，因为POSIX不支持长选项
+    [Option("option")] // 这个会被POSIX风格拒绝，因为POSIX不支持长选项
     public string LongOption { get; init; } = string.Empty;
 }
 

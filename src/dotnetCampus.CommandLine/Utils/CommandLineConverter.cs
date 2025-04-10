@@ -71,6 +71,7 @@ internal static class CommandLineConverter
         ICommandLineParser parser = parsingOptions?.Style switch
         {
             CommandLineStyle.GNU => new GnuStyleParser(),
+            CommandLineStyle.POSIX => new PosixStyleParser(),
             CommandLineStyle.DotNet => new DotNetStyleParser(),
             CommandLineStyle.PowerShell => new PowerShellStyleParser(),
             _ => throw new NotImplementedException(),
