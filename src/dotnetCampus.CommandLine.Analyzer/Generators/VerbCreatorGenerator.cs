@@ -82,14 +82,26 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 
         var methodName = property.IsValueType ? "GetOptionValue" : "GetOption";
         var generic = property.Type.ToNotNullGlobalDisplayString();
+        string ArgumentsCreator(string name) => $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}\"{name}\"";
         var exception = property.IsRequired
             ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
-        return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.ShortName is { } shortName ? $"'{shortName}', " : "")}"{property.GetNormalizedLongName()}") ?? {exception},
+        if (property.Aliases.Length is 0)
+        {
+            return $"""
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(property.GetNormalizedLongName())}) ?? {exception},
 """;
+        }
+        else
+        {
+            return $"""
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(property.GetNormalizedLongName())})
+{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}
+            ?? {exception},
+""";
+        }
     }
 
     private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property)
