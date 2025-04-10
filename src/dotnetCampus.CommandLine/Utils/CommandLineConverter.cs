@@ -68,7 +68,7 @@ internal static class CommandLineConverter
 
     public static CommandLineParsedResult ParseCommandLineArguments(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        var style = parsingOptions?.Style ?? CommandLineStyle.Auto;
+        var style = parsingOptions?.Style ?? CommandLineStyle.Flexible;
         var parser = new GnuStyleParser();
         return parser.Parse(arguments);
     }
