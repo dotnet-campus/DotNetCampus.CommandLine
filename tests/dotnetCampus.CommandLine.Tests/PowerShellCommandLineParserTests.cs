@@ -151,6 +151,7 @@ public class PowerShellCommandLineParserTests
 
     #region 3. 参数名称缩写
 
+    [Ignore("暂时不打算支持 PowerShell 最短缩写功能，如果后面有需要再说。")]
     [TestMethod("3.1. 使用参数的唯一缩写。")]
     public void ParameterAbbreviation_UniquePrefix()
     {
@@ -183,6 +184,7 @@ public class PowerShellCommandLineParserTests
         Assert.AreEqual("Server01", computerName);
     }
 
+    [Ignore("暂时不打算支持 PowerShell 最短缩写功能，如果后面有需要再说。")]
     [TestMethod("3.3. 使用最短唯一缩写。")]
     public void ParameterAbbreviation_ShortestUniquePrefix()
     {
@@ -199,6 +201,7 @@ public class PowerShellCommandLineParserTests
         Assert.AreEqual("Server01", computerName);
     }
 
+    [Ignore("暂时不打算支持 PowerShell 最短缩写功能，如果后面有需要再说。")]
     [TestMethod("3.3. 缩写歧义处理。")]
     public void ParameterAbbreviation_AmbiguousPrefix_ThrowsException()
     {

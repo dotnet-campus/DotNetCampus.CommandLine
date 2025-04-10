@@ -72,6 +72,7 @@ internal static class CommandLineConverter
         {
             CommandLineStyle.GNU => new GnuStyleParser(),
             CommandLineStyle.DotNet => new DotNetStyleParser(),
+            CommandLineStyle.PowerShell => new PowerShellStyleParser(),
             _ => throw new NotImplementedException(),
         };
         return parser.Parse(arguments);
