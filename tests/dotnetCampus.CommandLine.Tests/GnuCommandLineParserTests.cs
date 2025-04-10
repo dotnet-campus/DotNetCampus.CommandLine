@@ -283,7 +283,7 @@ public class GnuCommandLineParserTests
     public void SingleOptionCaseSensitive_GlobalInsensitive_CorrectlyParsed()
     {
         // Arrange
-        string[] args = ["--Case-Option", "value1", "--case-option", "value2"];
+        string[] args = ["--Case-Option1", "value1", "--case-option2", "value2"];
         string? sensitiveValue = null;
         string? insensitiveValue = null;
 
@@ -302,7 +302,7 @@ public class GnuCommandLineParserTests
     }
 
     [TestMethod("3.7. 单个选项设置大小写不敏感，全局设置为敏感，识别正确。")]
-    public void SingleOptionCaseInsensitive_GlobalSensitive_CorrectlyParsed()
+    public void OptionCaseInsensitive_OverridesGlobalSensitive()
     {
         // Arrange
         string[] args = ["--option-one", "value1", "--option-TWO", "value2"];
@@ -319,50 +319,68 @@ public class GnuCommandLineParserTests
             .Run();
 
         // Assert
-        Assert.IsNull(option1Value); // 全局大小写敏感，--Option-One 不匹配 --option-one
+        Assert.IsNull(option1Value); // 全局大小写敏感，--option-one 不匹配 --Option-One
         Assert.AreEqual("value2", option2Value); // 选项明确指定为大小写不敏感，所以匹配成功
     }
 
-    [TestMethod("3.8. 混合使用全局和单个选项的大小写设置，识别正确。")]
-    public void MixedCaseSettings_AllCorrectlyParsed()
+    [TestMethod("3.8. 全局大小写敏感时，未指定大小写设置的选项不匹配。")]
+    public void GlobalCaseSensitive_DefaultOption_NotMatched()
     {
         // Arrange
-        string[] args = ["--global-sensitive", "value1", "--local-sensitive", "value2", "--local-insensitive", "value3"];
-        string? globalSensitiveValue1 = null;
-        string? globalSensitiveValue2 = null;
-        string? localSensitiveValue1 = null;
-        string? localSensitiveValue2 = null;
-        string? localInsensitiveValue1 = null;
-        string? localInsensitiveValue2 = null;
+        string[] args = ["--global-sensitive", "value1"];
+        string? globalSensitiveValue = null;
 
         // Act
-        var result1 = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+        var result = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
             .AddHandler<T25_ComplexCaseOptions>(o =>
             {
-                globalSensitiveValue1 = o.GlobalSensitive;
-                localSensitiveValue1 = o.LocalSensitive;
-                localInsensitiveValue1 = o.LocalInsensitive;
-            })
-            .Run();
-        var result2 = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = false })
-            .AddHandler<T25_ComplexCaseOptions>(o =>
-            {
-                globalSensitiveValue2 = o.GlobalSensitive;
-                localSensitiveValue2 = o.LocalSensitive;
-                localInsensitiveValue2 = o.LocalInsensitive;
+                globalSensitiveValue = o.GlobalSensitive;
             })
             .Run();
 
         // Assert
-        Assert.IsNull(globalSensitiveValue1); // 全局大小写敏感，--GLOBAL-SENSITIVE 不匹配 --global-sensitive
-        Assert.AreEqual("value1", globalSensitiveValue2); // 全局大小写不敏感，--GLOBAL-SENSITIVE 匹配 --global-sensitive
-        Assert.IsNull(localSensitiveValue1); // 局部大小写敏感，--local-SENSITIVE 不匹配 --local-sensitive
-        Assert.IsNull(localSensitiveValue2); // 局部大小写敏感，--local-SENSITIVE 不匹配 --local-sensitive
-        Assert.AreEqual("value3", localInsensitiveValue1); // 局部大小写不敏感，匹配成功
-        Assert.AreEqual("value3", localInsensitiveValue2); // 局部大小写不敏感，匹配成功
+        Assert.IsNull(globalSensitiveValue); // 全局大小写敏感，--global-sensitive 不匹配 --GLOBAL-SENSITIVE
     }
 
-    [TestMethod("3.9. 选项值大小写测试，枚举值不敏感，识别正确。")]
+    [TestMethod("3.9. 选项设置大小写敏感时，大小写不匹配无效。")]
+    public void OptionCaseSensitive_CaseMismatch_NotMatched()
+    {
+        // Arrange
+        string[] args = ["--local-sensitive", "value"];
+        string? localSensitiveValue = null;
+
+        // Act
+        var result = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+            .AddHandler<T25_ComplexCaseOptions>(o =>
+            {
+                localSensitiveValue = o.LocalSensitive;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNull(localSensitiveValue); // 局部大小写敏感，--local-sensitive 不匹配 --local-SENSITIVE
+    }
+
+    [TestMethod("3.10. 选项设置大小写不敏感时，无论全局设置，都能匹配。")]
+    public void OptionCaseInsensitive_GlobalSensitive_StillMatched()
+    {
+        // Arrange
+        string[] args = ["--LOCAL-insensitive", "value"];
+        string? localInsensitiveValue = null;
+
+        // Act
+        var result = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+            .AddHandler<T25_ComplexCaseOptions>(o =>
+            {
+                localInsensitiveValue = o.LocalInsensitive;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", localInsensitiveValue); // 明确指定大小写不敏感，匹配成功
+    }
+
+    [TestMethod("3.11. 选项值大小写测试，枚举值不敏感，识别正确。")]
     public void EnumValueCaseInsensitive_CorrectlyParsed()
     {
         // Arrange
@@ -542,6 +560,22 @@ public class GnuCommandLineParserTests
     #endregion
 
     #region 6. Required 和 Nullable 组合测试
+
+    [TestMethod("6.1. Non-required, Non-nullable, 无CLI参数，使用默认值。")]
+    public void NonRequiredNonNullable_NoCli_UsesDefault()
+    {
+        // Arrange
+        string[] args = [];
+        string? value = null;
+
+        // Act
+        var result = CommandLine.Parse(args)
+            .AddHandler<T27_NonRequiredNonNullableOption>(o => value = o.Value)
+            .Run();
+
+        // Assert
+        Assert.AreEqual(null, value); // 使用初始化时的默认值
+    }
 
     [TestMethod("6.2. Required, Non-nullable, 无CLI参数，抛出异常。")]
     public void RequiredNonNullable_NoCli_ThrowsException()
@@ -829,10 +863,10 @@ internal record T22_AllCombinationsOption
 
 internal record T23_MixedCaseOptions
 {
-    [Option("Case-Option", CaseSensitive = true)]
+    [Option("Case-Option1", CaseSensitive = true)]
     public string CaseSensitiveOption { get; init; } = string.Empty;
 
-    [Option("case-option")]
+    [Option("case-option2")]
     public string CaseInsensitiveOption { get; init; } = string.Empty;
 }
 
@@ -864,6 +898,12 @@ internal record T26_EnumCaseOptions
 
     [Option("second-level")]
     public LogLevel SecondLevel { get; init; }
+}
+
+internal record T27_NonRequiredNonNullableOption
+{
+    [Option]
+    public string Value { get; init; } = string.Empty;
 }
 
 #endregion
