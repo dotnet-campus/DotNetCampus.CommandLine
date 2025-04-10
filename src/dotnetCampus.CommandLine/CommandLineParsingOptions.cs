@@ -19,6 +19,13 @@ public record CommandLineParsingOptions
         CaseSensitive = true,
     };
 
+    /// <inheritdoc cref="CommandLineStyle.POSIX" />
+    public static CommandLineParsingOptions POSIX { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineStyle.POSIX,
+        CaseSensitive = true,
+    };
+
     /// <inheritdoc cref="CommandLineStyle.DotNet" />
     public static CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions
     {
