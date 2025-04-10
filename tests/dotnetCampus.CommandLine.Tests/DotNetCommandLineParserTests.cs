@@ -16,6 +16,8 @@ namespace dotnetCampus.Cli.Tests;
 [TestClass]
 public class DotNetCommandLineParserTests
 {
+    private CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions { Style = CommandLineStyle.DotNet };
+
     #region 1. 选项识别与解析
 
     [TestMethod("1.1. 短选项冒号形式 (-option:value)，字符串类型，可正常赋值。")]
@@ -26,7 +28,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet01_StringOptions>(o => value = o.Value)
             .Run();
 
@@ -42,7 +44,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet01_StringOptions>(o => value = o.Value)
             .Run();
 
@@ -58,7 +60,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet01_StringOptions>(o => value = o.Value)
             .Run();
 
@@ -76,7 +78,7 @@ public class DotNetCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet03_MixedOptions>(o =>
             {
                 number = o.Number;
@@ -103,7 +105,7 @@ public class DotNetCommandLineParserTests
         int? number = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet04_IntegerOptions>(o => number = o.Number)
             .Run();
 
@@ -119,7 +121,7 @@ public class DotNetCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet05_BooleanOptions>(o => flag = o.Flag)
             .Run();
 
@@ -135,7 +137,7 @@ public class DotNetCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet05_BooleanOptions>(o => flag = o.Flag)
             .Run();
 
@@ -151,7 +153,7 @@ public class DotNetCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet05_BooleanOptions>(o => flag = o.Flag)
             .Run();
 
@@ -167,7 +169,7 @@ public class DotNetCommandLineParserTests
         LogLevel? logLevel = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet06_EnumOptions>(o => logLevel = o.LogLevel)
             .Run();
 
@@ -183,7 +185,7 @@ public class DotNetCommandLineParserTests
         string[]? files = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet07_ArrayOptions>(o => files = o.Files)
             .Run();
 
@@ -201,7 +203,7 @@ public class DotNetCommandLineParserTests
         List<string>? tags = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet08_ListOptions>(o => tags = o.Tags.ToList())
             .Run();
 
@@ -224,7 +226,7 @@ public class DotNetCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+            CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet09_RequiredOptions>(_ => { })
                 .Run();
         });
@@ -239,7 +241,7 @@ public class DotNetCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<CommandLineParseException>(() =>
         {
-            CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+            CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet01_StringOptions>(_ => { })
                 .Run();
         });
@@ -254,7 +256,7 @@ public class DotNetCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<CommandLineParseValueException>(() =>
         {
-            CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+            CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet04_IntegerOptions>(_ => { })
                 .Run();
         });
@@ -268,7 +270,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet11_CaseInsensitiveOptions>(o => value = o.IgnoreCase)
             .Run();
 
@@ -288,7 +290,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet12_AliasOptions>(o => value = o.OptionWithAlias)
             .Run();
 
@@ -305,7 +307,7 @@ public class DotNetCommandLineParserTests
         string[]? values = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet14_TerminatorOptions>(o =>
             {
                 option = o.Option;
@@ -333,7 +335,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet15_SingleValueOptions>(o => value = o.Value)
             .Run();
 
@@ -349,7 +351,7 @@ public class DotNetCommandLineParserTests
         string[]? values = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet16_MultipleValueOptions>(o => values = o.Values)
             .Run();
 
@@ -369,7 +371,7 @@ public class DotNetCommandLineParserTests
         string? value2 = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet17_MixedValueOptions>(o =>
             {
                 option = o.Option;
@@ -393,7 +395,7 @@ public class DotNetCommandLineParserTests
         string? third = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet18_IndexedValueOptions>(o =>
             {
                 first = o.First;
@@ -418,7 +420,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet27_NonRequiredNonNullableOption>(o => value = o.Value)
             .Run();
 
@@ -435,7 +437,7 @@ public class DotNetCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+            CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet19_RequiredNonNullableOption>(_ => { })
                 .Run();
         });
@@ -449,7 +451,7 @@ public class DotNetCommandLineParserTests
         string? value = "not-null";
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet20_NonRequiredNullableOption>(o => value = o.Value)
             .Run();
 
@@ -466,7 +468,7 @@ public class DotNetCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+            CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet21_RequiredNullableOption>(_ => { })
                 .Run();
         });
@@ -487,7 +489,7 @@ public class DotNetCommandLineParserTests
         string? nonReqNonNull = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet22_AllCombinationsOption>(o =>
             {
                 reqNonNull = o.ReqNonNull;
@@ -516,7 +518,7 @@ public class DotNetCommandLineParserTests
         string? value = null;
 
         // Act
-        await CommandLine.Parse(args, new CommandLineParsingOptions { Style = CommandLineStyle.DotNet })
+        await CommandLine.Parse(args, DotNet)
             .AddHandler<DotNet01_StringOptions>(async o =>
             {
                 await Task.Delay(10); // 模拟异步操作

@@ -16,6 +16,8 @@ namespace dotnetCampus.Cli.Tests;
 [TestClass]
 public class GnuCommandLineParserTests
 {
+    private CommandLineParsingOptions GNU { get; } = new CommandLineParsingOptions { Style = CommandLineStyle.GNU };
+
     #region 1. 选项识别与解析
 
     [TestMethod("1.1. 长选项，字符串类型，可正常赋值。")]
@@ -26,7 +28,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU01_StringOptions>(o => value = o.Value)
             .Run();
 
@@ -42,7 +44,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU02_ShortOptions>(o => value = o.Value)
             .Run();
 
@@ -58,7 +60,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU01_StringOptions>(o => value = o.Value)
             .Run();
 
@@ -75,7 +77,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU02_ShortOptions>(o => value = o.Value)
             .Run();
 
@@ -93,7 +95,7 @@ public class GnuCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU03_MixedOptions>(o =>
             {
                 number = o.Number;
@@ -120,7 +122,7 @@ public class GnuCommandLineParserTests
         int? number = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU04_IntegerOptions>(o => number = o.Number)
             .Run();
 
@@ -136,7 +138,7 @@ public class GnuCommandLineParserTests
         bool? flag = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU05_BooleanOptions>(o => flag = o.Flag)
             .Run();
 
@@ -152,7 +154,7 @@ public class GnuCommandLineParserTests
         LogLevel? logLevel = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU06_EnumOptions>(o => logLevel = o.LogLevel)
             .Run();
 
@@ -168,7 +170,7 @@ public class GnuCommandLineParserTests
         string[]? files = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU07_ArrayOptions>(o => files = o.Files)
             .Run();
 
@@ -186,7 +188,7 @@ public class GnuCommandLineParserTests
         List<string>? tags = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU08_ListOptions>(o => tags = o.Tags.ToList())
             .Run();
 
@@ -209,7 +211,7 @@ public class GnuCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args)
+            CommandLine.Parse(args, GNU)
                 .AddHandler<GNU09_RequiredOptions>(_ => { })
                 .Run();
         });
@@ -224,7 +226,7 @@ public class GnuCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<CommandLineParseException>(() =>
         {
-            CommandLine.Parse(args)
+            CommandLine.Parse(args, GNU)
                 .AddHandler<GNU01_StringOptions>(_ => { })
                 .Run();
         });
@@ -239,7 +241,7 @@ public class GnuCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<CommandLineParseValueException>(() =>
         {
-            CommandLine.Parse(args)
+            CommandLine.Parse(args, GNU)
                 .AddHandler<GNU04_IntegerOptions>(_ => { })
                 .Run();
         });
@@ -254,7 +256,7 @@ public class GnuCommandLineParserTests
         string? upperValue = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true, })
+        CommandLine.Parse(args, GNU with { CaseSensitive = true })
             .AddHandler<GNU10_CaseSensitiveOptions>(o =>
             {
                 lowerValue = o.CaseSensitive;
@@ -275,7 +277,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU11_CaseInsensitiveOptions>(o => value = o.IgnoreCase)
             .Run();
 
@@ -293,7 +295,7 @@ public class GnuCommandLineParserTests
         string? insensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args) // 默认大小写不敏感
+        CommandLine.Parse(args, GNU) // 默认大小写不敏感
             .AddHandler<GNU23_MixedCaseOptions>(o =>
             {
                 sensitiveValue = o.CaseSensitiveOption;
@@ -315,7 +317,7 @@ public class GnuCommandLineParserTests
         string? option2Value = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { CaseSensitive = true })
             .AddHandler<GNU24_OverrideCaseOptions>(o =>
             {
                 option1Value = o.OptionOne;
@@ -336,7 +338,7 @@ public class GnuCommandLineParserTests
         string? globalSensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { CaseSensitive = true })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 globalSensitiveValue = o.GlobalSensitive;
@@ -355,7 +357,7 @@ public class GnuCommandLineParserTests
         string? localSensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { CaseSensitive = true })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 localSensitiveValue = o.LocalSensitive;
@@ -374,7 +376,7 @@ public class GnuCommandLineParserTests
         string? localInsensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { CaseSensitive = true })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 localInsensitiveValue = o.LocalInsensitive;
@@ -394,7 +396,7 @@ public class GnuCommandLineParserTests
         LogLevel? secondLevel = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU26_EnumCaseOptions>(o =>
             {
                 logLevel = o.LogLevel;
@@ -419,7 +421,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU12_AliasOptions>(o => value = o.OptionWithAlias)
             .Run();
 
@@ -437,7 +439,7 @@ public class GnuCommandLineParserTests
         bool? optionC = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU13_CombinedOptions>(o =>
             {
                 optionA = o.OptionA;
@@ -461,7 +463,7 @@ public class GnuCommandLineParserTests
         string[]? values = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU14_TerminatorOptions>(o =>
             {
                 option = o.Option;
@@ -489,7 +491,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU15_SingleValueOptions>(o => value = o.Value)
             .Run();
 
@@ -505,7 +507,7 @@ public class GnuCommandLineParserTests
         string[]? values = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU16_MultipleValueOptions>(o => values = o.Values)
             .Run();
 
@@ -525,7 +527,7 @@ public class GnuCommandLineParserTests
         string? value2 = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU17_MixedValueOptions>(o =>
             {
                 option = o.Option;
@@ -549,7 +551,7 @@ public class GnuCommandLineParserTests
         string? third = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU18_IndexedValueOptions>(o =>
             {
                 first = o.First;
@@ -574,7 +576,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU27_NonRequiredNonNullableOption>(o => value = o.Value)
             .Run();
 
@@ -591,7 +593,7 @@ public class GnuCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args)
+            CommandLine.Parse(args, GNU)
                 .AddHandler<GNU19_RequiredNonNullableOption>(_ => { })
                 .Run();
         });
@@ -605,7 +607,7 @@ public class GnuCommandLineParserTests
         string? value = "not-null";
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU20_NonRequiredNullableOption>(o => value = o.Value)
             .Run();
 
@@ -622,7 +624,7 @@ public class GnuCommandLineParserTests
         // Act & Assert
         Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args)
+            CommandLine.Parse(args, GNU)
                 .AddHandler<GNU21_RequiredNullableOption>(_ => { })
                 .Run();
         });
@@ -643,7 +645,7 @@ public class GnuCommandLineParserTests
         string? nonReqNonNull = null;
 
         // Act
-        CommandLine.Parse(args)
+        CommandLine.Parse(args, GNU)
             .AddHandler<GNU22_AllCombinationsOption>(o =>
             {
                 reqNonNull = o.ReqNonNull;
@@ -672,7 +674,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        await CommandLine.Parse(args)
+        await CommandLine.Parse(args, GNU)
             .AddHandler<GNU01_StringOptions>(async o =>
             {
                 await Task.Delay(10); // 模拟异步操作
