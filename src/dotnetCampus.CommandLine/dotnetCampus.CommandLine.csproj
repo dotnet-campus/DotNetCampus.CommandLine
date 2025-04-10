@@ -8,4 +8,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="dotnetCampus.CommandLine.Tests" />
+  </ItemGroup>
+
 </Project>

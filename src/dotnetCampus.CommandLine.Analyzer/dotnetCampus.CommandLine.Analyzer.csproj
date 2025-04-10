@@ -20,9 +20,7 @@
 
   <ItemGroup>
     <Compile Include="..\dotnetCampus.CommandLine\Compiler\*Attribute.cs" LinkBase="Compiler" />
-    <Compile Include="..\dotnetCampus.CommandLine.Legacy\Utils\NamingHelper.cs">
-      <Link>Utils\NamingHelper.cs</Link>
-    </Compile>
+    <Compile Include="..\dotnetCampus.CommandLine\Utils\NamingHelper.cs" Link="Utils\NamingHelper.cs" />
     <EmbeddedResource Update="Properties\Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
     <Compile Update="Properties\Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
   </ItemGroup>

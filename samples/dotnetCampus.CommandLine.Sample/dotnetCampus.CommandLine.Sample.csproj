@@ -12,10 +12,4 @@
     <ProjectReference Include="..\..\src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="..\..\src\dotnetCampus.CommandLine.Legacy\Utils\NamingHelper.cs">
-      <Link>Utils\NamingHelper.cs</Link>
-    </Compile>
-  </ItemGroup>
-
 </Project>
