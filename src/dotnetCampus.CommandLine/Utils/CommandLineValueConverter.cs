@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using dotnetCampus.Cli.Exceptions;
 
 namespace dotnetCampus.Cli.Utils;
 
@@ -46,32 +47,66 @@ internal static class CommandLineValueConverter
             throw new NotSupportedException($"Option type {type} is not supported.");
     }
 
-    internal static bool ArgumentStringsToBoolean(ImmutableArray<string>? arguments) => arguments switch
+    internal static bool ArgumentStringsToBoolean(ImmutableArray<string>? arguments)
     {
-        // 没传选项时，相当于传了 false。
-        null => false,
-        // 传了选项时，相当于传了 true。
-        { Length: 0 } => true,
-        // 传了选项，后面还带了参数时，取第一个参数的值作为 true/false。
-        { } values => bool.TryParse(values[0], out var result) && result,
-    };
+        return arguments switch
+        {
+            // 没传选项时，相当于传了 false。
+            null => false,
+            // 传了选项时，相当于传了 true。
+            { Length: 0 } => true,
+            // 传了选项，后面还带了参数时，取第一个参数的值作为 true/false。
+            { } values => ParseBoolean(values[0]) ?? throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid boolean value. Available values are: 1, true, yes, on, 0, false, no, off."),
+        };
+
+        static bool? ParseBoolean(string value)
+        {
+            var isTrue = value.Equals("1", StringComparison.OrdinalIgnoreCase) ||
+                         value.Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                         value.Equals("yes", StringComparison.OrdinalIgnoreCase) ||
+                         value.Equals("on", StringComparison.OrdinalIgnoreCase);
+            if (isTrue)
+            {
+                return true;
+            }
+            var isFalse = value.Equals("0", StringComparison.OrdinalIgnoreCase) ||
+                          value.Equals("false", StringComparison.OrdinalIgnoreCase) ||
+                          value.Equals("no", StringComparison.OrdinalIgnoreCase) ||
+                          value.Equals("off", StringComparison.OrdinalIgnoreCase);
+            if (isFalse)
+            {
+                return false;
+            }
+            return null;
+        }
+    }
 
     internal static T ArgumentStringsToEnum<T>(ImmutableArray<string>? arguments) where T : unmanaged, Enum => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => Enum.TryParse<T>(values[0], out var result) ? result : default,
+        { } values => Enum.TryParse<T>(values[0], true, out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid enum value for type {typeof(T).Name}."),
     };
 
     internal static byte ArgumentStringsToByte(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => byte.TryParse(values[0], out var result) ? result : default,
+        { } values => byte.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid byte value."),
     };
 
     internal static sbyte ArgumentStringsToSByte(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => sbyte.TryParse(values[0], out var result) ? result : default,
+        { } values => sbyte.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid sbyte value."),
     };
 
     internal static char ArgumentStringsToChar(ImmutableArray<string>? arguments) => arguments switch
@@ -83,67 +118,100 @@ internal static class CommandLineValueConverter
     internal static decimal ArgumentStringsToDecimal(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => decimal.TryParse(values[0], out var result) ? result : 0,
+        { } values => decimal.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid decimal value."),
     };
 
     internal static double ArgumentStringsToDouble(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => double.TryParse(values[0], out var result) ? result : 0,
+        { } values => double.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid double value."),
     };
 
     internal static float ArgumentStringsToSingle(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => float.TryParse(values[0], out var result) ? result : 0,
+        { } values => float.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid float value."),
     };
 
     internal static int ArgumentStringsToInt32(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => int.TryParse(values[0], out var result) ? result : 0,
+        { } values => int.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid int value."),
     };
 
     internal static uint ArgumentStringsToUInt32(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => uint.TryParse(values[0], out var result) ? result : 0,
+        { } values => uint.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid uint value."),
     };
 
     internal static nint ArgumentStringsToIntPtr(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => nint.TryParse(values[0], out var result) ? result : 0,
+        { } values => nint.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid nint value."),
     };
 
     internal static nuint ArgumentStringsToUIntPtr(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => nuint.TryParse(values[0], out var result) ? result : 0,
+        { } values => nuint.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid unint value."),
     };
 
     internal static long ArgumentStringsToInt64(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => long.TryParse(values[0], out var result) ? result : 0,
+        { } values => long.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid long value."),
     };
 
     internal static ulong ArgumentStringsToUInt64(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => ulong.TryParse(values[0], out var result) ? result : 0,
+        { } values => ulong.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid ulong value."),
     };
 
     internal static short ArgumentStringsToInt16(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => short.TryParse(values[0], out var result) ? result : default,
+        { } values => short.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid short value."),
     };
 
     internal static ushort ArgumentStringsToUInt16(ImmutableArray<string>? arguments) => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => ushort.TryParse(values[0], out var result) ? result : default,
+        { } values => ushort.TryParse(values[0], out var result)
+            ? result
+            : throw new CommandLineParseValueException(
+                $"Value [{values[0]}] is not a valid ushort value."),
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
@@ -167,7 +235,7 @@ internal static class CommandLineValueConverter
     {
         null => null,
         { Length: 0 } => Array.Empty<string>(),
-        { } values => values.ToImmutableArray(),
+        { } values => values,
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
@@ -175,7 +243,7 @@ internal static class CommandLineValueConverter
     {
         null => null,
         { Length: 0 } => ImmutableArray<string>.Empty,
-        { } values => values.ToImmutableArray(),
+        { } values => values,
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]

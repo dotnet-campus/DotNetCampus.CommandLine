@@ -233,7 +233,7 @@ public class GnuCommandLineParserTests
         string[] args = ["--number", "not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineException>(() =>
+        Assert.ThrowsException<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args)
                 .AddHandler<T04_IntegerOptions>(o => { })
