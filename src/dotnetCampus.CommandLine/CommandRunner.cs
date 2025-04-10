@@ -105,11 +105,13 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     {
         var verbName = _commandLine.GuessedVerbName;
 
+        // 优先寻找单独添加的处理器。
         if (_dictionaryVerbHandlers.TryMatch(verbName, _commandLine) is { } h1)
         {
             return h1;
         }
 
+        // 其次寻找程序集中自动搜集到的处理器。
         foreach (var handler in _assemblyVerbHandlers)
         {
             if (handler.TryMatch(verbName, _commandLine) is { } h2)
@@ -118,6 +120,20 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             }
         }
 
+        // 如果没有找到，那么很可能此命令没有谓词，需要使用默认的处理器。
+        if (_dictionaryVerbHandlers.TryMatch(null, _commandLine) is { } h3)
+        {
+            return h3;
+        }
+        foreach (var handler in _assemblyVerbHandlers)
+        {
+            if (handler.TryMatch(null, _commandLine) is { } h4)
+            {
+                return h4;
+            }
+        }
+
+        // 如果连默认的处理器都没有找到，说明根本没有能处理此命令的处理器。
         return null;
     }
 

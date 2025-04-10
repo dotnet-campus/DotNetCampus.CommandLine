@@ -60,7 +60,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
     public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::dotnetCampus.Cli.CommandLine commandLine) => new()
     {
 {{(model.OptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", model.OptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(model.ValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", model.ValueProperties.Select(GenerateValuePropertyAssignment)))}}
+{{(model.ValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", model.ValueProperties.Select(x => GenerateValuePropertyAssignment(model, x))))}}
     };
 }
 
@@ -92,8 +92,9 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 """;
     }
 
-    private string GenerateValuePropertyAssignment(ValuePropertyGeneratingModel property)
+    private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property)
     {
+        var hasVerb = model.VerbName is not null ? 1 : 0;
         var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
         var generic = property.Type.ToNotNullGlobalDisplayString();
         var exception = property.IsRequired
@@ -102,7 +103,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
                 ? "default"
                 : "null!";
         return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {exception},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index + hasVerb}, {property.Length ?? 1}" : "")}) ?? {exception},
 """;
     }
 

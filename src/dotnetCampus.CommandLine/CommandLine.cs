@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using dotnetCampus.Cli.Utils;
 
 namespace dotnetCampus.Cli;
@@ -101,17 +100,6 @@ public record CommandLine : ICoreCommandRunnerBuilder
     }
 
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);
-
-    /// <summary>
-    /// 尝试获取命令行参数中猜测的谓词名称。
-    /// </summary>
-    /// <param name="verbName">谓词名称。</param>
-    /// <returns>如果命令行参数中包含谓词名称，则返回 <see langword="true" />；否则返回 <see langword="false" />。</returns>
-    internal bool TryGuessVerbName([NotNullWhen(true)] out string? verbName)
-    {
-        verbName = GuessedVerbName;
-        return verbName is not null;
-    }
 
     /// <summary>
     /// 尝试将命令行参数转换为指定类型的实例。
