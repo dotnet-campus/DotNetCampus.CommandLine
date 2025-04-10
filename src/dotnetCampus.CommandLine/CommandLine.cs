@@ -415,4 +415,13 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         return shouldSkipVerb ? PositionalArguments.Slice(1, PositionalArguments.Length - 1) : PositionalArguments;
     }
+
+    /// <summary>
+    /// 输出传入的命令行参数字符串。
+    /// </summary>
+    /// <returns>传入的命令行参数字符串。</returns>
+    public override string ToString()
+    {
+        return string.Join(" ", CommandLineArguments);
+    }
 }

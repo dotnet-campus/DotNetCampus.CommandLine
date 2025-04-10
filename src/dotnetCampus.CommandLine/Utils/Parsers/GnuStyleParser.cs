@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using dotnetCampus.Cli.Exceptions;
 
 namespace dotnetCampus.Cli.Utils.Parsers;
 
@@ -36,11 +37,11 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 var option = commandLineArgument[2..];
                 var indexOfEqual = option.IndexOf('=');
                 var indexOfColon = option.IndexOf(':');
-                if (indexOfEqual is 0 || indexOfColon is 0)
+                if (option.Length <= 0 || !char.IsLetterOrDigit(option[0]) || indexOfEqual is 0 || indexOfColon is 0)
                 {
                     // 选项格式无效。
                     // --= 或 --:
-                    throw new ArgumentException($"Invalid option format at index [{i}, 2]: {commandLineArgument}");
+                    throw new CommandLineParseException($"Invalid option format at index [{i}, 2]: {commandLineArgument}");
                 }
 
                 if (indexOfEqual < 0 && indexOfColon < 0)
@@ -74,7 +75,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 }
 
                 // 未知情况。
-                throw new ArgumentException($"Invalid option format at index [{i}]: {commandLineArgument}");
+                throw new CommandLineParseException($"Invalid option format at index [{i}]: {commandLineArgument}");
             }
 
             if (commandLineArgument.StartsWith('-'))
@@ -87,7 +88,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 {
                     // 选项格式无效。
                     // -= 或 -:
-                    throw new ArgumentException($"Invalid option format at index [{i}, 1]: {commandLineArgument}");
+                    throw new CommandLineParseException($"Invalid option format at index [{i}, 1]: {commandLineArgument}");
                 }
 
                 if (indexOfEqual < 0 && indexOfColon < 0)
@@ -134,7 +135,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 }
 
                 // 未知情况。
-                throw new ArgumentException($"Invalid option format at index [{i}]: {commandLineArgument}");
+                throw new CommandLineParseException($"Invalid option format at index [{i}]: {commandLineArgument}");
             }
 
             if (currentOption is not null)
