@@ -5,12 +5,71 @@
 /// 不同的命令行工具可能使用不同的参数风格，本枚举定义了常见的几种命令行参数风格。
 /// </summary>
 public enum CommandLineStyle
-{
-    /// <summary>
+{    /// <summary>
     /// 灵活风格。<br/>
     /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="GNU"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
     /// 适用于希望为用户提供更灵活的参数传递体验的工具。
     /// </summary>
+    /// <remarks>
+    /// 灵活风格是一种包容性最强的命令行参数风格，旨在让不熟悉命令行操作的用户也能轻松使用。它通过智能识别尝试理解用户输入的意图，支持多种参数格式共存。<br/>
+    /// <br/>
+    /// 详细规则：<br/>
+    /// 1. 参数前缀支持多种形式：双破折线(--), 单破折线(-), 斜杠(/)<br/>
+    /// 2. 参数值分隔符兼容多种形式：空格、等号(=)、冒号(:)<br/>
+    /// 3. 参数命名风格兼容kebab-case(--parameter-name)、PascalCase(-ParameterName)和camelCase<br/>
+    /// 4. 默认大小写不敏感，便于初学者使用<br/>
+    /// 5. 支持短选项(-a)和长选项(--parameter)，优先识别长选项<br/>
+    /// 6. 支持布尔开关参数，可不带值或使用true/false、yes/no、on/off等常见值<br/>
+    /// 7. 支持位置参数，并可通过双破折号(--)标记位置参数的开始<br/>
+    /// 8. 支持有限的短选项组合(-abc)，但当发生歧义时优先解析为单个选项<br/>
+    /// 9. 当特性之间发生冲突时，优先保留简单、直观的用法，牺牲高级但复杂的功能<br/>
+    /// 10. 自动检测并处理常见的用户错误，如选项名称拼写错误提示最接近的选项<br/>
+    /// 11. 允许不同风格在同一命令行中混合使用<br/>
+    /// <br/>
+    /// 不支持的特性（为避免冲突）：<br/>
+    /// 1. 短选项组合中的最后一个选项不能直接附带参数（如-abc value，c无法接收value作为参数）<br/>
+    /// 2. 不支持POSIX风格中的特殊数字操作数形式（如-42表示数字42）<br/>
+    /// <br/>
+    /// <code>
+    /// # 长选项示例（多种风格）
+    /// app --parameter value      # GNU风格空格分隔
+    /// app --parameter=value      # GNU风格等号分隔
+    /// app --parameter:value      # DotNet风格冒号分隔
+    /// app -Parameter value       # PowerShell风格（Pascal命名）
+    /// app --param-name value     # Kebab-case命名
+    /// app --paramName value      # CamelCase命名
+    /// 
+    /// # 短选项示例（兼容多种形式）
+    /// app -p value               # 短选项空格分隔
+    /// app -p=value               # 短选项等号分隔
+    /// app -p:value               # 短选项冒号分隔
+    /// app -pvalue                # 短选项直接跟值（GNU风格）
+    /// 
+    /// # 斜杠选项（Windows风格）
+    /// app /parameter value       # 斜杠前缀长选项
+    /// app /p value               # 斜杠前缀短选项
+    /// app /parameter:value       # 斜杠前缀冒号分隔（类MSBuild）
+    /// 
+    /// # 布尔开关参数
+    /// app --enable               # 不带值的布尔参数（视为true）
+    /// app --no-feature           # 否定形式（视为false）
+    /// app --feature=false        # 显式布尔值
+    /// app --feature=off          # 替代布尔值形式
+    /// app -e                     # 短格式布尔参数
+    /// 
+    /// # 位置参数和混合用法
+    /// app value1 --param value2  # 位置参数和命名参数混用
+    /// app --param value -- -value1 --value2  # -- 后的内容视为位置参数
+    /// app -a value1 --param-b value2 /c:value3  # 混合使用不同风格
+    /// 
+    /// # 大小写不敏感（便于初学者）
+    /// app --PARAMETER value      # 等同于 --parameter value
+    /// app -P value               # 等同于 -p value
+    /// 
+    /// # 有限支持的短选项组合
+    /// app -abc                   # 等同于 -a -b -c（所有都是布尔开关）
+    /// </code>
+    /// </remarks>
     Flexible,
 
     /// <summary>
