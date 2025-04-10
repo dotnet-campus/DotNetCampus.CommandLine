@@ -164,19 +164,24 @@ internal record OptionPropertyGeneratingModel
 
     public required string? LongName { get; init; }
 
-    public required bool CaseSensitive { get; init; }
+    public required bool? CaseSensitive { get; init; }
 
     public required ImmutableArray<string> Aliases { get; init; }
 
     public string GetNormalizedLongName()
     {
-        var caseSensitive = CaseSensitive;
-        return NamingHelper.MakeKebabCase(LongName ?? PropertyName, !caseSensitive, !caseSensitive);
+        return (CaseSensitive, LongName) switch
+        {
+            // 如果指定了长名称，只要不是确定大小写不敏感，都直接使用指定的长名称。
+            (not false, not null) => NamingHelper.MakeKebabCase(LongName, false, false),
+            // 如果大小写不敏感，或没有指定长名称，那么等同于全小写。
+            _ => NamingHelper.MakeKebabCase(LongName ?? PropertyName, true, true),
+        };
     }
 
     public string GetDisplayCommandOption()
     {
-        var caseSensitive = CaseSensitive;
+        var caseSensitive = CaseSensitive is true;
 
         if (LongName is { } longName)
         {
@@ -225,7 +230,7 @@ internal record OptionPropertyGeneratingModel
             IsValueType = propertySymbol.Type.IsValueType,
             ShortName = shortName?.Length == 1 ? shortName[0] : null,
             LongName = longName,
-            CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) && result,
+            CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
             Aliases = aliases,
         };
     }

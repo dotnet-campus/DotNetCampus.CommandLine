@@ -279,6 +279,111 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("value", value);
     }
 
+    [TestMethod("3.6. 单个选项设置大小写敏感，全局默认不敏感，识别正确。")]
+    public void SingleOptionCaseSensitive_GlobalInsensitive_CorrectlyParsed()
+    {
+        // Arrange
+        string[] args = ["--Case-Option", "value1", "--case-option", "value2"];
+        string? sensitiveValue = null;
+        string? insensitiveValue = null;
+
+        // Act
+        var result = CommandLine.Parse(args) // 默认大小写不敏感
+            .AddHandler<T23_MixedCaseOptions>(o =>
+            {
+                sensitiveValue = o.CaseSensitiveOption;
+                insensitiveValue = o.CaseInsensitiveOption;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value1", sensitiveValue); // 大小写敏感，匹配第一个 Case-Option
+        Assert.AreEqual("value2", insensitiveValue); // 大小写不敏感，匹配第二个 case-option
+    }
+
+    [TestMethod("3.7. 单个选项设置大小写不敏感，全局设置为敏感，识别正确。")]
+    public void SingleOptionCaseInsensitive_GlobalSensitive_CorrectlyParsed()
+    {
+        // Arrange
+        string[] args = ["--option-one", "value1", "--option-TWO", "value2"];
+        string? option1Value = null;
+        string? option2Value = null;
+
+        // Act
+        var result = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+            .AddHandler<T24_OverrideCaseOptions>(o =>
+            {
+                option1Value = o.OptionOne;
+                option2Value = o.OptionTwo;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNull(option1Value); // 全局大小写敏感，--Option-One 不匹配 --option-one
+        Assert.AreEqual("value2", option2Value); // 选项明确指定为大小写不敏感，所以匹配成功
+    }
+
+    [TestMethod("3.8. 混合使用全局和单个选项的大小写设置，识别正确。")]
+    public void MixedCaseSettings_AllCorrectlyParsed()
+    {
+        // Arrange
+        string[] args = ["--global-sensitive", "value1", "--local-sensitive", "value2", "--local-insensitive", "value3"];
+        string? globalSensitiveValue1 = null;
+        string? globalSensitiveValue2 = null;
+        string? localSensitiveValue1 = null;
+        string? localSensitiveValue2 = null;
+        string? localInsensitiveValue1 = null;
+        string? localInsensitiveValue2 = null;
+
+        // Act
+        var result1 = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = true })
+            .AddHandler<T25_ComplexCaseOptions>(o =>
+            {
+                globalSensitiveValue1 = o.GlobalSensitive;
+                localSensitiveValue1 = o.LocalSensitive;
+                localInsensitiveValue1 = o.LocalInsensitive;
+            })
+            .Run();
+        var result2 = CommandLine.Parse(args, new CommandLineParsingOptions { CaseSensitive = false })
+            .AddHandler<T25_ComplexCaseOptions>(o =>
+            {
+                globalSensitiveValue2 = o.GlobalSensitive;
+                localSensitiveValue2 = o.LocalSensitive;
+                localInsensitiveValue2 = o.LocalInsensitive;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNull(globalSensitiveValue1); // 全局大小写敏感，--GLOBAL-SENSITIVE 不匹配 --global-sensitive
+        Assert.AreEqual("value1", globalSensitiveValue2); // 全局大小写不敏感，--GLOBAL-SENSITIVE 匹配 --global-sensitive
+        Assert.IsNull(localSensitiveValue1); // 局部大小写敏感，--local-SENSITIVE 不匹配 --local-sensitive
+        Assert.IsNull(localSensitiveValue2); // 局部大小写敏感，--local-SENSITIVE 不匹配 --local-sensitive
+        Assert.AreEqual("value3", localInsensitiveValue1); // 局部大小写不敏感，匹配成功
+        Assert.AreEqual("value3", localInsensitiveValue2); // 局部大小写不敏感，匹配成功
+    }
+
+    [TestMethod("3.9. 选项值大小写测试，枚举值不敏感，识别正确。")]
+    public void EnumValueCaseInsensitive_CorrectlyParsed()
+    {
+        // Arrange
+        string[] args = ["--log-level", "warning", "--second-level", "ERROR"];
+        LogLevel? logLevel = null;
+        LogLevel? secondLevel = null;
+
+        // Act
+        var result = CommandLine.Parse(args)
+            .AddHandler<T26_EnumCaseOptions>(o =>
+            {
+                logLevel = o.LogLevel;
+                secondLevel = o.SecondLevel;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual(LogLevel.Warning, logLevel); // 枚举值大小写不敏感
+        Assert.AreEqual(LogLevel.Error, secondLevel); // 枚举值大小写不敏感
+    }
+
     #endregion
 
     #region 4. 特殊特性
@@ -720,6 +825,45 @@ internal record T22_AllCombinationsOption
 
     [Option("non-req-non-null")]
     public string NonReqNonNull { get; init; } = string.Empty;
+}
+
+internal record T23_MixedCaseOptions
+{
+    [Option("Case-Option", CaseSensitive = true)]
+    public string CaseSensitiveOption { get; init; } = string.Empty;
+
+    [Option("case-option")]
+    public string CaseInsensitiveOption { get; init; } = string.Empty;
+}
+
+internal record T24_OverrideCaseOptions
+{
+    [Option("Option-One")]
+    public string OptionOne { get; init; } = string.Empty;
+
+    [Option("option-TWO", CaseSensitive = false)]
+    public string OptionTwo { get; init; } = string.Empty;
+}
+
+internal record T25_ComplexCaseOptions
+{
+    [Option("GLOBAL-SENSITIVE")]
+    public string GlobalSensitive { get; init; } = string.Empty;
+
+    [Option("local-SENSITIVE", CaseSensitive = true)]
+    public string LocalSensitive { get; init; } = string.Empty;
+
+    [Option("Local-Insensitive", CaseSensitive = false)]
+    public string LocalInsensitive { get; init; } = string.Empty;
+}
+
+internal record T26_EnumCaseOptions
+{
+    [Option("log-level")]
+    public LogLevel LogLevel { get; init; }
+
+    [Option("second-level")]
+    public LogLevel SecondLevel { get; init; }
 }
 
 #endregion

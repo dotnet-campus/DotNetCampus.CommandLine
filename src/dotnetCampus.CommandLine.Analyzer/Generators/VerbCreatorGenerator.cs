@@ -82,7 +82,13 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 
         var methodName = property.IsValueType ? "GetOptionValue" : "GetOption";
         var generic = property.Type.ToNotNullGlobalDisplayString();
-        string ArgumentsCreator(string name) => $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}\"{name}\"";
+        var caseSensitive = property.CaseSensitive switch
+        {
+            true => ", true",
+            false => ", false",
+            null => "",
+        };
+        string ArgumentsCreator(string name) => $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}\"{name}\"{caseSensitive}";
         var exception = property.IsRequired
             ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
