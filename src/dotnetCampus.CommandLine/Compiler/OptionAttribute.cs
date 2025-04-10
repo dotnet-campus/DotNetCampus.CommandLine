@@ -9,7 +9,31 @@ namespace dotnetCampus.Cli.Compiler;
 /// [Option("property-name")]
 /// public required string PropertyName { get; init; }
 /// </code>
-/// 其中，<c>required</c> 为可选的修饰符，表示该选项为必填项；如果没有在命令行中传入，则会抛出异常或输出错误信息。
+/// 其中：
+/// <list type="bullet">
+/// <item><c>required</c> 为可选的修饰符，表示该选项为必填项；如果没有在命令行中传入，则会抛出异常或输出错误信息。</item>
+/// <item>选项名称可以不指定，当不指定时将自动使用属性名。</item>
+/// <item>选项名称建议使用 kebab-case 命名法（以获得更好的大小写和数字的区分度；当然，这并不影响实际使用，你仍可以使用其他命令行风格的命名法传入命令行参数）。</item>
+/// </list>
+/// 如果希望传入多个参数，则可以使用数组类型：
+/// <code>
+/// [Option("property-name")]
+/// public ImmutableArray&lt;string&gt; Values { get; init; }
+/// </code>
+/// 数组、常用的只读/不可变集合类型（包括接口）都是支持的，例如：
+/// <list type="bullet">
+/// <item><c>string[]</c></item>
+/// <item><c>IReadOnlyList&lt;string&gt;</c></item>
+/// <item><c>ImmutableArray&lt;string&gt;</c></item>
+/// <item><c>ImmutableHashSet&lt;string&gt;</c></item>
+/// <item><c>IReadOnlyDictionary&lt;string, string&gt;</c></item>
+/// <item><c>ImmutableDictionary&lt;string, string&gt;</c></item>
+/// </list>
+/// 对于字典类型的属性，命令行可通过如下方式传入：
+/// <code>
+/// do --property-name key1=value1 --property-name key2=value2
+/// do --property-name:key1=value1;key2=value2
+/// </code>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class OptionAttribute : CommandLineAttribute

@@ -37,6 +37,12 @@ internal static class CommandLineValueConverter
             type == typeof(short) ? (T)(object)ArgumentStringsToInt16(arguments) :
             type == typeof(ushort) ? (T)(object)ArgumentStringsToUInt16(arguments) :
             type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments) :
+            type == typeof(string[]) ? (T)(object)ArgumentStringsToStringArray(arguments) :
+            type == typeof(ImmutableArray<string>) ? (T)(object)ArgumentStringsToStringImmutableArray(arguments) :
+            type == typeof(ImmutableHashSet<string>) ? (T)(object)ArgumentStringsToStringImmutableHashSet(arguments) :
+            type == typeof(ImmutableDictionary<string, string>) ? (T)(object)ArgumentStringsToStringDictionary(arguments) :
+            type.IsAssignableFrom(typeof(IReadOnlyList<string>)) ? (T)(object)ArgumentStringsToStringReadOnlyList(arguments) :
+            type.IsAssignableFrom(typeof(IReadOnlyDictionary<string, string>)) ? (T)(object)ArgumentStringsToStringDictionary(arguments) :
             throw new NotSupportedException($"Option type {type} is not supported.");
     }
 
@@ -146,5 +152,45 @@ internal static class CommandLineValueConverter
         null => null,
         { Length: 0 } => "",
         { } values => string.Join(" ", values),
+    };
+
+    [return: NotNullIfNotNull(nameof(arguments))]
+    internal static string[]? ArgumentStringsToStringArray(ImmutableArray<string>? arguments) => arguments switch
+    {
+        null => null,
+        { Length: 0 } => Array.Empty<string>(),
+        { } values => values.ToArray(),
+    };
+
+    [return: NotNullIfNotNull(nameof(arguments))]
+    internal static IReadOnlyList<string>? ArgumentStringsToStringReadOnlyList(ImmutableArray<string>? arguments) => arguments switch
+    {
+        null => null,
+        { Length: 0 } => Array.Empty<string>(),
+        { } values => values.ToImmutableArray(),
+    };
+
+    [return: NotNullIfNotNull(nameof(arguments))]
+    internal static ImmutableArray<string>? ArgumentStringsToStringImmutableArray(ImmutableArray<string>? arguments) => arguments switch
+    {
+        null => null,
+        { Length: 0 } => ImmutableArray<string>.Empty,
+        { } values => values.ToImmutableArray(),
+    };
+
+    [return: NotNullIfNotNull(nameof(arguments))]
+    internal static ImmutableHashSet<string>? ArgumentStringsToStringImmutableHashSet(ImmutableArray<string>? arguments) => arguments switch
+    {
+        null => null,
+        { Length: 0 } => ImmutableHashSet<string>.Empty,
+        { } values => values.ToImmutableHashSet(),
+    };
+
+    [return: NotNullIfNotNull(nameof(arguments))]
+    internal static IReadOnlyDictionary<string, string>? ArgumentStringsToStringDictionary(ImmutableArray<string>? arguments) => arguments switch
+    {
+        null => null,
+        { Length: 0 } => new Dictionary<string, string>(),
+        { } values => values.ToImmutableDictionary(x => x.Split('=')[0], x => x.Split('=')[1]),
     };
 }

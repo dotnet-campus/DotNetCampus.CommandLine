@@ -9,24 +9,24 @@ namespace dotnetCampus.Cli.Compiler;
 /// [Value]
 /// public required string Value { get; init; }
 /// </code>
-/// 如果支持传入多个参数，则可以使用数组类型：
+/// 其中：
+/// <list type="bullet">
+/// <item><c>required</c> 为可选的修饰符，表示该选项为必填项；如果没有在命令行中传入，则会抛出异常或输出错误信息。</item>
+/// </list>
+/// 如果希望传入多个参数，则可以使用数组类型：
 /// <code>
 /// [Value(Length = int.MaxValue)]
-/// public string[] Values { get; init; }
+/// public ImmutableArray&lt;string&gt; Values { get; init; }
 /// </code>
-/// 常用的集合类型（包括接口）都是支持的，例如：
+/// 数组、常用的只读/不可变集合类型（包括接口）都是支持的，例如：
 /// <list type="bullet">
 /// <item><c>string[]</c></item>
-/// <item><c>List&lt;string&gt;</c></item>
-/// <item><c>IList&lt;string&gt;</c></item>
 /// <item><c>IReadOnlyList&lt;string&gt;</c></item>
 /// <item><c>ImmutableArray&lt;string&gt;</c></item>
-/// <item><c>HashSet&lt;string&gt;</c></item>
-/// <item><c>FrozenSet&lt;string&gt;</c></item>
-/// <item><c>Dictionary&lt;string, string&gt;</c></item>
+/// <item><c>ImmutableHashSet&lt;string&gt;</c></item>
+/// <item><c>IReadOnlyDictionary&lt;string, string&gt;</c></item>
 /// <item><c>ImmutableDictionary&lt;string, string&gt;</c></item>
 /// </list>
-/// 等。
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class ValueAttribute : CommandLineAttribute

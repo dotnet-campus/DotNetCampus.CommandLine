@@ -102,7 +102,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
                 ? "default"
                 : "null!";
         return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}, "{model.VerbName}") ?? {exception},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}, \"{model.VerbName}\"" : $"\"{model.VerbName}\"")}) ?? {exception},
 """;
     }
 
