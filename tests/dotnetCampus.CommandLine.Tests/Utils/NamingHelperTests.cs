@@ -285,7 +285,8 @@ public class NamingHelperTests
         Assert.AreEqual("a", newName);
     }
 
-    [TestMethod("测试连续大写字母的处理"), Ignore]
+    [Ignore("连续大写的情况目前很难区分。如果后续有更好的方法区分了，可以再支持。")]
+    [TestMethod("测试连续大写字母的处理")]
     public void MakeKebabCase_ConsecutiveUpperCase_ShouldReturnKebabCase()
     {
         // Arrange

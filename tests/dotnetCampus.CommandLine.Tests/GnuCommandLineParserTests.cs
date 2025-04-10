@@ -63,6 +63,7 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("test", value);
     }
 
+    [Ignore("这样写可读性很差，感觉没有人会喜欢这样的风格。暂定不支持此规则。")]
     [TestMethod("1.4. 短选项无空格，字符串类型，可正常赋值。")]
     public void ShortOptionNoSpace_StringType_ValueAssigned()
     {
@@ -279,11 +280,12 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("value", value);
     }
 
+    [Ignore("单纯按匹配规则来说，大小写不敏感的确实会把不同大小写的选项匹配上，导致不知会选中哪个值；但处理好此问题需要额外的处理逻辑。个人认为没必要为了这个没人用的场景多写一些没必要的代码，所以暂定不支持此规则。")]
     [TestMethod("3.6. 单个选项设置大小写敏感，全局默认不敏感，识别正确。")]
     public void SingleOptionCaseSensitive_GlobalInsensitive_CorrectlyParsed()
     {
         // Arrange
-        string[] args = ["--Case-Option1", "value1", "--case-option2", "value2"];
+        string[] args = ["--Case-Option", "value1", "--case-option", "value2"];
         string? sensitiveValue = null;
         string? insensitiveValue = null;
 
@@ -863,10 +865,10 @@ internal record T22_AllCombinationsOption
 
 internal record T23_MixedCaseOptions
 {
-    [Option("Case-Option1", CaseSensitive = true)]
+    [Option("Case-Option", CaseSensitive = true)]
     public string CaseSensitiveOption { get; init; } = string.Empty;
 
-    [Option("case-option2")]
+    [Option("case-option")]
     public string CaseInsensitiveOption { get; init; } = string.Empty;
 }
 
