@@ -94,7 +94,6 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 
     private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property)
     {
-        var hasVerb = model.VerbName is not null ? 1 : 0;
         var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
         var generic = property.Type.ToNotNullGlobalDisplayString();
         var exception = property.IsRequired
@@ -103,7 +102,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
                 ? "default"
                 : "null!";
         return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index + hasVerb}, {property.Length ?? 1}" : "")}) ?? {exception},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}, "{model.VerbName}") ?? {exception},
 """;
     }
 

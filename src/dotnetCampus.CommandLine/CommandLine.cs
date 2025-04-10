@@ -21,6 +21,16 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取命令行参数中猜测的谓词名称。
     /// </summary>
+    /// <remarks>
+    /// <code>
+    /// # 对于以下命令：
+    /// do something --option value
+    /// # 可能存在两种情况：
+    /// # 1. do 是位置参数，something 是谓词。
+    /// # 2. do 是谓词，something 是位置参数。
+    /// </code>
+    /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有谓词来决定这个词是否是位置参数。
+    /// </remarks>
     public string? GuessedVerbName { get; }
 
     /// <summary>
@@ -46,6 +56,17 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 从命令行中解析出来的位置参数。
     /// </summary>
+    /// <remarks>
+    /// 注意，位置参数的第一个值可能是谓词名称；这取决于 <see cref="GuessedVerbName"/> 和实际处理器的谓词。
+    /// <code>
+    /// # 对于以下命令：
+    /// do something --option value
+    /// # 可能存在两种情况：
+    /// # 1. do 是位置参数，something 是谓词。
+    /// # 2. do 是谓词，something 是位置参数。
+    /// </code>
+    /// 如果处理器决定将 something 作为谓词，那么当需要取出位置参数时，此属性的第一个值需要排除。
+    /// </remarks>
     public ImmutableArray<string> PositionalArguments { get; }
 
     private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
@@ -319,13 +340,16 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
+    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetPositionalArgument<T>() where T : class
+    public T? GetPositionalArgument<T>(string? verbName = null) where T : class
     {
+        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
+        var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(0, 1));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1));
     }
 
     /// <summary>
@@ -333,25 +357,33 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="index">获取指定索引处的参数值。</param>
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
+    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetPositionalArgument<T>(int index, int length) where T : class
+    public T? GetPositionalArgument<T>(int index, int length, string? verbName = null) where T : class
     {
+        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
+        var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Length
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(
+                PositionalArguments.Slice(index + verbOffset,
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)));
     }
 
     /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
+    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetPositionalArgumentValue<T>() where T : struct
+    public T? GetPositionalArgumentValue<T>(string? verbName = null) where T : struct
     {
+        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
+        var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(0, 1));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1));
     }
 
     /// <summary>
@@ -359,21 +391,28 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="index">获取指定索引处的参数值。</param>
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
+    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetPositionalArgumentValue<T>(int index, int length) where T : struct
+    public T? GetPositionalArgumentValue<T>(int index, int length, string? verbName = null) where T : struct
     {
+        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
+        var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Length
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(
+                PositionalArguments.Slice(index + verbOffset,
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)));
     }
 
     /// <summary>
     /// 获取命令行参数中所有位置参数值的集合。
     /// </summary>
+    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <returns>命令行参数中位置参数值的集合。</returns>
-    public ImmutableArray<string> GetPositionalArguments()
+    public ImmutableArray<string> GetPositionalArguments(string? verbName = null)
     {
-        return PositionalArguments;
+        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
+        return shouldSkipVerb ? PositionalArguments.Slice(1, PositionalArguments.Length - 1) : PositionalArguments;
     }
 }
