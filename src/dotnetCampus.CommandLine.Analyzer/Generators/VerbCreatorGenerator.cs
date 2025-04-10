@@ -94,16 +94,23 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 
     private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property)
     {
-        var verbText = model.VerbName is { } verbName ? $"\"{verbName}\"" : "null";
         var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
         var generic = property.Type.ToNotNullGlobalDisplayString();
+        var indexLengthCode = (property.Index, property.Length) switch
+        {
+            (null, null) => null,
+            (null, { } length) => $"0, {length}",
+            ({ } index, null) => $"{index}, 1",
+            ({ } index, { } length) => $"{index}, {length}",
+        };
+        var verbText = model.VerbName is { } verbName ? $"\"{verbName}\"" : "null";
         var exception = property.IsRequired
             ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
         return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}, {verbText}" : verbText)}) ?? {exception},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}) ?? {exception},
 """;
     }
 

@@ -96,7 +96,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     if (option.Length is 1)
                     {
                         // 选项没有值，或使用空格分隔值。
-                        longOptions.TryAdd(option, []);
+                        shortOptions.TryAdd(option[0], []);
                         currentOption = option;
                     }
                     else
