@@ -158,6 +158,8 @@ internal record OptionPropertyGeneratingModel
 
     public required bool IsNullable { get; init; }
 
+    public required bool IsValueType { get; init; }
+
     public required char? ShortName { get; init; }
 
     public required string? LongName { get; init; }
@@ -217,6 +219,7 @@ internal record OptionPropertyGeneratingModel
             IsRequired = propertySymbol.IsRequired,
             IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IsValueType = propertySymbol.Type.IsValueType,
             ShortName = shortName?.Length == 1 ? shortName[0] : null,
             LongName = longName,
             IgnoreCase = ignoreCase is not null && bool.TryParse(ignoreCase, out var result) && result,
@@ -236,6 +239,8 @@ internal record ValuePropertyGeneratingModel
     public required bool IsInitOnly { get; init; }
 
     public required bool IsNullable { get; init; }
+
+    public required bool IsValueType { get; init; }
 
     public required int? Index { get; init; }
 
@@ -263,6 +268,7 @@ internal record ValuePropertyGeneratingModel
             IsRequired = propertySymbol.IsRequired,
             IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IsValueType = propertySymbol.Type.IsValueType,
             Index = index is not null && int.TryParse(index, out var result) ? result : null,
             Length = length is not null && int.TryParse(length, out var result2) ? result2 : null,
         };

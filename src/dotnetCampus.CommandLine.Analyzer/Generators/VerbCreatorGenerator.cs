@@ -80,15 +80,29 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
         // | 0        | 1        | 1   | 赋值       |
         // | 1        | 1        | 1   | 赋值       |
 
+        var methodName = property.IsValueType ? "GetOptionValue" : "GetOption";
+        var generic = property.Type.ToNotNullGlobalDisplayString();
+        var exception = property.IsRequired
+            ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            : property.IsValueType
+                ? "default"
+                : "null!";
         return $"""
-        {property.PropertyName} = commandLine.GetOption<{property.Type.ToNotNullGlobalDisplayString()}?>({(property.ShortName is { } shortName ? $"'{shortName}', " : "")}"{property.GetNormalizedLongName()}") ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default!")},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.ShortName is { } shortName ? $"'{shortName}', " : "")}"{property.GetNormalizedLongName()}") ?? {exception},
 """;
     }
 
     private string GenerateValuePropertyAssignment(ValuePropertyGeneratingModel property)
     {
+        var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
+        var generic = property.Type.ToNotNullGlobalDisplayString();
+        var exception = property.IsRequired
+            ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            : property.IsValueType
+                ? "default"
+                : "null!";
         return $"""
-        {property.PropertyName} = commandLine.GetValue<{property.Type.ToNotNullGlobalDisplayString()}?>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {(property.IsRequired ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")" : "default!")},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({(property.Index is { } index ? $"{index}, {property.Length ?? 1}" : "")}) ?? {exception},
 """;
     }
 

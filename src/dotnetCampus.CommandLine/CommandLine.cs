@@ -90,11 +90,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="optionName">选项的名称。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    public T? GetOption<T>(string optionName)
+    public T? GetOption<T>(string optionName) where T : class
     {
         return LongOptionValues.TryGetValue(optionName, out var values)
             ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
-            : default;
+            : null;
     }
 
     /// <summary>
@@ -103,11 +103,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="shortOption">短名称选项。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    public T? GetOption<T>(char shortOption)
+    public T? GetOption<T>(char shortOption) where T : class
     {
         return ShortOptionValues.TryGetValue(shortOption, out var values)
             ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
-            : default;
+            : null;
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="longName">选项的名称。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    public T? GetOption<T>(char shortName, string longName)
+    public T? GetOption<T>(char shortName, string longName) where T : class
     {
         // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
         if (ShortOptionValues.TryGetValue(shortName, out var shortValues))
@@ -130,7 +130,56 @@ public record CommandLine : ICoreCommandRunnerBuilder
             return CommandLineValueConverter.ArgumentStringsToValue<T>(longValues);
         }
         // 最后使用默认值（表示没有传入此参数）。
-        return default;
+        return null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOptionValue<T>(string optionName) where T : struct
+    {
+        return LongOptionValues.TryGetValue(optionName, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            : null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOptionValue<T>(char shortOption) where T : struct
+    {
+        return ShortOptionValues.TryGetValue(shortOption, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            : null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="shortName">短名称选项。</param>
+    /// <param name="longName">选项的名称。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    public T? GetOptionValue<T>(char shortName, string longName) where T : struct
+    {
+        // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
+        if (ShortOptionValues.TryGetValue(shortName, out var shortValues))
+        {
+            return CommandLineValueConverter.ArgumentStringsToValue<T>(shortValues);
+        }
+        // 其次使用长名称。
+        if (LongOptionValues.TryGetValue(longName, out var longValues))
+        {
+            return CommandLineValueConverter.ArgumentStringsToValue<T>(longValues);
+        }
+        // 最后使用默认值（表示没有传入此参数）。
+        return null;
     }
 
     /// <summary>
@@ -138,10 +187,10 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetValue<T>()
+    public T? GetPositionalArgument<T>() where T : class
     {
         return PositionalArguments.Length <= 0
-            ? default
+            ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(0, 1));
     }
 
@@ -152,10 +201,36 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
-    public T? GetValue<T>(int index, int length)
+    public T? GetPositionalArgument<T>(int index, int length) where T : class
     {
         return index < 0 || index >= PositionalArguments.Length
-            ? default
+            ? null
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
+    }
+
+    /// <summary>
+    /// 获取命令行参数中位置参数的值。
+    /// </summary>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>位置参数的值。</returns>
+    public T? GetPositionalArgumentValue<T>() where T : struct
+    {
+        return PositionalArguments.Length <= 0
+            ? null
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(0, 1));
+    }
+
+    /// <summary>
+    /// 获取命令行参数中位置参数的值。
+    /// </summary>
+    /// <param name="index">获取指定索引处的参数值。</param>
+    /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
+    /// <typeparam name="T">选项的值的类型。</typeparam>
+    /// <returns>位置参数的值。</returns>
+    public T? GetPositionalArgumentValue<T>(int index, int length) where T : struct
+    {
+        return index < 0 || index >= PositionalArguments.Length
+            ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(index, Math.Min(length, PositionalArguments.Length - index)));
     }
 
@@ -163,7 +238,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// 获取命令行参数中所有位置参数值的集合。
     /// </summary>
     /// <returns>命令行参数中位置参数值的集合。</returns>
-    public ImmutableArray<string> GetValues()
+    public ImmutableArray<string> GetPositionalArguments()
     {
         return PositionalArguments;
     }
