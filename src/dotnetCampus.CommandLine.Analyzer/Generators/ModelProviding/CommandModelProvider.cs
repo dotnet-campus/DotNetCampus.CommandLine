@@ -164,20 +164,23 @@ internal record OptionPropertyGeneratingModel
 
     public required string? LongName { get; init; }
 
-    public required bool IgnoreCase { get; init; }
+    public required bool CaseSensitive { get; init; }
 
     public required ImmutableArray<string> Aliases { get; init; }
 
     public string GetNormalizedLongName()
     {
-        return NamingHelper.MakeKebabCase(LongName ?? PropertyName);
+        var caseSensitive = CaseSensitive;
+        return NamingHelper.MakeKebabCase(LongName ?? PropertyName, !caseSensitive, !caseSensitive);
     }
 
     public string GetDisplayCommandOption()
     {
+        var caseSensitive = CaseSensitive;
+
         if (LongName is { } longName)
         {
-            return $"--{NamingHelper.MakeKebabCase(longName)}";
+            return $"--{NamingHelper.MakeKebabCase(longName, !caseSensitive, !caseSensitive)}";
         }
 
         if (ShortName is { } shortName)
@@ -185,7 +188,7 @@ internal record OptionPropertyGeneratingModel
             return $"-{shortName}";
         }
 
-        return $"--{NamingHelper.MakeKebabCase(PropertyName)}";
+        return $"--{NamingHelper.MakeKebabCase(PropertyName, !caseSensitive, !caseSensitive)}";
     }
 
     public static OptionPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
@@ -202,7 +205,7 @@ internal record OptionPropertyGeneratingModel
 
         var longName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_String).Value?.ToString();
         var shortName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_Char).Value?.ToString();
-        var ignoreCase = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.IgnoreCase)).Value.Value?.ToString();
+        var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
         var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
         {
             { Kind: TypedConstantKind.Array } typedConstant => typedConstant.Values.Select(a => a.Value?.ToString())
@@ -222,7 +225,7 @@ internal record OptionPropertyGeneratingModel
             IsValueType = propertySymbol.Type.IsValueType,
             ShortName = shortName?.Length == 1 ? shortName[0] : null,
             LongName = longName,
-            IgnoreCase = ignoreCase is not null && bool.TryParse(ignoreCase, out var result) && result,
+            CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) && result,
             Aliases = aliases,
         };
     }

@@ -84,11 +84,10 @@ public sealed class OptionAttribute : CommandLineAttribute
     public string[] Aliases { get; init; } = [];
 
     /// <summary>
-    /// 获取或设置是否忽略大小写。
+    /// 获取或设置是否大小写敏感。
     /// </summary>
     /// <remarks>
-    /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性。
-    /// 如果都没有指定，则默认为大小写敏感。
+    /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性（而 <see cref="CommandLine"/> 默认为大小写不敏感）。
     /// </remarks>
-    public bool IgnoreCase { get; init; }
+    public bool CaseSensitive { get; init; }
 }

@@ -8,10 +8,16 @@ public record CommandLineParsingOptions
     /// <summary>
     /// 以此风格解析命令行参数。
     /// </summary>
+    /// <remarks>
+    /// 不指定时会自动根据用户输入的命令行参数判断风格。
+    /// </remarks>
     public CommandLineStyle Style { get; init; }
 
     /// <summary>
-    /// 在不特别指定某个选项大小写敏感的情况下，全局忽略大小写。
+    /// 默认是大小写不敏感的，设置此值为 <see langword="true" /> 可以让命令行参数大小写敏感。
     /// </summary>
-    public bool IgnoreCase { get; init; }
+    /// <remarks>
+    /// 当然，可以在单独的属性上设置大小写敏感，设置后将在那个属性上覆盖此默认值。不设置的属性会使用此默认值。
+    /// </remarks>
+    public bool CaseSensitive { get; init; }
 }
