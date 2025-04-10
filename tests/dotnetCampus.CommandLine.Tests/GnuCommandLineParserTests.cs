@@ -689,15 +689,6 @@ public class GnuCommandLineParserTests
 
 #region 测试用数据模型
 
-internal enum LogLevel
-{
-    Debug,
-    Info,
-    Warning,
-    Error,
-    Critical
-}
-
 internal record GNU01_StringOptions
 {
     [Option]
