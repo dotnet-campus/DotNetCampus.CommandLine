@@ -16,7 +16,7 @@ namespace dotnetCampus.Cli.Tests;
 [TestClass]
 public class DotNetCommandLineParserTests
 {
-    private CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions { Style = CommandLineStyle.DotNet };
+    private CommandLineParsingOptions DotNet { get; } = CommandLineParsingOptions.DotNet;
 
     #region 1. 选项识别与解析
 

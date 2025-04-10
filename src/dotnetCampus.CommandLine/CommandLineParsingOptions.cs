@@ -5,6 +5,27 @@ namespace dotnetCampus.Cli;
 /// </summary>
 public record CommandLineParsingOptions
 {
+    /// <inheritdoc cref="CommandLineStyle.Flexible" />
+    public static CommandLineParsingOptions Flexible { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineStyle.Flexible,
+        CaseSensitive = false,
+    };
+
+    /// <inheritdoc cref="CommandLineStyle.DotNet" />
+    public static CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineStyle.DotNet,
+        CaseSensitive = false,
+    };
+
+    /// <inheritdoc cref="CommandLineStyle.GNU" />
+    public static CommandLineParsingOptions GNU { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineStyle.GNU,
+        CaseSensitive = true,
+    };
+
     /// <summary>
     /// 以此风格解析命令行参数。
     /// </summary>
