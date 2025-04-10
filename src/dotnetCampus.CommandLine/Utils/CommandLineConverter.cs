@@ -70,6 +70,7 @@ internal static class CommandLineConverter
     {
         ICommandLineParser parser = parsingOptions?.Style switch
         {
+            CommandLineStyle.Flexible => new FlexibleStyleParser(),
             CommandLineStyle.GNU => new GnuStyleParser(),
             CommandLineStyle.POSIX => new PosixStyleParser(),
             CommandLineStyle.DotNet => new DotNetStyleParser(),
