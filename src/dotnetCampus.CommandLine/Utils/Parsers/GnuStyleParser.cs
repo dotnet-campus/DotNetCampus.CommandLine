@@ -78,98 +78,79 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 throw new CommandLineParseException($"Invalid option format at index [{i}]: {commandLineArgument}");
             }
 
-            if (commandLineArgument.StartsWith('-') && commandLineArgument.Length > 1)
+            if (commandLineArgument.StartsWith('-'))
             {
                 // 处理短选项。
                 var option = commandLineArgument[1..];
                 var indexOfEqual = option.IndexOf('=');
                 var indexOfColon = option.IndexOf(':');
-                
-                // 处理带等号或冒号的短选项
-                if (indexOfEqual > 0 || indexOfColon > 0)
+                if (indexOfEqual is 0 || indexOfColon is 0)
                 {
-                    char optionChar = option[0];
-                    string value;
-                    
-                    if (indexOfEqual > 0 && (indexOfColon < 0 || indexOfEqual < indexOfColon))
+                    // 选项格式无效。
+                    // -= 或 -:
+                    throw new CommandLineParseException($"Invalid option format at index [{i}, 1]: {commandLineArgument}");
+                }
+
+                if (indexOfEqual < 0 && indexOfColon < 0)
+                {
+                    if (option.Length is 1)
                     {
-                        // 使用等号分隔值
-                        value = option[(indexOfEqual + 1)..];
+                        // 选项没有值，或使用空格分隔值。
+                        shortOptions.TryAdd(option[0], []);
+                        currentOption = option;
                     }
                     else
                     {
-                        // 使用冒号分隔值
-                        value = option[(indexOfColon + 1)..];
+                        // 多个短选项合并。
+                        // 例如：-abc
+                        foreach (var shortOption in option)
+                        {
+                            shortOptions.TryAdd(shortOption, []);
+                        }
+                        currentOption = null;
                     }
-                    
-                    shortOptions.TryAdd(optionChar, []);
-                    shortOptions[optionChar].Add(value);
+                    continue;
+                }
+
+                if (indexOfEqual > 0 && (indexOfColon < 0 || indexOfEqual < indexOfColon))
+                {
+                    // 选项使用等号分隔值。
+                    var value = option[(indexOfEqual + 1)..];
+                    option = option[..indexOfEqual];
+                    longOptions.TryAdd(option, []);
+                    longOptions[option].Add(value);
                     currentOption = null;
                     continue;
                 }
-                
-                // 特殊处理单个短选项的情况
-                if (option.Length == 1)
+
+                if (indexOfEqual < 0 && (indexOfColon > 0 || indexOfEqual > indexOfColon))
                 {
-                    char shortOption = option[0];
-                    shortOptions.TryAdd(shortOption, []);
-                    currentOption = option;
+                    // 选项使用冒号分隔值。
+                    var value = option[(indexOfColon + 1)..];
+                    option = option[..indexOfColon];
+                    longOptions.TryAdd(option, []);
+                    longOptions[option].Add(value);
+                    currentOption = null;
                     continue;
                 }
-                
-                // 处理短选项后直接跟值的情况，例如 -vtest
-                char firstChar = option[0];
-                string restOfOption = option[1..];
-                
-                // 检查是否所有字符都是字母（短选项组合，如 -abc）
-                bool allLetters = true;
-                for (int j = 0; j < option.Length; j++)
-                {
-                    if (!char.IsLetter(option[j]))
-                    {
-                        allLetters = false;
-                        break;
-                    }
-                }
-                
-                if (allLetters && option.Length <= 3) // 短选项组合，如 -abc
-                {
-                    // 多个短选项组合在一起，例如 -abc
-                    foreach (var shortOption in option)
-                    {
-                        shortOptions.TryAdd(shortOption, []);
-                    }
-                    currentOption = null;
-                }
-                else
-                {
-                    // 短选项后直接跟值，例如 -vtest
-                    shortOptions.TryAdd(firstChar, []);
-                    shortOptions[firstChar].Add(restOfOption);
-                    currentOption = null;
-                }
-                
-                continue;
+
+                // 未知情况。
+                throw new CommandLineParseException($"Invalid option format at index [{i}]: {commandLineArgument}");
             }
 
             if (currentOption is not null)
             {
                 // 如果当前有选项，则将其值设置为此选项的值。
-                if (currentOption.Length == 1)
+                if (longOptions.TryGetValue(currentOption, out var longValue))
                 {
-                    // 短选项
-                    char shortOption = currentOption[0];
-                    shortOptions.TryAdd(shortOption, []);
-                    shortOptions[shortOption].Add(commandLineArgument);
+                    longValue.Add(commandLineArgument);
+                    currentOption = null;
                 }
-                else
+                else if (shortOptions.TryGetValue(currentOption[0], out List<string>? shortValue))
                 {
-                    // 长选项
-                    longOptions.TryAdd(currentOption, []);
-                    longOptions[currentOption].Add(commandLineArgument);
+                    shortValue.Add(commandLineArgument);
+                    currentOption = null;
                 }
-                
-                currentOption = null;
                 continue;
             }
 
