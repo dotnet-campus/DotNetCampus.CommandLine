@@ -269,22 +269,22 @@ public class UrlCommandLineParserTests
     public void QueryParamEnumType_ParsedCorrectly()
     {
         // Arrange
-        string[] args = ["myapp://path?logLevel=Warning&mode=Advanced"];
+        string[] args = ["myapp://path?logLevel=Warning&style=gnu"];
         LogLevel? logLevel = null;
-        Mode? mode = null;
+        CommandLineStyle? style = null;
 
         // Act
         CommandLine.Parse(args, Scheme)
             .AddHandler<Url12_EnumTypeOptions>(o =>
             {
                 logLevel = o.LogLevel;
-                mode = o.Mode;
+                style = o.Style;
             })
             .Run();
 
         // Assert
         Assert.AreEqual(LogLevel.Warning, logLevel);
-        Assert.AreEqual(Mode.Advanced, mode);
+        Assert.AreEqual(CommandLineStyle.GNU, style);
     }
 
     [TestMethod("3.4. 数组/列表类型转换")]
@@ -606,11 +606,17 @@ internal record Url11_BooleanTypeOptions
 
 internal record Url12_EnumTypeOptions
 {
+    /// <summary>
+    /// 当前项目中的枚举。（源生成器应该要能正确识别。）
+    /// </summary>
     [Option]
     public LogLevel LogLevel { get; init; }
 
+    /// <summary>
+    /// 引用项目中的枚举。（源生成器应该要能正确识别。）
+    /// </summary>
     [Option]
-    public Mode Mode { get; init; }
+    public CommandLineStyle Style { get; init; }
 }
 
 internal record Url13_CollectionTypeOptions
@@ -687,16 +693,6 @@ internal record Url22_FragmentOptions
 
     [Option("fragment")]
     public string Fragment { get; init; } = string.Empty;
-}
-
-/// <summary>
-/// 枚举用于测试枚举类型参数
-/// </summary>
-internal enum Mode
-{
-    Basic,
-    Normal,
-    Advanced
 }
 
 #endregion

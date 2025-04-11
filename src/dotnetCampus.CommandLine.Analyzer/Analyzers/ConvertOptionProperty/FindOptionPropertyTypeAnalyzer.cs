@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.CommandLine.Properties;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,18 +10,20 @@ namespace dotnetCampus.CommandLine.Analyzers.ConvertOptionProperty;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
-    private readonly IList<string> _nonGenericTypeNames = new List<string>
-    {
+    private readonly ImmutableArray<string> _nonGenericTypeNames =
+    [
         "String", "string", "Boolean", "bool", "Byte", "byte", "Int16", "short", "UInt16", "ushort", "Int32", "int", "UInt32", "uint", "Int64", "long",
         "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable", "FileInfo", "DirectoryInfo",
-    };
+    ];
 
-    private readonly IList<string> _oneGenericTypeNames = new List<string>
-        { "[]", "List", "IList", "IReadOnlyList", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable" };
+    private readonly ImmutableArray<string> _oneGenericTypeNames =
+    [
+        "[]", "ImmutableArray", "List", "IList", "IReadOnlyList", "ImmutableHashSet", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable",
+    ];
 
-    private readonly IList<string> _twoGenericTypeNames = new List<string> { "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair" };
-    private readonly IList<string> _genericKeyArgumentTypeNames = new List<string> { "String", "string" };
-    private readonly IList<string> _genericArgumentTypeNames = new List<string> { "String", "string" };
+    private readonly ImmutableArray<string> _twoGenericTypeNames = ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
+    private readonly ImmutableArray<string> _genericKeyArgumentTypeNames = ["String", "string"];
+    private readonly ImmutableArray<string> _genericArgumentTypeNames = ["String", "string"];
 
     /// <summary>
     /// Supported diagnostics.
@@ -50,13 +52,11 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     private void AnalyzeProperty(SyntaxNodeAnalysisContext context)
     {
         var propertyNode = (PropertyDeclarationSyntax)context.Node;
-        var optionTypes = context.Compilation is null
-            ? Array.Empty<INamedTypeSymbol>()
-            : new[]
-            {
-                context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.OptionAttribute"),
-                context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.ValueAttribute"),
-            };
+        var optionTypes = new[]
+        {
+            context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.Compiler.OptionAttribute"),
+            context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.Compiler.ValueAttribute"),
+        };
 
         foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))
         {
@@ -73,7 +73,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
                 var isTheAttributeType = optionTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
                 if (isTheAttributeType)
                 {
-                    var isValidPropertyUsage = AnalyzeOptionPropertyType(propertyNode);
+                    var isValidPropertyUsage = AnalyzeOptionPropertyType(context.SemanticModel, propertyNode);
                     var diagnostic = CreateDiagnosticForTypeSyntax(
                         isValidPropertyUsage
                             ? Diagnostics.DCL201_SupportedOptionPropertyType
@@ -102,36 +102,42 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Find LongName argument from the OptionAttribute.
     /// </summary>
+    /// <param name="semanticModel"></param>
     /// <param name="propertySyntax"></param>
     /// <returns>
     /// typeName: the LongName value.
     /// location: the syntax tree location of the LongName argument value.
     /// </returns>
-    private bool AnalyzeOptionPropertyType(PropertyDeclarationSyntax propertySyntax)
+    private bool AnalyzeOptionPropertyType(SemanticModel semanticModel, PropertyDeclarationSyntax propertySyntax)
     {
         var propertyTypeSyntax = propertySyntax.Type;
         string typeName = GetTypeName(propertyTypeSyntax);
         var (genericType0, genericType1) = GetGenericTypeNames(propertyTypeSyntax);
 
-        if (typeName != null)
+        if (IsTwoGenericType(typeName)
+            && genericType0 != null && genericType1 != null
+            && IsGenericKeyArgumentType(genericType0)
+            && IsGenericArgumentType(genericType1))
         {
-            if (IsTwoGenericType(typeName)
-                && genericType0 != null && genericType1 != null
-                && IsGenericKeyArgumentType(genericType0)
-                && IsGenericArgumentType(genericType1))
-            {
-                return true;
-            }
-            else if (IsOneGenericType(typeName)
-                     && genericType0 != null
-                     && IsGenericArgumentType(genericType0))
-            {
-                return true;
-            }
-            else if (IsNonGenericType(typeName))
-            {
-                return true;
-            }
+            return true;
+        }
+
+        if (IsOneGenericType(typeName)
+            && genericType0 != null
+            && IsGenericArgumentType(genericType0))
+        {
+            return true;
+        }
+
+        if (IsNonGenericType(typeName))
+        {
+            return true;
+        }
+
+        if (semanticModel.GetSymbolInfo(propertyTypeSyntax).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
+        {
+            // Enum
+            return true;
         }
 
         return false;
@@ -151,26 +157,27 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
             // Dictionary<string, string>
             return genericNameSyntax.Identifier.ToString();
         }
-        else if (typeSyntax is ArrayTypeSyntax)
+
+        if (typeSyntax is ArrayTypeSyntax)
         {
             // string[]
             return "[]";
         }
-        else if (typeSyntax is PredefinedTypeSyntax predefinedTypeSyntax)
+
+        if (typeSyntax is PredefinedTypeSyntax predefinedTypeSyntax)
         {
             // string
             return predefinedTypeSyntax.ToString();
         }
-        else if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
+
+        if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
         {
             // System.String
             return qualifiedNameSyntax.ChildNodes().OfType<IdentifierNameSyntax>().Last().ToString();
         }
-        else
-        {
-            // String
-            return typeSyntax.ToString();
-        }
+
+        // String
+        return typeSyntax.ToString();
     }
 
     private (string?, string?) GetGenericTypeNames(TypeSyntax typeSyntax)

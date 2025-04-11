@@ -14,7 +14,7 @@ public class OptionPropertyTypeToInt32CodeFix : ConvertOptionPropertyTypeCodeFix
     public sealed override ImmutableArray<string> FixableDiagnosticIds =>
     [
         Diagnostics.SupportedOptionPropertyType,
-        Diagnostics.NotSupportedOptionPropertyType
+        Diagnostics.NotSupportedOptionPropertyType,
     ];
 
     protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToInt32;
