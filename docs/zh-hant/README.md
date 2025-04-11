@@ -240,13 +240,17 @@ await commandLine.AddHandler<ImportOptions>(async options =>
 dotnetCampus.CommandLine 支持解析 URL 協議字符串：
 
 ```
-dotnetCampus://open/?file=C:\Users\lvyi\Desktop\demo.txt&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
+dotnetCampus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
 ```
 
-解析URL時有以下限制：
+URL協議解析的特點和用法：
 
-1. `ValueAttribute` 標記的位置參數無法通過URL賦值
-2. 集合類型選項需要使用分號(;)分隔多個值
+1. URL路徑部分（如示例中的 `open/document.txt`）會被解析為位置參數或謂詞加位置參數
+   - 路徑的第一部分可作為謂詞（需標記 `[Verb]` 特性）
+   - 隨後的路徑部分會被解析為位置參數
+2. 查詢參數（`?` 後的部分）會被解析為命名選項
+3. 集合類型選項可通過重複參數名傳入多個值，如：`tags=csharp&tags=dotnet`
+4. URL中的特殊字符和非ASCII字符會自動進行URL解碼
 
 ## 命名約定與最佳實踐
 
