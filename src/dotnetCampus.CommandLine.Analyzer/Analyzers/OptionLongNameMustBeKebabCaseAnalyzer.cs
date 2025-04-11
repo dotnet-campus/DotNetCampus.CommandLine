@@ -90,11 +90,11 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             var longNameExpression = attributeArguments.FirstOrDefault()?.Expression as LiteralExpressionSyntax;
             var longName = longNameExpression?.Token.ValueText;
             var ignoreCaseExpression =
-                attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "IgnoreCase")?.Expression as LiteralExpressionSyntax;
-            var ignoreCase = ignoreCaseExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
-            if (longName is not null)
+                attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "ExactSpelling")?.Expression as LiteralExpressionSyntax;
+            var exactSpelling = ignoreCaseExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
+            if (!exactSpelling && longName is not null)
             {
-                var kebabCase = NamingHelper.MakeKebabCase(longName, ignoreCase, ignoreCase);
+                var kebabCase = NamingHelper.MakeKebabCase(longName, true, false);
                 var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
                 if (!isKebabCase)
                 {

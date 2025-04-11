@@ -14,8 +14,8 @@ public static class Diagnostics
         nameof(DCL101),
         Localize(nameof(DCL101)),
         Localize(nameof(DCL101_Message)),
-        Categories.Performance,
-        DiagnosticSeverity.Error,
+        Categories.AvoidBugs,
+        DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: Localize(nameof(DCL101_Description)),
         helpLinkUri: Url(OptionLongNameMustBeKebabCase));

@@ -60,7 +60,7 @@ namespace dotnetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Option long name must be kebab-case.
+        ///   Looks up a localized string similar to Option long name should be kebab-case.
         /// </summary>
         public static string DCL101 {
             get {
@@ -69,7 +69,7 @@ namespace dotnetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The command-line option definition names must be kebab-case, even though you can use any kind of style in the command line environment..
+        ///   Looks up a localized string similar to The command-line option definition names should be kebab-case, even though you can use any kind of style in the command line environment..
         /// </summary>
         public static string DCL101_Description {
             get {
@@ -87,7 +87,7 @@ namespace dotnetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The option definition long name &apos;{0}&apos; must be kebab-case, even though you can use any kind of style in the command line environment..
+        ///   Looks up a localized string similar to The option definition long name &apos;{0}&apos; should be kebab-case, even though you can use any kind of style in the command line environment..
         /// </summary>
         public static string DCL101_Message {
             get {
