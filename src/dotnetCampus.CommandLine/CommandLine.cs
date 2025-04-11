@@ -34,6 +34,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public string? GuessedVerbName { get; }
 
     /// <summary>
+    /// 如果此命令行是从 Web 请求的 URL 中解析出来的，则此属性保存 URL 的 Scheme 部分。
+    /// </summary>
+    public string? MatchedUrlScheme { get; }
+
+    /// <summary>
     /// 从命令行中解析出来的长名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
     public ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues { get; }
@@ -69,17 +74,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </remarks>
     public ImmutableArray<string> PositionalArguments { get; }
 
-    /// <summary>
-    /// 为选项或位置参数的转换提供一些上下文信息。
-    /// </summary>
-    private ConvertingContext Context { get; }
-
     private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         CommandLineArguments = arguments;
-        var (scheme, result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
-        Context = new ConvertingContext(scheme is not null);
+        (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
         (GuessedVerbName, RawLongOptionValues, RawShortOptionValues, PositionalArguments) = result;
         if (DefaultCaseSensitive)
         {
@@ -138,45 +137,19 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取命令行参数中指定名称的选项的值。
     /// </summary>
-    /// <param name="dictionary">选项所在的字典。</param>
-    /// <param name="key">选项的名称。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    public T? GetOptionCore<T>(ImmutableDictionary<string, ImmutableArray<string>> dictionary, string key) where T : class
-    {
-        return dictionary.TryGetValue(key, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
-    /// <param name="dictionary">选项所在的字典。</param>
-    /// <param name="key">选项的名称。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    public T? GetOptionValueCore<T>(ImmutableDictionary<string, ImmutableArray<string>> dictionary, string key) where T : struct
-    {
-        return dictionary.TryGetValue(key, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
     /// <param name="optionName">选项的名称。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     public T? GetOption<T>(string optionName, bool? caseSensitive = null) where T : class
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+
         // 默认的大小写敏感性，使用默认字典匹配。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -184,7 +157,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -193,7 +166,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
             }
         }
 
@@ -210,11 +183,13 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     public T? GetOption<T>(char shortOption, bool? caseSensitive = null) where T : class
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+
         // 默认的大小写敏感性，使用默认字典匹配。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -222,7 +197,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -231,7 +206,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (pair.Key == char.ToLowerInvariant(shortOption))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
             }
         }
 
@@ -262,11 +237,13 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     public T? GetOptionValue<T>(string optionName, bool? caseSensitive = null) where T : struct
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+
         // 默认的大小写敏感性，使用默认字典匹配。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -274,7 +251,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -283,7 +260,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
             }
         }
 
@@ -300,11 +277,13 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     public T? GetOptionValue<T>(char shortOption, bool? caseSensitive = null) where T : struct
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+
         // 默认的大小写敏感性，使用默认字典匹配。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -312,7 +291,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
                 : null;
         }
 
@@ -321,7 +300,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (pair.Key == char.ToLowerInvariant(shortOption))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
             }
         }
 
@@ -351,11 +330,12 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>位置参数的值。</returns>
     public T? GetPositionalArgument<T>(string? verbName = null) where T : class
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), Context);
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
     }
 
     /// <summary>
@@ -368,13 +348,14 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>位置参数的值。</returns>
     public T? GetPositionalArgument<T>(int index, int length, string? verbName = null) where T : class
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Length
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), Context);
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), context);
     }
 
     /// <summary>
@@ -385,11 +366,12 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>位置参数的值。</returns>
     public T? GetPositionalArgumentValue<T>(string? verbName = null) where T : struct
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), Context);
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
     }
 
     /// <summary>
@@ -402,13 +384,14 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>位置参数的值。</returns>
     public T? GetPositionalArgumentValue<T>(int index, int length, string? verbName = null) where T : struct
     {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Length
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), Context);
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), context);
     }
 
     /// <summary>
@@ -428,8 +411,33 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <returns>传入的命令行参数字符串。</returns>
     public override string ToString()
     {
-        return string.Join(" ", CommandLineArguments);
+        return MatchedUrlScheme is { } scheme
+            ? $"{scheme}://{string.Join("/", PositionalArguments)}?{string.Join("&", LongOptionValues.Select(x => $"{x.Key}={string.Join("&", x.Value)}"))}"
+            : string.Join(" ", CommandLineArguments);
     }
 }
 
-internal readonly record struct ConvertingContext(bool IsUrl);
+internal readonly record struct ConvertingContext(MultiValueHandling MultiValueHandling);
+
+internal enum MultiValueHandling
+{
+    /// <summary>
+    /// 仅返回第一个值。
+    /// </summary>
+    First,
+
+    /// <summary>
+    /// 返回最后一个值。
+    /// </summary>
+    Last,
+
+    /// <summary>
+    /// 用空格连接返回所有值。
+    /// </summary>
+    SpaceAll,
+
+    /// <summary>
+    /// 用斜杠 '/' 连接返回所有值。
+    /// </summary>
+    SlashAll,
+}

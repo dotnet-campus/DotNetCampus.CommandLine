@@ -219,7 +219,14 @@ internal static class CommandLineValueConverter
     {
         null => null,
         { Length: 0 } => "",
-        { } values => string.Join(context.IsUrl ? '/' : ' ', values),
+        { } values => context.MultiValueHandling switch
+        {
+            MultiValueHandling.First => values[0],
+            MultiValueHandling.Last => values[^1],
+            MultiValueHandling.SpaceAll => string.Join(' ', values),
+            MultiValueHandling.SlashAll => string.Join('/', values),
+            _ => values[0],
+        },
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
