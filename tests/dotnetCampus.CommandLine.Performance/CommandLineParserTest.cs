@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System.CommandLine;
+using System.IO;
+using BenchmarkDotNet.Attributes;
 using CommandLine;
 using dotnetCampus.Cli.Performance.Fakes;
 using dotnetCampus.Cli.Tests.Fakes;
@@ -108,6 +110,20 @@ namespace dotnetCampus.Cli.Performance
         public void CommandLineParser()
         {
             Parser.Default.ParseArguments<ComparedOptions>(LinuxStyleArgs).WithParsed(options => { });
+        }
+
+        [Benchmark(Description = "NuGet: System.CommandLine")]
+        public void SystemCommandLine()
+        {
+            var fileOption = new System.CommandLine.Option<FileInfo?>(
+                name: "--file",
+                description: "The file to read and display on the console.");
+
+            var rootCommand = new RootCommand("Benchmark for System.CommandLine");
+            rootCommand.AddOption(fileOption);
+            rootCommand.SetHandler(file => { }, fileOption);
+
+            rootCommand.Invoke(LinuxStyleArgs);
         }
     }
 }
