@@ -75,7 +75,7 @@ internal static class CommandLineConverter
             CommandLineStyle.POSIX => new PosixStyleParser(),
             CommandLineStyle.DotNet => new DotNetStyleParser(),
             CommandLineStyle.PowerShell => new PowerShellStyleParser(),
-            _ => throw new NotImplementedException(),
+            _ => new FlexibleStyleParser(),
         };
         return parser.Parse(arguments);
     }
