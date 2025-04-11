@@ -123,29 +123,11 @@ namespace dotnetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use &apos;DirectoryInfo&apos; type instead.
-        /// </summary>
-        public static string DCL201_202_Fix_OptionTypeToDirectoryInfo {
-            get {
-                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToDirectoryInfo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Use &apos;double&apos; type instead.
         /// </summary>
         public static string DCL201_202_Fix_OptionTypeToDouble {
             get {
                 return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToDouble", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;FileInfo&apos; type instead.
-        /// </summary>
-        public static string DCL201_202_Fix_OptionTypeToFileInfo {
-            get {
-                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToFileInfo", resourceCulture);
             }
         }
         

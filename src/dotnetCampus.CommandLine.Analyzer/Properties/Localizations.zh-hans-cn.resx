@@ -21,14 +21,8 @@
   <data name="DCL201_202_Fix_OptionTypeToDictionary" xml:space="preserve">
         <value>命令行选项：改为字典类型 (IReadOnlyDictionary&lt;string, string&gt;)</value>
     </data>
-  <data name="DCL201_202_Fix_OptionTypeToDirectoryInfo" xml:space="preserve">
-        <value>命令行选项：改为文件夹类型 (DirectoryInfo)</value>
-    </data>
   <data name="DCL201_202_Fix_OptionTypeToDouble" xml:space="preserve">
         <value>命令行选项：改为小数类型 (double)</value>
-    </data>
-  <data name="DCL201_202_Fix_OptionTypeToFileInfo" xml:space="preserve">
-        <value>命令行选项：改为文件类型 (FileInfo)</value>
     </data>
   <data name="DCL201_202_Fix_OptionTypeToInt32" xml:space="preserve">
         <value>命令行选项：改为整数类型 (int)</value>
