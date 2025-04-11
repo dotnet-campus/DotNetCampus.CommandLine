@@ -8,69 +8,68 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using dotnetCampus.CommandLine.Properties;
 using dotnetCampus.Cli.Utils;
 
-namespace dotnetCampus.CommandLine.Analyzers
+namespace dotnetCampus.CommandLine.Analyzers;
+
+/// <summary>
+/// [Option("LongName")]
+/// The LongName must be kebab-case. If not, this codefix will fix it.
+/// </summary>
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBeKebabCaseCodeFixProvider)), Shared]
+public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
 {
-    /// <summary>
-    /// [Option("LongName")]
-    /// The LongName must be kebab-case. If not, this codefix will fix it.
-    /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBeKebabCaseCodeFixProvider)), Shared]
-    public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OptionLongNameMustBeKebabCase);
+
+    public sealed override FixAllProvider GetFixAllProvider()
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OptionLongNameMustBeKebabCase);
+        // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
+        return WellKnownFixAllProviders.BatchFixer;
+    }
 
-        public sealed override FixAllProvider GetFixAllProvider()
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        if (root is null)
         {
-            // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
-            return WellKnownFixAllProviders.BatchFixer;
+            return;
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        var diagnostic = context.Diagnostics.First();
+        var diagnosticSpan = diagnostic.Location.SourceSpan;
+
+        ExpressionSyntax? syntax = root.FindNode(diagnosticSpan) switch
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            if (root is null)
-            {
-                return;
-            }
+            AttributeArgumentSyntax attributeArgumentSyntax => attributeArgumentSyntax.Expression,
+            ExpressionSyntax expressionSyntax => expressionSyntax,
+            _ => null,
+        };
 
-            var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
+        if (syntax != null)
+        {
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title: Resources.OptionLongNameMustBeKebabCaseFix,
+                    createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
+                    equivalenceKey: Resources.OptionLongNameMustBeKebabCaseFix),
+                diagnostic);
+        }
+    }
 
-            ExpressionSyntax? syntax = root.FindNode(diagnosticSpan) switch
-            {
-                AttributeArgumentSyntax attributeArgumentSyntax => attributeArgumentSyntax.Expression,
-                ExpressionSyntax expressionSyntax => expressionSyntax,
-                _ => null,
-            };
+    private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
+    {
+        var expression = expressionSyntax.ToString();
+        var oldName = expression.Substring(1, expression.Length - 2);
+        var newName = NamingHelper.MakeKebabCase(oldName);
 
-            if (syntax != null)
-            {
-                context.RegisterCodeFix(
-                    CodeAction.Create(
-                        title: Resources.OptionLongNameMustBeKebabCaseFix,
-                        createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
-                        equivalenceKey: Resources.OptionLongNameMustBeKebabCaseFix),
-                    diagnostic);
-            }
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+        {
+            return document.Project.Solution;
         }
 
-        private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
-        {
-            var expression = expressionSyntax.ToString();
-            var oldName = expression.Substring(1, expression.Length - 2);
-            var newName = NamingHelper.MakeKebabCase(oldName);
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is null)
-            {
-                return document.Project.Solution;
-            }
-
-            var newRoot = root.ReplaceNode(expressionSyntax,
-                SyntaxFactory.LiteralExpression(
-                    SyntaxKind.StringLiteralExpression,
-                    SyntaxFactory.Literal(newName)));
-            return document.Project.Solution.WithDocumentSyntaxRoot(document.Id, newRoot);
-        }
+        var newRoot = root.ReplaceNode(expressionSyntax,
+            SyntaxFactory.LiteralExpression(
+                SyntaxKind.StringLiteralExpression,
+                SyntaxFactory.Literal(newName)));
+        return document.Project.Solution.WithDocumentSyntaxRoot(document.Id, newRoot);
     }
 }

@@ -1,8 +1,5 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Utils;
 using dotnetCampus.CommandLine.Generators.ModelProviding;
-using dotnetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace dotnetCampus.CommandLine.Generators;

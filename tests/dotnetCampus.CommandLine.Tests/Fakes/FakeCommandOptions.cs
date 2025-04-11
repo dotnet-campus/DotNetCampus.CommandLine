@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using dotnetCampus.Cli.Compiler;
 
 namespace dotnetCampus.Cli.Tests.Fakes;

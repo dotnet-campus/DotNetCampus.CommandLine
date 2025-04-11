@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
 using dotnetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli.Tests.Fakes
+namespace dotnetCampus.Cli.Tests.Fakes;
+
+public class UnlimitedValueOptions
 {
-    public class UnlimitedValueOptions
-    {
-        [Option('s', nameof(Section))]
-        public string? Section { get; set; }
+    [Option('s', nameof(Section))]
+    public string? Section { get; set; }
 
-        [Value(0)]
-        public int Count { get; set; }
+    [Value(0)]
+    public int Count { get; set; }
 
-        [Value(1, int.MaxValue)]
-        public IEnumerable<string>? Args { get; set; }
-    }
+    [Value(1, int.MaxValue)]
+    public IEnumerable<string>? Args { get; set; }
 }
