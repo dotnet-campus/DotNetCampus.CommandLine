@@ -27,7 +27,7 @@ public class VerbCreatorGenerator : IIncrementalGenerator
     private void Execute(SourceProductionContext context, CommandOptionsGeneratingModel model)
     {
         var code = GenerateVerbCreatorCode(model);
-        context.AddSource($"VerbCreators/{model.Namespace}.{model.OptionsType.Name}.cs", code);
+        context.AddSource($"CommandLine.Models/{model.Namespace}.{model.OptionsType.Name}.cs", code);
     }
 
     private void Execute(SourceProductionContext context,
@@ -37,12 +37,14 @@ public class VerbCreatorGenerator : IIncrementalGenerator
         commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetVerbCreatorTypeName())];
 
         var moduleInitializerCode = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
-        context.AddSource("_ModuleInitializer.g.cs", moduleInitializerCode);
+        context.AddSource("CommandLine.Metadata/_ModuleInitializer.g.cs", moduleInitializerCode);
 
         foreach (var assemblyCommandsGeneratingModel in assemblyCommandsGeneratingModels)
         {
             var code = GenerateAssemblyCommandHandlerCode(assemblyCommandsGeneratingModel, commandOptionsGeneratingModels);
-            context.AddSource($"{assemblyCommandsGeneratingModel.Namespace}.{assemblyCommandsGeneratingModel.AssemblyCommandHandlerType.Name}.g.cs", code);
+            context.AddSource(
+                $"CommandLine.Metadata/{assemblyCommandsGeneratingModel.Namespace}.{assemblyCommandsGeneratingModel.AssemblyCommandHandlerType.Name}.g.cs",
+                code);
         }
     }
 
