@@ -13,7 +13,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     private readonly IList<string> _nonGenericTypeNames = new List<string>
     {
         "String", "string", "Boolean", "bool", "Byte", "byte", "Int16", "short", "UInt16", "ushort", "Int32", "int", "UInt32", "uint", "Int64", "long",
-        "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable", "FileInfo", "DirectoryInfo"
+        "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable", "FileInfo", "DirectoryInfo",
     };
 
     private readonly IList<string> _oneGenericTypeNames = new List<string>
@@ -26,33 +26,11 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Supported diagnostics.
     /// </summary>
-    private static readonly DiagnosticDescriptor ValidRule = new DiagnosticDescriptor(
-        DiagnosticIds.SupportedOptionPropertyType,
-        LocalizableStrings.Get(nameof(Resources.SupportedOptionPropertyTypeTitle)),
-        LocalizableStrings.Get(nameof(Resources.SupportedOptionPropertyTypeMessage)),
-        "dotnetCampus.Usage",
-        DiagnosticSeverity.Hidden,
-        isEnabledByDefault: true,
-        description: LocalizableStrings.Get(nameof(Resources.SupportedOptionPropertyTypeDescription)),
-        helpLinkUri: DiagnosticUrls.Get(DiagnosticIds.SupportedOptionPropertyType));
-
-    /// <summary>
-    /// Supported diagnostics.
-    /// </summary>
-    private static readonly DiagnosticDescriptor InvalidRule = new DiagnosticDescriptor(
-        DiagnosticIds.NotSupportedOptionPropertyType,
-        LocalizableStrings.Get(nameof(Resources.NotSupportedOptionPropertyTypeTitle)),
-        LocalizableStrings.Get(nameof(Resources.NotSupportedOptionPropertyTypeMessage)),
-        "dotnetCampus.Usage",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: LocalizableStrings.Get(nameof(Resources.NotSupportedOptionPropertyTypeDescription)),
-        helpLinkUri: DiagnosticUrls.Get(DiagnosticIds.NotSupportedOptionPropertyType));
-
-    /// <summary>
-    /// Supported diagnostics.
-    /// </summary>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ValidRule, InvalidRule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+    [
+        Diagnostics.DCL201_SupportedOptionPropertyType,
+        Diagnostics.DCL202_NotSupportedOptionPropertyType,
+    ];
 
     /// <summary>
     /// Register property analyzer.
@@ -97,7 +75,10 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
                 {
                     var isValidPropertyUsage = AnalyzeOptionPropertyType(propertyNode);
                     var diagnostic = CreateDiagnosticForTypeSyntax(
-                        isValidPropertyUsage ? ValidRule : InvalidRule, propertyNode);
+                        isValidPropertyUsage
+                            ? Diagnostics.DCL201_SupportedOptionPropertyType
+                            : Diagnostics.DCL202_NotSupportedOptionPropertyType,
+                        propertyNode);
                     context.ReportDiagnostic(diagnostic);
                     break;
                 }

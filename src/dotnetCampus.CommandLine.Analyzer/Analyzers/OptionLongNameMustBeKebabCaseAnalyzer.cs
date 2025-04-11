@@ -23,20 +23,10 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Supported diagnostics.
     /// </summary>
-    private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-        DiagnosticIds.OptionLongNameMustBeKebabCase,
-        LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseTitle)),
-        LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseMessage)),
-        "dotnetCampus.Naming",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: LocalizableStrings.Get(nameof(Resources.OptionLongNameMustBeKebabCaseDescription)),
-        helpLinkUri: DiagnosticUrls.Get(DiagnosticIds.OptionLongNameMustBeKebabCase));
-
-    /// <summary>
-    /// Supported diagnostics.
-    /// </summary>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+    [
+        Diagnostics.DCL101_OptionLongNameMustBeKebabCase,
+    ];
 
     /// <summary>
     /// Register property analyzer.
@@ -75,7 +65,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                 var (name, location) = AnalyzeOptionAttributeArguments(attributeSyntax);
                 if (name != null && location != null)
                 {
-                    var diagnostic = Diagnostic.Create(Rule, location, name);
+                    var diagnostic = Diagnostic.Create(Diagnostics.DCL101_OptionLongNameMustBeKebabCase, location, name);
                     context.ReportDiagnostic(diagnostic);
                 }
                 break;

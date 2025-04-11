@@ -11,11 +11,13 @@ namespace dotnetCampus.CommandLine.Analyzers.ConvertOptionProperty;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToStringCodeFix)), Shared]
 public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFix
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
-        DiagnosticIds.SupportedOptionPropertyType,
-        DiagnosticIds.NotSupportedOptionPropertyType);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+    [
+        Diagnostics.SupportedOptionPropertyType,
+        Diagnostics.NotSupportedOptionPropertyType,
+    ];
 
-    protected sealed override string CodeActionTitle => Resources.ConvertOptionPropertyTypeToStringFix;
+    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToStringFix;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

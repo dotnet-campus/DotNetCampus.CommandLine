@@ -17,7 +17,7 @@ namespace dotnetCampus.CommandLine.Analyzers;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBeKebabCaseCodeFixProvider)), Shared]
 public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OptionLongNameMustBeKebabCase);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [Diagnostics.OptionLongNameMustBeKebabCase];
 
     public sealed override FixAllProvider GetFixAllProvider()
     {
@@ -47,9 +47,9 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: Resources.OptionLongNameMustBeKebabCaseFix,
+                    title: Localizations.OptionLongNameMustBeKebabCaseFix,
                     createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
-                    equivalenceKey: Resources.OptionLongNameMustBeKebabCaseFix),
+                    equivalenceKey: Localizations.OptionLongNameMustBeKebabCaseFix),
                 diagnostic);
         }
     }
