@@ -259,6 +259,19 @@ internal static class CommandLineValueConverter
     {
         null => null,
         { Length: 0 } => new Dictionary<string, string>(),
-        { } values => values.ToImmutableDictionary(x => x.Split('=')[0], x => x.Split('=')[1]),
+        { } values => values
+            .SelectMany(x => x.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            .Select(x =>
+            {
+                var parts = x.Split('=');
+                if (parts.Length is not 2)
+                {
+                    throw new CommandLineParseValueException(
+                        $"Value [{x}] is not a valid dictionary. Expected format is key1=value1;key2=value2.");
+                }
+                return new KeyValuePair<string, string>(parts[0], parts[1]);
+            })
+            .GroupBy(x => x.Key)
+            .ToImmutableDictionary(x => x.Key, x => x.Last().Value),
     };
 }

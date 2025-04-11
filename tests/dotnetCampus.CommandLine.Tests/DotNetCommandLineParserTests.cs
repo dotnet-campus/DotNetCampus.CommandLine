@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using dotnetCampus.Cli.Compiler;
@@ -211,6 +212,151 @@ public class DotNetCommandLineParserTests
         Assert.IsNotNull(tags);
         Assert.AreEqual(3, tags.Count);
         CollectionAssert.AreEqual(new[] { "tag1", "tag2", "tag3" }, tags);
+    }
+
+    [TestMethod("2.6.1. 字典类型，多次传入相同选项，赋值成功。")]
+    public void DictionaryOption_MultipleEntries_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--properties:key1=value1", "--properties:key2=value2", "--properties:key3=value3"];
+        Dictionary<string, string>? properties = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(properties);
+        Assert.AreEqual(3, properties.Count);
+        Assert.AreEqual("value1", properties["key1"]);
+        Assert.AreEqual("value2", properties["key2"]);
+        Assert.AreEqual("value3", properties["key3"]);
+    }
+
+    [TestMethod("2.6.2. 字典类型，单次传入多个键值对，赋值成功。")]
+    public void DictionaryOption_SingleEntryMultiplePairs_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--properties:key1=value1;key2=value2;key3=value3"];
+        Dictionary<string, string>? properties = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(properties);
+        Assert.AreEqual(3, properties.Count);
+        Assert.AreEqual("value1", properties["key1"]);
+        Assert.AreEqual("value2", properties["key2"]);
+        Assert.AreEqual("value3", properties["key3"]);
+    }
+
+    [TestMethod("2.6.3. 字典类型，混合方式传入，赋值成功。")]
+    public void DictionaryOption_MixedWays_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--properties:key1=value1;key2=value2", "--properties:key3=value3"];
+        Dictionary<string, string>? properties = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
+            .Run();
+
+        // Assert        Assert.IsNotNull(properties);
+        Assert.AreEqual(3, properties.Count);
+        Assert.AreEqual("value1", properties["key1"]);
+        Assert.AreEqual("value2", properties["key2"]);
+        Assert.AreEqual("value3", properties["key3"]);
+    }
+
+    [TestMethod("2.6.4. 字典类型，键没有对应值，解析抛出异常。")]
+    public void DictionaryOption_KeyWithoutValue_ThrowsException()
+    {
+        // Arrange
+        string[] args = ["--properties:key1=value1;key2"];
+
+        // Act & Assert
+        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        {
+            CommandLine.Parse(args, DotNet)
+                .AddHandler<DotNet23_DictionaryOptions>(_ => { })
+                .Run();
+        });
+    }
+
+    [TestMethod("2.6.5. 字典类型，键值对格式错误，解析抛出异常。")]
+    public void DictionaryOption_InvalidFormat_ThrowsException()
+    {
+        // Arrange
+        string[] args = ["--properties:key1:value1"];
+
+        // Act & Assert
+        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        {
+            CommandLine.Parse(args, DotNet)
+                .AddHandler<DotNet23_DictionaryOptions>(_ => { })
+                .Run();
+        });
+    }
+
+    [TestMethod("2.6.6. 字典类型，重复的键，后者覆盖前者。")]
+    public void DictionaryOption_DuplicateKeys_LastOneWins()
+    {
+        // Arrange
+        string[] args = ["--properties:key1=value1", "--properties:key1=value2"];
+        Dictionary<string, string>? properties = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(properties);
+        Assert.AreEqual(1, properties.Count);
+        Assert.AreEqual("value2", properties["key1"]);
+    }
+
+    [TestMethod("2.6.7. 字典类型，空值场景，成功解析为空字符串。")]
+    public void DictionaryOption_EmptyValue_ParsedAsEmptyString()
+    {
+        // Arrange
+        string[] args = ["--properties:key1="];
+        Dictionary<string, string>? properties = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(properties);
+        Assert.AreEqual(1, properties.Count);
+        Assert.AreEqual("", properties["key1"]);
+    }
+
+    [TestMethod("2.7. 不可变集合类型，赋值成功。")]
+    public void ImmutableCollectionOption_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--items:item1", "--items:item2", "--items:item3"];
+        ImmutableArray<string>? items = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet24_ImmutableCollectionOptions>(o => items = o.Items)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(items);
+        Assert.AreEqual(3, items.Value.Length);
+        Assert.AreEqual("item1", items.Value[0]);
+        Assert.AreEqual("item2", items.Value[1]);
+        Assert.AreEqual("item3", items.Value[2]);
     }
 
     #endregion
@@ -674,6 +820,18 @@ internal record DotNet22_AllCombinationsOption
 
     [Option("non-req-non-null")]
     public string NonReqNonNull { get; init; } = string.Empty;
+}
+
+internal record DotNet23_DictionaryOptions
+{
+    [Option]
+    public IReadOnlyDictionary<string, string> Properties { get; init; } = new Dictionary<string, string>();
+}
+
+internal record DotNet24_ImmutableCollectionOptions
+{
+    [Option]
+    public ImmutableArray<string> Items { get; init; } = ImmutableArray<string>.Empty;
 }
 
 internal record DotNet27_NonRequiredNonNullableOption
