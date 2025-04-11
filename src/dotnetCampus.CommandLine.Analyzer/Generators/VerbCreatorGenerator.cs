@@ -88,22 +88,29 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
             false => ", false",
             null => "",
         };
-        string ArgumentsCreator(string name) => $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}\"{name}\"{caseSensitive}";
+
+        string ArgumentsCreator(string name) =>
+            $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}{(name.Contains(' ') ? name : $"\"{name}\"")}{caseSensitive}";
+
         var exception = property.IsRequired
             ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
+        var caseSensitiveNotDeterminedNames = property.GetNormalizedLongNames();
+        var runtimeName = caseSensitiveNotDeterminedNames.Length is 2
+            ? $"commandLine.DefaultCaseSensitive ? \"{caseSensitiveNotDeterminedNames[0]}\" : \"{caseSensitiveNotDeterminedNames[1]}\""
+            : caseSensitiveNotDeterminedNames[0];
         if (property.Aliases.Length is 0)
         {
             return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(property.GetNormalizedLongName())}) ?? {exception},
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)}) ?? {exception},
 """;
         }
         else
         {
             return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(property.GetNormalizedLongName())})
+        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)})
 {string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}
             ?? {exception},
 """;

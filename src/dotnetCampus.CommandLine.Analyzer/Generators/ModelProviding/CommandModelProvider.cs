@@ -166,16 +166,37 @@ internal record OptionPropertyGeneratingModel
 
     public required bool? CaseSensitive { get; init; }
 
+    public required bool ExactSpelling { get; init; }
+
     public required ImmutableArray<string> Aliases { get; init; }
 
-    public string GetNormalizedLongName()
+    public ImmutableArray<string> GetNormalizedLongNames()
     {
+        if (ExactSpelling)
+        {
+            return [LongName ?? PropertyName];
+        }
+
         return (CaseSensitive, LongName) switch
         {
-            // 如果指定了长名称，只要不是确定大小写不敏感，都直接使用指定的长名称。
-            (not false, not null) => NamingHelper.MakeKebabCase(LongName, false, false),
-            // 如果大小写不敏感，或没有指定长名称，那么等同于全小写。
-            _ => NamingHelper.MakeKebabCase(LongName ?? PropertyName, true, true),
+            // 如果没有指定长名称，那么长名称就是根据属性名推测的，这时一定自动将其转换为 kebab-case 小写风格。
+            (_, null) => [NamingHelper.MakeKebabCase(LongName ?? PropertyName, true, true)],
+
+            // 如果指定了大小写敏感，那么在转换为 kebab-case 时，不转换大小写。
+            (true, _) => [NamingHelper.MakeKebabCase(LongName, true, false)],
+
+            // 如果指定了大小写不敏感，那么在转换为 kebab-case 时，统一转换为小写。
+            (false, _) => [NamingHelper.MakeKebabCase(LongName, true, true)],
+
+            // 如果没有在属性处指定大小写敏感，那么给出两个转换的候选，延迟到运行时再决定。
+            (null, _) =>
+            [
+                ..new List<string>
+                {
+                    NamingHelper.MakeKebabCase(LongName, true, false),
+                    NamingHelper.MakeKebabCase(LongName, true, true),
+                }.Distinct(StringComparer.Ordinal),
+            ],
         };
     }
 
@@ -211,6 +232,11 @@ internal record OptionPropertyGeneratingModel
         var longName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_String).Value?.ToString();
         var shortName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_Char).Value?.ToString();
         var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
+        var exactSpelling = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.ExactSpelling)).Value.Value is true;
+        if (exactSpelling)
+        {
+            throw new InvalidOperationException($"Property: {propertySymbol.Name}");
+        }
         var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
         {
             { Kind: TypedConstantKind.Array } typedConstant => typedConstant.Values.Select(a => a.Value?.ToString())
@@ -231,6 +257,7 @@ internal record OptionPropertyGeneratingModel
             ShortName = shortName?.Length == 1 ? shortName[0] : null,
             LongName = longName,
             CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
+            ExactSpelling = exactSpelling,
             Aliases = aliases,
         };
     }

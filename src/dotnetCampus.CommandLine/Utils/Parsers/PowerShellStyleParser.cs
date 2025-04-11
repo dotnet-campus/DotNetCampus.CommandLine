@@ -35,9 +35,10 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
             {
                 // 处理 PowerShell 风格的选项 (-ParameterName)
                 var option = commandLineArgument[1..];
-                
+
                 // PowerShell 参数不使用等号或冒号，而是用空格分隔
                 // 将其作为长选项处理
+                option = NamingHelper.MakeKebabCase(option);
                 longOptions.TryAdd(option, []);
                 currentOption = option;
                 continue;

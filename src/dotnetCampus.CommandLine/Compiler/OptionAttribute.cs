@@ -114,4 +114,21 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性（而 <see cref="CommandLine"/> 默认为大小写不敏感）。
     /// </remarks>
     public bool CaseSensitive { get; init; }
+
+    /// <summary>
+    /// 命令行参数中传入的选项名称必须严格保持与此属性中指定的长名称一致。
+    /// </summary>
+    /// <remarks>
+    /// 默认情况下，我们会为了支持多种不同的命令行风格而自动识别选项的长名称，例如：
+    /// <list type="bullet">
+    /// <item>属性名 SampleProperty 可匹配：--Sample-Property --sample-property -SampleProperty</item>
+    /// <item>属性名 sample-property 可匹配：--Sample-Property --sample-property -SampleProperty</item>
+    /// </list>
+    /// 但设置了此属性为 <see langword="true"/> 后，命令行中传入的选项名称必须完全一致：
+    /// <list type="bullet">
+    /// <item>属性名 SampleProperty 可匹配：--SampleProperty --sampleproperty -SampleProperty</item>
+    /// <item>属性名 sample-property 可匹配：--Sample-Property --sample-property -Sample-Property</item>
+    /// </list>
+    /// </remarks>
+    public bool ExactSpelling { get; init; }
 }
