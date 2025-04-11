@@ -30,6 +30,9 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Localizations.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Update="Properties\Localizations.*.resx">
+      <DependentUpon>Localizations.resx</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
