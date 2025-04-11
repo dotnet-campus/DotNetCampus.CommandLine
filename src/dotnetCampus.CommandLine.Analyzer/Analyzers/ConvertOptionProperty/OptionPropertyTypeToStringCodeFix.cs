@@ -17,7 +17,7 @@ public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFi
         Diagnostics.NotSupportedOptionPropertyType,
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToStringFix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToString;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

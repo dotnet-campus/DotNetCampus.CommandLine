@@ -47,9 +47,9 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: Localizations.OptionLongNameMustBeKebabCaseFix,
+                    title: Localizations.DCL101_Fix1,
                     createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
-                    equivalenceKey: Localizations.OptionLongNameMustBeKebabCaseFix),
+                    equivalenceKey: Localizations.DCL101_Fix1),
                 diagnostic);
         }
     }

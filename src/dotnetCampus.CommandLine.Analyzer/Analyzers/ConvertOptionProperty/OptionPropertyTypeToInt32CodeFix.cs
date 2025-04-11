@@ -17,7 +17,7 @@ public class OptionPropertyTypeToInt32CodeFix : ConvertOptionPropertyTypeCodeFix
         Diagnostics.NotSupportedOptionPropertyType
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToInt32Fix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToInt32;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

@@ -18,7 +18,7 @@ public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix
         Diagnostics.NotSupportedOptionPropertyType
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToListFix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToList;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

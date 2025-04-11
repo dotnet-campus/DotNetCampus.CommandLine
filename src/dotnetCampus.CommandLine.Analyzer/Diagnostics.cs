@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis;
 using static dotnetCampus.CommandLine.Properties.Localizations;
 
+// ReSharper disable InconsistentNaming
+
 namespace dotnetCampus.CommandLine;
 
 public static class Diagnostics
@@ -9,43 +11,37 @@ public static class Diagnostics
     #region Verb/Value/Options Definition 101-199
 
     public static readonly DiagnosticDescriptor DCL101_OptionLongNameMustBeKebabCase = new DiagnosticDescriptor(
-        OptionLongNameMustBeKebabCase,
-        Localize(nameof(OptionLongNameMustBeKebabCaseTitle)),
-        Localize(nameof(OptionLongNameMustBeKebabCaseMessage)),
-        "dotnetCampus.Naming",
+        nameof(DCL101),
+        Localize(nameof(DCL101)),
+        Localize(nameof(DCL101_Message)),
+        Categories.Performance,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: Localize(nameof(OptionLongNameMustBeKebabCaseDescription)),
+        description: Localize(nameof(DCL101_Description)),
         helpLinkUri: Url(OptionLongNameMustBeKebabCase));
 
     #endregion
 
     #region Options Properties 201-299
 
-    /// <summary>
-    /// Supported diagnostics.
-    /// </summary>
     public static readonly DiagnosticDescriptor DCL201_SupportedOptionPropertyType = new DiagnosticDescriptor(
-        SupportedOptionPropertyType,
-        Localize(nameof(SupportedOptionPropertyTypeTitle)),
-        Localize(nameof(SupportedOptionPropertyTypeMessage)),
-        "dotnetCampus.Usage",
+        nameof(DCL201),
+        Localize(nameof(DCL201)),
+        Localize(nameof(DCL201_Message)),
+        Categories.CodeFixOnly,
         DiagnosticSeverity.Hidden,
         isEnabledByDefault: true,
-        description: Localize(nameof(SupportedOptionPropertyTypeDescription)),
+        description: Localize(nameof(DCL201_Description)),
         helpLinkUri: Url(SupportedOptionPropertyType));
 
-    /// <summary>
-    /// Supported diagnostics.
-    /// </summary>
     public static readonly DiagnosticDescriptor DCL202_NotSupportedOptionPropertyType = new DiagnosticDescriptor(
-        NotSupportedOptionPropertyType,
-        Localize(nameof(NotSupportedOptionPropertyTypeTitle)),
-        Localize(nameof(NotSupportedOptionPropertyTypeMessage)),
-        "dotnetCampus.Usage",
+        nameof(DCL202),
+        Localize(nameof(DCL202)),
+        Localize(nameof(DCL202_Message)),
+        Categories.RuntimeException,
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: Localize(nameof(NotSupportedOptionPropertyTypeDescription)),
+        description: Localize(nameof(DCL202_Description)),
         helpLinkUri: Url(NotSupportedOptionPropertyType));
 
     #endregion

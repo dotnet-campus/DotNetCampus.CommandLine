@@ -17,7 +17,7 @@ public class OptionPropertyTypeToDoubleCodeFix : ConvertOptionPropertyTypeCodeFi
         Diagnostics.NotSupportedOptionPropertyType
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToDoubleFix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToDouble;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

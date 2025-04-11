@@ -18,7 +18,7 @@ public class OptionPropertyTypeToDirectoryInfoCodeFix : ConvertOptionPropertyTyp
         Diagnostics.NotSupportedOptionPropertyType
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToDirectoryInfoFix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToDirectoryInfo;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,

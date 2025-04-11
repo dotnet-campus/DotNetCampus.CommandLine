@@ -21,7 +21,7 @@ namespace dotnetCampus.CommandLine.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Localizations {
+    public class Localizations {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -35,7 +35,7 @@ namespace dotnetCampus.CommandLine.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dotnetCampus.CommandLine.Properties.Localizations", typeof(Localizations).Assembly);
@@ -50,7 +50,7 @@ namespace dotnetCampus.CommandLine.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -60,164 +60,164 @@ namespace dotnetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use &apos;bool&apos; type instead.
+        ///   Looks up a localized string similar to Option long name must be kebab-case.
         /// </summary>
-        internal static string ConvertOptionPropertyTypeToBooleanFix {
+        public static string DCL101 {
             get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToBooleanFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use `IReadOnlyDictionary&lt;string, string&gt;` type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToDictionaryFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToDictionaryFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;DirectoryInfo&apos; type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToDirectoryInfoFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToDirectoryInfoFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;double&apos; type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToDoubleFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToDoubleFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;FileInfo&apos; type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToFileInfoFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToFileInfoFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;int&apos; type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToInt32Fix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToInt32Fix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use `IReadOnlyList&lt;string&gt;` type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToListFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToListFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;string&apos; type instead.
-        /// </summary>
-        internal static string ConvertOptionPropertyTypeToStringFix {
-            get {
-                return ResourceManager.GetString("ConvertOptionPropertyTypeToStringFix", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported. It&apos;s recommended to use bool/string/IList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute..
-        /// </summary>
-        internal static string NotSupportedOptionPropertyTypeDescription {
-            get {
-                return ResourceManager.GetString("NotSupportedOptionPropertyTypeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported..
-        /// </summary>
-        internal static string NotSupportedOptionPropertyTypeMessage {
-            get {
-                return ResourceManager.GetString("NotSupportedOptionPropertyTypeMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Not supported property type.
-        /// </summary>
-        internal static string NotSupportedOptionPropertyTypeTitle {
-            get {
-                return ResourceManager.GetString("NotSupportedOptionPropertyTypeTitle", resourceCulture);
+                return ResourceManager.GetString("DCL101", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The command-line option definition names must be kebab-case, even though you can use any kind of style in the command line environment..
         /// </summary>
-        internal static string OptionLongNameMustBeKebabCaseDescription {
+        public static string DCL101_Description {
             get {
-                return ResourceManager.GetString("OptionLongNameMustBeKebabCaseDescription", resourceCulture);
+                return ResourceManager.GetString("DCL101_Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Convert to kebab-case.
         /// </summary>
-        internal static string OptionLongNameMustBeKebabCaseFix {
+        public static string DCL101_Fix1 {
             get {
-                return ResourceManager.GetString("OptionLongNameMustBeKebabCaseFix", resourceCulture);
+                return ResourceManager.GetString("DCL101_Fix1", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to The option definition long name &apos;{0}&apos; must be kebab-case, even though you can use any kind of style in the command line environment..
         /// </summary>
-        internal static string OptionLongNameMustBeKebabCaseMessage {
+        public static string DCL101_Message {
             get {
-                return ResourceManager.GetString("OptionLongNameMustBeKebabCaseMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Option long name must be kebab-case.
-        /// </summary>
-        internal static string OptionLongNameMustBeKebabCaseTitle {
-            get {
-                return ResourceManager.GetString("OptionLongNameMustBeKebabCaseTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This property has a recommended option property type &apos;{0}&apos;..
-        /// </summary>
-        internal static string SupportedOptionPropertyTypeDescription {
-            get {
-                return ResourceManager.GetString("SupportedOptionPropertyTypeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This property has a recommended option property type &apos;{0}&apos;..
-        /// </summary>
-        internal static string SupportedOptionPropertyTypeMessage {
-            get {
-                return ResourceManager.GetString("SupportedOptionPropertyTypeMessage", resourceCulture);
+                return ResourceManager.GetString("DCL101_Message", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Recommended option property type.
         /// </summary>
-        internal static string SupportedOptionPropertyTypeTitle {
+        public static string DCL201 {
             get {
-                return ResourceManager.GetString("SupportedOptionPropertyTypeTitle", resourceCulture);
+                return ResourceManager.GetString("DCL201", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;bool&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToBoolean {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToBoolean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use `IReadOnlyDictionary&lt;string, string&gt;` type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToDictionary {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;DirectoryInfo&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToDirectoryInfo {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToDirectoryInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;double&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToDouble {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToDouble", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;FileInfo&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToFileInfo {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToFileInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;int&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToInt32 {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToInt32", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use `IReadOnlyList&lt;string&gt;` type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToList {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use &apos;string&apos; type instead.
+        /// </summary>
+        public static string DCL201_202_Fix_OptionTypeToString {
+            get {
+                return ResourceManager.GetString("DCL201_202_Fix_OptionTypeToString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This property has a recommended option property type &apos;{0}&apos;..
+        /// </summary>
+        public static string DCL201_Description {
+            get {
+                return ResourceManager.GetString("DCL201_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This property has a recommended option property type &apos;{0}&apos;..
+        /// </summary>
+        public static string DCL201_Message {
+            get {
+                return ResourceManager.GetString("DCL201_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not supported property type.
+        /// </summary>
+        public static string DCL202 {
+            get {
+                return ResourceManager.GetString("DCL202", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported. It&apos;s recommended to use bool/string/IList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute..
+        /// </summary>
+        public static string DCL202_Description {
+            get {
+                return ResourceManager.GetString("DCL202_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported..
+        /// </summary>
+        public static string DCL202_Message {
+            get {
+                return ResourceManager.GetString("DCL202_Message", resourceCulture);
             }
         }
     }

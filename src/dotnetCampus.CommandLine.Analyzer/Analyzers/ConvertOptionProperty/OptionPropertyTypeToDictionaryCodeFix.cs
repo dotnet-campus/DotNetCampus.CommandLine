@@ -18,7 +18,7 @@ public class OptionPropertyTypeToDictionaryCodeFix : ConvertOptionPropertyTypeCo
         Diagnostics.NotSupportedOptionPropertyType
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.ConvertOptionPropertyTypeToDictionaryFix;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToDictionary;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,
