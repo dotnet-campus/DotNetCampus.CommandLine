@@ -27,6 +27,6 @@ public class OptionPropertyTypeToDictionaryCodeFix : ConvertOptionPropertyTypeCo
         return syntaxRoot.ReplaceNode(
             oldTypeSyntax,
             SyntaxFactory.ParseName("global::System.Collections.Generic.IReadOnlyDictionary<string, string>")
-                .WithAdditionalAnnotations(new SyntaxAnnotation[] { Simplifier.Annotation }));
+                .WithAdditionalAnnotations(Simplifier.Annotation));
     }
 }

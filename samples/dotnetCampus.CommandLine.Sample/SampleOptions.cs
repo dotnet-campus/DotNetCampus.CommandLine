@@ -12,7 +12,7 @@ internal class SampleOptions
     public string? SampleText { get; set; }
 
     [Option(LocalizableDescription = nameof(LocalizableStrings.SampleFilePropertyDescription))]
-    public FileInfo? SampleFile { get; set; }
+    public string? SampleFile { get; set; }
 
     internal void Run()
     {

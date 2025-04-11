@@ -27,6 +27,6 @@ public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix
         return syntaxRoot.ReplaceNode(
             oldTypeSyntax,
             SyntaxFactory.ParseName("global::System.Collections.Generic.IReadOnlyList<string>")
-                .WithAdditionalAnnotations(new SyntaxAnnotation[] { Simplifier.Annotation }));
+                .WithAdditionalAnnotations(Simplifier.Annotation));
     }
 }

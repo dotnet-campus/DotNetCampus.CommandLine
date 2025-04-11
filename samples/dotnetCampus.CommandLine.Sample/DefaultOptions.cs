@@ -11,7 +11,7 @@ internal class DefaultOptions
     public string? DefaultText { get; set; }
 
     [Option(LocalizableDescription = nameof(LocalizableStrings.SampleDirectoryPropertyDescription))]
-    public DirectoryInfo? DefaultDirectory { get; set; }
+    public string? DefaultDirectory { get; set; }
 
     internal void Run()
     {
