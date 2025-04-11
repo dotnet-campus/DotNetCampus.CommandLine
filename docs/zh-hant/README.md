@@ -1,13 +1,13 @@
 # 命令行解析
 
-[English][en]|[简体中文][zh-chs]|[繁體中文][zh-cht]
--|-|-
+| [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
+| ------------- | ------------------- | ------------------- |
 
 [en]: /README.md
-[zh-chs]: /docs/zh-chs/README.md
-[zh-cht]: /docs/zh-cht/README.md
+[zh-hans]: /docs/zh-hans/README.md
+[zh-hant]: /docs/zh-hant/README.md
 
-dotnetCampus.CommandLine 中提供了簡單而高性能的命令行解析功能，在 dotnetCampus.Cli 命名空間下。
+dotnetCampus.CommandLine 提供了簡單而高性能的命令行解析功能，得益於源代碼生成器的加持，它現在提供了更高效的解析能力和更友好的開發體驗。所有功能都位於 dotnetCampus.Cli 命名空間下。
 
 ## 快速使用
 
@@ -16,272 +16,278 @@ class Program
 {
     static void Main(string[] args)
     {
-        // 從命令行參數創建一個 CommandLine 類型的新實例。
+        // 從命令行參數創建一個 CommandLine 類型的新實例
         var commandLine = CommandLine.Parse(args);
 
-        // 將 CommandLine 類型的當作一個命令行參數類型選項來使用。
-        var options = commandLine.As<Options>(new OptionsParser());
+        // 將命令行解析為 Options 類型的實例
+        // 源生成器會自動為你處理解析過程，無需手動創建解析器
+        var options = commandLine.As<Options>();
 
-        // 接下來，使用你的選項對象編寫其他的功能。
+        // 接下來，使用你的 options 對象編寫其他的功能
     }
 }
 ```
 
-而這個 `Options` 類型的定義如下：
+你需要定義一個包含命令行參數映射的類型：
 
 ```csharp
 class Options
 {
     [Value(0)]
-    public string FilePath { get; }
+    public string FilePath { get; init; }
 
-    [Option('s', "Silence")]
-    public bool IsSilence { get; }
+    [Option('s', "silence")]
+    public bool IsSilence { get; init; }
 
-    [Option('m', "Mode")]
-    public string StartMode { get; }
+    [Option('m', "mode")]
+    public string StartMode { get; init; }
 
-    [Option("StartupSessions")]
-    public IReadonlyList<string> StartupSessions { get; }
-
-    public Options(
-        string filePath,
-        bool isSilence,
-        string startMode,
-        IReadonlyList<string> startupSessions)
-    {
-        FilePath = filePath;
-        IsSilence = isSilence;
-        StartMode = startMode;
-        StartupSessions = startupSessions;
-    }
+    [Option("startup-sessions")]
+    public IReadOnlyList<string> StartupSessions { get; init; } = [];
 }
 ```
 
-於是，在命令行中可以使用不同風格的命令填充這個類型的實例。
+然後在命令行中使用不同風格的命令填充這個類型的實例。庫支持多種命令行風格：
 
-Windows 風格：
+### Windows PowerShell 風格
 
 ```powershell
 > demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s -Mode Edit -StartupSessions A B C
 ```
 
+### Windows CMD 風格
+
 ```cmd
 > demo.exe "C:\Users\lvyi\Desktop\demo.txt" /s /Mode Edit /StartupSessions A B C
 ```
 
-Linux 風格：
+### Linux/GNU 風格
 
 ```bash
 $ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A B C
 ```
 
-以上不同風格不能混合使用。
-
-對於 `bool` 類型的屬性，在命令行中既可以在選項後傳入 `true` /`True` /`false` /`False` 也可以不傳。如果不傳，則表示 `true`。
-
-另外，`ValueAttribute` 和 `OptionAttribute` 可以出現在同一個屬性上。這時如果發現了不帶選項的值，將填充到 `ValueAttribute` 的屬性上;而一旦之後發現了此 `OptionsAttribute` 指定的短名稱或者長名稱，會將新的值覆蓋再次設置到此屬性上。
-
-```csharp
-[Value(0), Option('f', "File")]
-public string FilePath { get; }
+### .NET CLI 風格
+```
+> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s:true --mode:Edit --startup-sessions:A;B;C
 ```
 
-## 需要注意
+## 命令行風格
 
-在命令行中輸入參數時，無論哪種風格，命令行都是區分大小寫的。對於選項（`-`，`/` 或者 `--` 開頭）如果大小寫錯誤，此選項和後面附帶的值都將被忽略;對於值（不帶 `-` 或者 `/` 開頭），值將按照命令行中的原生大小寫傳入 `Options` 類型的實例中。
+dotnetCampus.CommandLine 支持多種命令行風格，你可以在解析時指定使用哪種風格：
 
-在 `Options` 類型中定義屬性時，短名稱是可選指定的，但一旦指定則必須是一個字符;長名稱是必須指定的，而且命名必須滿足 PascalCase 命名規則且不帶連字符。詳細要求可在編寫自己的 `Options` 類型時閱讀 `OptionAttribute` 的註釋。
+```csharp
+// 使用 .NET CLI 風格解析命令行參數
+var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
+```
 
-## 多種命令行參數與謂詞
+支持的風格包括：
 
-你可以為你的命令行參數指定謂詞，每一種謂詞都可以有自己的一組獨特的參數類型。
+- `CommandLineStyle.Flexible`（默認）：智能識別多種風格
+- `CommandLineStyle.GNU`：符合 GNU 規範的風格
+- `CommandLineStyle.POSIX`：符合 POSIX 規範的風格
+- `CommandLineStyle.DotNet`：.NET CLI 風格
+- `CommandLineStyle.PowerShell`：PowerShell 風格
+
+## 數據類型支持
+
+庫支持多種數據類型的解析：
+
+1. **基本類型**: 字符串、整數、布爾值、枚舉等
+2. **集合類型**: 數組、列表、只讀集合、不可變集合
+3. **字典類型**: IDictionary、IReadOnlyDictionary、ImmutableDictionary等
+
+### 布爾類型選項
+
+對於布爾類型的選項，在命令行中有多種指定方式：
+
+- 僅指定選項名稱，表示 `true`：`-s` 或 `--silence`
+- 顯式指定值：`-s:true`、`-s=false`、`--silence:on`、`--silence=off`
+
+### 集合類型選項
+
+對於集合類型的選項，可以通過多次指定同一選項，或使用分號分隔多個值：
+
+```
+demo.exe --files file1.txt --files file2.txt
+demo.exe --files:file1.txt;file2.txt;file3.txt
+```
+
+### 字典類型選項
+
+對於字典類型的選項，支持多種傳入方式：
+
+```
+demo.exe --properties key1=value1 --properties key2=value2
+demo.exe --properties:key1=value1;key2=value2
+```
+
+## 位置參數
+
+除了命名選項外，你還可以使用位置參數，通過 `ValueAttribute` 指定參數的位置：
+
+```csharp
+class FileOptions
+{
+    [Value(0)]
+    public string InputFile { get; init; }
+    
+    [Value(1)]
+    public string OutputFile { get; init; }
+    
+    [Option('v', "verbose")]
+    public bool Verbose { get; init; }
+}
+```
+
+使用方式：
+
+```
+demo.exe input.txt output.txt --verbose
+```
+
+你也可以捕獲多個位置參數到一個數組或集合中：
+
+```csharp
+class MultiFileOptions
+{
+    [Value(0, Length = int.MaxValue)]
+    public string[] Files { get; init; } = [];
+}
+```
+
+## 組合使用選項和位置參數
+
+`ValueAttribute` 和 `OptionAttribute` 可以同時應用於同一個屬性：
+
+```csharp
+class Options
+{
+    [Value(0), Option('f', "file")]
+    public string FilePath { get; init; }
+}
+```
+
+這樣，以下命令行都會將文件路徑賦值給 `FilePath` 屬性：
+
+```
+demo.exe file.txt
+demo.exe -f file.txt
+demo.exe --file file.txt
+```
+
+## 必需選項與可選選項
+
+在C# 11及以上版本中，可以使用`required`修飾符標記必需的選項：
+
+```csharp
+class Options
+{
+    [Option('i', "input")]
+    public required string InputFile { get; init; }  // 必需選項
+    
+    [Option('o', "output")]
+    public string? OutputFile { get; init; }         // 可選選項
+}
+```
+
+如果未提供必需選項，解析時會拋出`RequiredPropertyNotAssignedException`異常。
+
+## 命令處理與謂詞
+
+你可以使用命令處理器模式處理不同的命令（謂詞），類似於`git commit`、`git push`等：
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine.AddHandler<EditOptions>(options => 0)
-    .AddHandler<PrintOptions>(options => 0).Run();
+commandLine.AddHandler<AddOptions>(options => { /* 處理add命令 */ })
+    .AddHandler<RemoveOptions>(options => { /* 處理remove命令 */ })
+    .Run();
 ```
 
-而 `EditOptions` 和 `PrintOptions` 的定義如下，區別在於類型標記了謂詞。
+定義命令選項類時使用`Verb`特性標記謂詞：
 
 ```csharp
-[Verb("Edit")]
-public class EditOptions
+[Verb("add")]
+public class AddOptions
 {
-    [Value(0), Option('f', "File")] public string FilePath { get; set; }
+    [Value(0)]
+    public string ItemToAdd { get; init; }
 }
 
-[Verb("Print")]
-public class PrintOptions
+[Verb("remove")]
+public class RemoveOptions
 {
-    [Value(0), Option('f', "File")] public string FilePath { get; set; }
-    [Option('p', "Printer")] public string Printer { get; set; }
+    [Value(0)]
+    public string ItemToRemove { get; init; }
 }
 ```
 
-你也可以在 `Handle` 中使用不標謂詞的參數類型，但是這樣的參數最多只允許有一個，會作為沒有任何謂詞匹配上時使用的默認參數類型。
+### 異步命令處理
 
-另外，`Handle` 方法有對應的 `HandleAsync` 異步版本，用於處理異步的任務。
-
-## 關於解析器
-
-在前面的示例程序中，我們傳入了一個解析器的實例 `new OptionsParser()`。如果你不在乎性能（實際上也花不了多少性能），那麼不必傳入，命令行解析器可以針對你的選項類型自動生成一個運行時解析器。但是如果你在乎性能，那麼你可能需要自己編寫（將來會自動生成）。本文文末附有各種不同用法的性能數據。
-
-如果你打算自己編寫了，那麼繼續閱讀這一小節。
-
-這個類的編寫是標準化的，請按照註釋以及下文的規範來操作，不要編寫額外的任何校驗代碼或類型轉換代碼因為傳入解析器之前所有參數已全部校驗完畢;而且將來接入自動生成解析器後，你編寫的個性化邏輯可能丟失。
-
-解析器的示例代碼有兩種，一種使用原生接口，性能更好;另一種使用基類，但編寫所需的代碼更少建議手寫的話使用基類，如果能生成代碼，則使用接口。
+對於需要異步執行的命令處理，可以使用`RunAsync`方法：
 
 ```csharp
-public class OptionsParser : ICommandLineOptionParser<Options>
+await commandLine.AddHandler<ImportOptions>(async options => 
 {
-    private string _filePath;
-    private bool _isSilence;
-    private string _startMode;
-    private IReadonlyList<string> _startupSessions;
-
-    public void SetValue(int index, string value)
-    {
-        switch (index)
-        {
-            case 0:
-                _filePath = value;
-                break;
-        }
-    }
-
-    public void SetValue(char shortName, bool value)
-    {
-        switch (shortName)
-        {
-            case 's':
-                _isSilence = value;
-                break;
-        }
-    }
-
-    public void SetValue(char shortName, string value)
-    {
-        switch (shortName)
-        {
-            case 'm':
-                _startMode = value;
-                break;
-        }
-    }
-
-    public void SetValue(char shortName, IReadOnlyList<string> values)
-    {
-    }
-
-    public void SetValue(string longName, bool value)
-    {
-        switch (longName)
-        {
-            case "Silence":
-                _isSilence = value;
-                break;
-        }
-    }
-
-    public void SetValue(string longName, string value)
-    {
-        switch (longName)
-        {
-            case "Mode":
-                _startMode = value;
-                break;
-        }
-    }
-
-    public void SetValue(string longName, IReadOnlyList<string> values)
-    {
-        switch (longName)
-        {
-            case "StartupSession":
-                _startupSession = value;
-                break;
-        }
-    }
-
-    public Options Commit()
-    {
-        return new Options(_filePath, _isSilence, _startMode, _startupSession);
-    }
-}
+    await ImportDataAsync(options);
+    return 0;
+})
+.RunAsync();
 ```
+
+## URL協議支持
+
+dotnetCampus.CommandLine 支持解析 URL 協議字符串：
+
+```
+dotnetCampus://open/?file=C:\Users\lvyi\Desktop\demo.txt&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
+```
+
+解析URL時有以下限制：
+
+1. `ValueAttribute` 標記的位置參數無法通過URL賦值
+2. 集合類型選項需要使用分號(;)分隔多個值
+
+## 命名約定與最佳實踐
+
+為確保更好的兼容性和用戶體驗，我們建議使用 kebab-case 風格命名長選項：
 
 ```csharp
-public class SelfWrittenShareOptionsParser : CommandLineOptionParser<Options>
-{
-    public SelfWrittenShareOptionsParser()
-    {
-        string filePath = null;
-        bool isSilence = false;
-        string startMode = null;
-        IReadonlyList<string> startupSessions = null;
+// 推薦
+[Option('o', "output-file")]
+public string OutputFile { get; init; }
 
-        AddMatch(0, value => filePath = value);
-        AddMatch('s', value => isSilence = value);
-        AddMatch("Silence", value => isSilence = value);
-        AddMatch('m', value => startMode = value);
-        AddMatch("Mode", value => startMode = value);
-        AddMatch("StartupSessions", value => startupSessions = value);
-
-        SetResult(() => new Options(filePath, isSilence, startMode, startupSession));
-    }
-}
+// 不推薦
+[Option('o', "OutputFile")]
+public string OutputFile { get; init; }
 ```
 
-## 支持協議解析
+使用kebab-case命名的好處：
 
-`CommandLine` 支持解析URL協議中的字符串。
-
-```
-@"dotnetCampus://open/?file=C:\Users\lvyi\Desktop\%E9%87%8D%E5%91%BD%E5%90%8D%E8%AF%95%E9%AA%8C.enbx&mode=Display&silence=true&startupSessions=89EA9D26-6464-4E71-BD04-AA6516063D83"
-```
-
-請注意，解析URL有如下限制：
-
-1.你的 `Options` 類型中所有的 `ValueAttribute` 都將無法被賦值;
-1.你的 `Options` 類型中不允許出現標記有 `OptionAttribute` 的字符串集合屬性。
-
-另外，URL 解析中的選項名稱也是大小寫敏感的。當你在 `Options` 類型中正確使用PascalCase 風格定義了選項的長名稱後，你在 URL 中既可以使用 PascalCase 風格也可以使用 camelCase 風格。
+1. 提供更清晰的單詞分割信息（如能猜出"DotNet-Campus"而不是"Dot-Net-Campus"）
+2. 解決數字從屬問題（如"Version2Info"是"Version2-Info"還是"Version-2-Info"）
+3. 與多種命令行風格更好地兼容
 
 ## 性能數據
 
+源代碼生成器實現使得命令行解析的性能得到大幅提升：
 
-|                       Method |          Mean |        Error |       StdDev |  Ratio | RatioSD |
-|----------------------------- |--------------:|-------------:|-------------:|-------:|--------:|
-|                  ParseNoArgs |      95.20 ns |     1.828 ns |     1.956 ns |   0.09 |    0.00 |
-|              ParseNoArgsAuto |     763.12 ns |    14.702 ns |    19.117 ns |   0.69 |    0.02 |
-|                 ParseWindows |   1,116.76 ns |    24.612 ns |    23.022 ns |   1.00 |    0.00 |
-|             ParseWindowsAuto |   1,974.78 ns |    37.120 ns |    44.189 ns |   1.76 |    0.06 |
-|          ParseWindowsRuntime |  96,378.30 ns | 1,900.205 ns | 2,725.217 ns |  86.40 |    2.99 |
-| ParseWindowsImmutableRuntime |  96,200.14 ns | 1,677.293 ns | 1,568.941 ns |  86.17 |    2.15 |
-|                  HandleVerbs |   1,530.32 ns |    33.916 ns |    31.725 ns |   1.37 |    0.05 |
-|           HandleVerbsRuntime |  26,888.69 ns |   660.595 ns |   734.250 ns |  24.18 |    0.71 |
-|                     ParseCmd |   1,153.53 ns |    26.479 ns |    27.192 ns |   1.04 |    0.03 |
-|                 ParseCmdAuto |   1,915.15 ns |    21.508 ns |    17.960 ns |   1.71 |    0.04 |
-|                   ParseLinux |   1,763.82 ns |    33.752 ns |    43.887 ns |   1.58 |    0.05 |
-|               ParseLinuxAuto |   2,556.28 ns |    47.460 ns |    42.072 ns |   2.29 |    0.06 |
-|                     ParseUrl |   4,800.81 ns |    86.862 ns |    72.534 ns |   4.29 |    0.07 |
-|                 ParseUrlAuto |   6,274.80 ns |   125.106 ns |   205.553 ns |   5.65 |    0.25 |
-|            CommandLineParser | 136,090.91 ns | 1,072.509 ns |   895.594 ns | 121.71 |    2.66 |
+| Method                           |           Mean |        Error |       StdDev |   Gen0 |   Gen1 | Allocated |
+| -------------------------------- | -------------: | -----------: | -----------: | -----: | -----: | --------: |
+| 'parse  [] --flexible'           |       512.5 ns |      9.35 ns |      8.75 ns | 0.0792 |      - |    1328 B |
+| 'parse  [] --gnu'                |       301.1 ns |      2.05 ns |      1.91 ns | 0.0434 |      - |     728 B |
+| 'parse  [] --posix'              |       214.2 ns |      1.61 ns |      1.51 ns | 0.0291 |      - |     488 B |
+| 'parse  [] --dotnet'             |       513.4 ns |      3.00 ns |      2.66 ns | 0.0792 |      - |    1328 B |
+| 'parse  [] --powershell'         |       434.5 ns |      1.37 ns |      1.14 ns | 0.0648 |      - |    1088 B |
+| 'parse  [PS1] --flexible'        |    10,478.6 ns |     86.91 ns |     81.29 ns | 0.4883 |      - |    8336 B |
+| 'parse  [PS1] --powershell'      |     5,976.5 ns |     64.78 ns |     54.10 ns | 0.2594 |      - |    4440 B |
+| 'parse  [CMD] --flexible'        |     6,098.2 ns |     35.36 ns |     33.08 ns | 0.2747 |      - |    4680 B |
+| 'parse  [CMD] --powershell'      |     3,224.6 ns |     26.28 ns |     24.58 ns | 0.0954 |      - |    1624 B |
+| 'parse  [GNU] --flexible'        |     6,550.1 ns |     64.40 ns |     60.24 ns | 0.2747 |      - |    4704 B |
+| 'parse  [GNU] --gnu'             |     4,484.6 ns |     30.10 ns |     26.69 ns | 0.1373 |      - |    2416 B |
+| 'handle [Edit,Print] --flexible' |     1,316.8 ns |      9.75 ns |      8.64 ns | 0.1373 |      - |    2304 B |
+| 'parse  [URL]'                   |     4,795.2 ns |     38.33 ns |     33.98 ns | 0.5951 | 0.0076 |    9976 B |
+| 'NuGet: CommandLineParser'       |   199,959.6 ns |  3,956.40 ns | 10,141.78 ns | 5.3711 |      - |   90696 B |
+| 'NuGet: System.CommandLine'      | 1,728,238.4 ns | 13,403.14 ns | 11,881.54 ns | 3.9063 |      - |   84138 B |
 
-總結來說：完成一次解析只需要1091ns，也就是大約10 tick。
-
-說明：
-
-- NoArgs 表示沒有傳入參數
-- Auto 表示自動查找 Parser 而不是手動傳入
-- Runtime 表示使用運行時解析器
-- Handle 表示進行多謂詞匹配
-- CommandLineParser 是使用的 CommandLineParser 庫作為對照
-- 測試使用的參數：
-    - Windows 風格：`"C:\Users\lvyi\Desktop\重命名试验.enbx" -Cloud -Iwb -m Display -s -p Outside -StartupSession 89EA9D26-6464-4E71-BD04-AA6516063D83`
-    - Cmd 風格：`"C:\Users\lvyi\Desktop\重命名试验.enbx" /Cloud /Iwb /m Display /s /p Outside /StartupSession 89EA9D26-6464-4E71-BD04-AA6516063D83`
-    - Linux 風格：`"C:\Users\lvyi\Desktop\重命名试验.enbx" --cloud --iwb -m Display -s -p Outside --startup-session 89EA9D26-6464-4E71-BD04-AA6516063D83`
-    - Url 風格：`walterlv://open/?file=C:\Users\lvyi\Desktop\%E9%87%8D%E5%91%BD%E5%90%8D%E8%AF%95%E9%AA%8C.enbx&cloud=true&iwb=true&silence=true&placement=Outside&startupSession=89EA9D26-6464-4E71-BD04-AA6516063D83`
+得益於源代碼生成器的使用，完成一次解析只需要約 5000ns（約 0.005ms），大幅優於運行時反射解析方式。
