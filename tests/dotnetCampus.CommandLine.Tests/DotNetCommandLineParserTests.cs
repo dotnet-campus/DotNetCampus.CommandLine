@@ -266,7 +266,8 @@ public class DotNetCommandLineParserTests
             .AddHandler<DotNet23_DictionaryOptions>(o => properties = new Dictionary<string, string>(o.Properties))
             .Run();
 
-        // Assert        Assert.IsNotNull(properties);
+        // Assert
+        Assert.IsNotNull(properties);
         Assert.AreEqual(3, properties.Count);
         Assert.AreEqual("value1", properties["key1"]);
         Assert.AreEqual("value2", properties["key2"]);
