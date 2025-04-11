@@ -12,4 +12,10 @@
     <InternalsVisibleTo Include="dotnetCampus.CommandLine.Tests" />
   </ItemGroup>
 
+  <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(ArtifactsPath)bin\dotnetCampus.CommandLine.Analyzer\$(Configuration)\**\*.dll" Pack="True" PackagePath="analyzers\dotnet\cs" />
+    </ItemGroup>
+  </Target>
+
 </Project>
