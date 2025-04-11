@@ -69,11 +69,17 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </remarks>
     public ImmutableArray<string> PositionalArguments { get; }
 
+    /// <summary>
+    /// 为选项或位置参数的转换提供一些上下文信息。
+    /// </summary>
+    private ConvertingContext Context { get; }
+
     private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         CommandLineArguments = arguments;
-        var result = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
+        var (scheme, result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
+        Context = new ConvertingContext(scheme is not null);
         (GuessedVerbName, RawLongOptionValues, RawShortOptionValues, PositionalArguments) = result;
         if (DefaultCaseSensitive)
         {
@@ -139,7 +145,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOptionCore<T>(ImmutableDictionary<string, ImmutableArray<string>> dictionary, string key) where T : class
     {
         return dictionary.TryGetValue(key, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
             : null;
     }
 
@@ -153,7 +159,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOptionValueCore<T>(ImmutableDictionary<string, ImmutableArray<string>> dictionary, string key) where T : struct
     {
         return dictionary.TryGetValue(key, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
             : null;
     }
 
@@ -170,7 +176,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -178,7 +184,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -187,7 +193,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
             }
         }
 
@@ -208,7 +214,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -216,7 +222,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -225,7 +231,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (pair.Key == char.ToLowerInvariant(shortOption))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
             }
         }
 
@@ -260,7 +266,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -268,7 +274,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -277,7 +283,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
             }
         }
 
@@ -298,7 +304,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
             return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -306,7 +312,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         if (caseSensitive is true)
         {
             return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, Context)
                 : null;
         }
 
@@ -315,7 +321,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             if (pair.Key == char.ToLowerInvariant(shortOption))
             {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value);
+                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, Context);
             }
         }
 
@@ -349,7 +355,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), Context);
     }
 
     /// <summary>
@@ -368,7 +374,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)));
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), Context);
     }
 
     /// <summary>
@@ -383,7 +389,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Length <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1));
+            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), Context);
     }
 
     /// <summary>
@@ -402,7 +408,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)));
+                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), Context);
     }
 
     /// <summary>
@@ -425,3 +431,5 @@ public record CommandLine : ICoreCommandRunnerBuilder
         return string.Join(" ", CommandLineArguments);
     }
 }
+
+internal readonly record struct ConvertingContext(bool IsUrl);

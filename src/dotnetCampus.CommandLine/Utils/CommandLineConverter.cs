@@ -66,17 +66,23 @@ internal static class CommandLineConverter
         return [..parts.Select(part => singleLineCommandLineArgs[part])];
     }
 
-    public static CommandLineParsedResult ParseCommandLineArguments(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
+    public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
+        ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        ICommandLineParser parser = parsingOptions?.Style switch
+        var matchedUrlScheme = arguments.Length is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
+            ? schemeNames.FirstOrDefault(x => arguments[0].StartsWith($"{x}://", StringComparison.OrdinalIgnoreCase))
+            : null;
+
+        ICommandLineParser parser = (matchUrlScheme: matchedUrlScheme, parsingOptions?.Style) switch
         {
-            CommandLineStyle.Flexible => new FlexibleStyleParser(),
-            CommandLineStyle.GNU => new GnuStyleParser(),
-            CommandLineStyle.POSIX => new PosixStyleParser(),
-            CommandLineStyle.DotNet => new DotNetStyleParser(),
-            CommandLineStyle.PowerShell => new PowerShellStyleParser(),
+            ({ } scheme, _) => new UrlStyleParser(scheme),
+            (_, CommandLineStyle.Flexible) => new FlexibleStyleParser(),
+            (_, CommandLineStyle.GNU) => new GnuStyleParser(),
+            (_, CommandLineStyle.POSIX) => new PosixStyleParser(),
+            (_, CommandLineStyle.DotNet) => new DotNetStyleParser(),
+            (_, CommandLineStyle.PowerShell) => new PowerShellStyleParser(),
             _ => new FlexibleStyleParser(),
         };
-        return parser.Parse(arguments);
+        return (matchedUrlScheme, parser.Parse(arguments));
     }
 }

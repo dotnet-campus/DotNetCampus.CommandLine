@@ -104,5 +104,5 @@ public record CommandLineParsingOptions
     /// myapp://open/file.txt?temporary=true        # open 是谓词，file.txt 是位置参数；或 open 和 file.txt 都是位置参数
     /// </code>
     /// </remarks>
-    public ImmutableArray<string> SchemeNames { get; init; }
+    public ImmutableArray<string> SchemeNames { get; init; } = [];
 }

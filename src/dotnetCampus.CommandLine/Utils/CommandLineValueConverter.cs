@@ -7,7 +7,7 @@ namespace dotnetCampus.Cli.Utils;
 internal static class CommandLineValueConverter
 {
     [return: NotNullIfNotNull(nameof(arguments))]
-    internal static T? ArgumentStringsToValue<T>(ImmutableArray<string>? arguments)
+    internal static T? ArgumentStringsToValue<T>(ImmutableArray<string>? arguments, ConvertingContext context)
     {
         var type = typeof(T);
         if (type == typeof(bool))
@@ -37,7 +37,7 @@ internal static class CommandLineValueConverter
             type == typeof(ulong) ? (T)(object)ArgumentStringsToUInt64(arguments) :
             type == typeof(short) ? (T)(object)ArgumentStringsToInt16(arguments) :
             type == typeof(ushort) ? (T)(object)ArgumentStringsToUInt16(arguments) :
-            type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments) :
+            type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments, context) :
             type == typeof(string[]) ? (T)(object)ArgumentStringsToStringArray(arguments) :
             type == typeof(ImmutableArray<string>) ? (T)(object)ArgumentStringsToStringImmutableArray(arguments) :
             type == typeof(ImmutableHashSet<string>) ? (T)(object)ArgumentStringsToStringImmutableHashSet(arguments) :
@@ -215,11 +215,11 @@ internal static class CommandLineValueConverter
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
-    internal static string? ArgumentStringsToString(ImmutableArray<string>? arguments) => arguments switch
+    internal static string? ArgumentStringsToString(ImmutableArray<string>? arguments, ConvertingContext context) => arguments switch
     {
         null => null,
         { Length: 0 } => "",
-        { } values => string.Join(" ", values),
+        { } values => string.Join(context.IsUrl ? '/' : ' ', values),
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
