@@ -33,10 +33,6 @@
     <Compile Remove="Fakes\**\Runtime*.cs" />
     <Compile Remove="CommandLineTests.bak.cs" />
     <Compile Remove="CommandLineTests.ValueRange.cs" />
-    <Compile Include="Fakes\AssemblyCommandHandler.cs" />
-    <Compile Include="Fakes\DefaultVerbCommandHandler.cs" />
-    <Compile Include="Fakes\FakeCommandOptions.cs" />
-    <Compile Include="Fakes\FakeVerbCommandHandler.cs" />
   </ItemGroup>
 
   <ItemGroup>

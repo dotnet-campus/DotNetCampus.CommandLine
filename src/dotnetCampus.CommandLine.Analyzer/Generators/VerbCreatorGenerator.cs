@@ -48,6 +48,10 @@ public class VerbCreatorGenerator : IIncrementalGenerator
 
     private string GenerateVerbCreatorCode(CommandOptionsGeneratingModel model)
     {
+        var initOptionProperties = model.OptionProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
+        var initValueProperties = model.ValueProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
+        var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
+        var setValueProperties = model.ValueProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
         return $$"""
 #nullable enable
 namespace {{model.Namespace}};
@@ -57,17 +61,23 @@ namespace {{model.Namespace}};
 /// </summary>
 internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.Cli.Compiler.IVerbCreator<{{model.OptionsType.ToGlobalDisplayString()}}>
 {
-    public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::dotnetCampus.Cli.CommandLine commandLine) => new()
+    public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::dotnetCampus.Cli.CommandLine commandLine)
     {
-{{(model.OptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", model.OptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(model.ValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", model.ValueProperties.Select(x => GenerateValuePropertyAssignment(model, x))))}}
-    };
+        var result = new {{model.OptionsType.ToGlobalDisplayString()}}
+        {
+{{(initOptionProperties.Length is 0 ? "            // There is no option to be assigned." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(initValueProperties.Length is 0 ? "            // There is no positional argument to be assigned." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+        };
+{{(setOptionProperties.Length is 0 ? "            // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(setValueProperties.Length is 0 ? "            // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+        return result;
+    }
 }
 
 """;
     }
 
-    private string GenerateOptionPropertyAssignment(OptionPropertyGeneratingModel property)
+    private string GenerateOptionPropertyAssignment(OptionPropertyGeneratingModel property, int modelIndex)
     {
         // | required | nullable | cli | 行为       |
         // | -------- | -------- | --- | ---------- |
@@ -101,23 +111,49 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
         var runtimeName = caseSensitiveNotDeterminedNames.Length is 2
             ? $"commandLine.DefaultCaseSensitive ? \"{caseSensitiveNotDeterminedNames[0]}\" : \"{caseSensitiveNotDeterminedNames[1]}\""
             : caseSensitiveNotDeterminedNames[0];
-        if (property.Aliases.Length is 0)
+        if (property.IsRequired || property.IsInitOnly)
         {
-            return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)}) ?? {exception},
+            if (property.Aliases.Length is 0)
+            {
+                return $"""
+            {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)}) ?? {exception},
 """;
+            }
+            else
+            {
+                return $"""
+            {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)})
+{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}
+                ?? {exception},
+""";
+            }
         }
         else
         {
-            return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)})
-{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}
-            ?? {exception},
+            if (property.Aliases.Length is 0)
+            {
+                return $$"""
+        if (commandLine.{{methodName}}<{{generic}}>({{ArgumentsCreator(runtimeName)}}) is { } o{{modelIndex}})
+        {
+            result.{{property.PropertyName}} = o{{modelIndex}};
+        }
 """;
+            }
+            else
+            {
+                return $$"""
+        if (commandLine.{{methodName}}<{{generic}}>({{ArgumentsCreator(runtimeName)}})
+{{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}}
+            is { } o{{modelIndex}})
+        {
+            result.{{property.PropertyName}} = o{{modelIndex}};
+        }
+""";
+            }
         }
     }
 
-    private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property)
+    private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)
     {
         var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
         var generic = property.Type.ToNotNullGlobalDisplayString();
@@ -134,9 +170,21 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
             : property.IsValueType
                 ? "default"
                 : "null!";
-        return $"""
-        {property.PropertyName} = commandLine.{methodName}<{generic}>({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}) ?? {exception},
+        if (property.IsRequired || property.IsInitOnly)
+        {
+            return $"""
+            {property.PropertyName} = commandLine.{methodName}<{generic}>({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}) ?? {exception},
 """;
+        }
+        else
+        {
+            return $$"""
+        if (commandLine.{{methodName}}<{{generic}}>({{(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}}) is { } p{{modelIndex}})
+        {
+            result.{{property.PropertyName}} = p{{modelIndex}};
+        }
+""";
+        }
     }
 
     private string GenerateModuleInitializerCode(ImmutableArray<CommandOptionsGeneratingModel> models)
