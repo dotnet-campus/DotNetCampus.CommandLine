@@ -133,6 +133,13 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
             return true;
         }
 
+        if (propertyTypeSyntax is NullableTypeSyntax nullableTypeSyntax
+            && semanticModel.GetSymbolInfo(nullableTypeSyntax.ElementType).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
+        {
+            // Enum?
+            return true;
+        }
+
         if (semanticModel.GetSymbolInfo(propertyTypeSyntax).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
         {
             // Enum

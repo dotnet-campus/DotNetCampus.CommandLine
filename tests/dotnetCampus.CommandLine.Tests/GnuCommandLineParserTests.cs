@@ -150,16 +150,22 @@ public class GnuCommandLineParserTests
     public void EnumOption_ValueAssigned()
     {
         // Arrange
-        string[] args = ["--log-level", "Warning"];
+        string[] args = ["--log-level", "Warning", "--nullable-log-level", "Error"];
         LogLevel? logLevel = null;
+        LogLevel? nullableLogLevel = null;
 
         // Act
         CommandLine.Parse(args, GNU)
-            .AddHandler<GNU06_EnumOptions>(o => logLevel = o.LogLevel)
+            .AddHandler<GNU06_EnumOptions>(o =>
+            {
+                logLevel = o.LogLevel;
+                nullableLogLevel = o.NullableLogLevel;
+            })
             .Run();
 
         // Assert
         Assert.AreEqual(LogLevel.Warning, logLevel);
+        Assert.AreEqual(LogLevel.Error, nullableLogLevel);
     }
 
     [TestMethod("2.4. 字符串数组，赋值成功。")]
@@ -731,6 +737,9 @@ internal record GNU06_EnumOptions
 {
     [Option("log-level")]
     public LogLevel LogLevel { get; init; }
+
+    [Option("nullable-log-level")]
+    public LogLevel? NullableLogLevel { get; init; }
 }
 
 internal record GNU07_ArrayOptions
