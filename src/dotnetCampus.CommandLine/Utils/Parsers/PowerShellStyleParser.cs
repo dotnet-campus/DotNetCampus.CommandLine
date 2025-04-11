@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using dotnetCampus.Cli.Exceptions;
 
 namespace dotnetCampus.Cli.Utils.Parsers;
 
@@ -8,7 +7,6 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
     public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
     {
         Dictionary<string, List<string>> longOptions = [];
-        Dictionary<char, List<string>> shortOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -65,24 +63,6 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                     }
                     currentOption = null; // 在PowerShell中处理完一个值后，即完成当前选项的解析
                 }
-                else if (shortOptions.TryGetValue(currentOption[0], out List<string>? shortValue))
-                {
-                    // 检查是否有逗号分隔的数组
-                    if (commandLineArgument.Contains(','))
-                    {
-                        // 按逗号拆分值并添加到选项值列表
-                        var arrayValues = commandLineArgument.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var value in arrayValues)
-                        {
-                            shortValue.Add(value.Trim());
-                        }
-                    }
-                    else
-                    {
-                        shortValue.Add(commandLineArgument);
-                    }
-                    currentOption = null;
-                }
                 continue;
             }
 
@@ -98,7 +78,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         // 将选项转换为不可变集合。
         return new CommandLineParsedResult(guessedVerbName,
             longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            shortOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
+            ImmutableDictionary<char, ImmutableArray<string>>.Empty, // PowerShell风格不使用短选项
             [..arguments]);
     }
 }

@@ -7,11 +7,9 @@ internal sealed class PosixStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
     {
-        Dictionary<string, List<string>> longOptions = [];
         Dictionary<char, List<string>> shortOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
-        string? currentOption = null;
         char? currentShortOption = null;
         bool? isInPositionalArgumentsSection = null;
 
@@ -63,30 +61,19 @@ internal sealed class PosixStyleParser : ICommandLineParser
                             $"Combined short options cannot have parameters in POSIX style: {commandLineArgument} {commandLineArguments[i + 1]}");
                     }
                     currentShortOption = null;
-                    currentOption = null;
                 }
                 else
                 {
                     // 只有单个短选项时可以带参数
                     currentShortOption = option[0];
-                    currentOption = null;
                 }
                 continue;
-            }
-
-            // 处理选项参数
+            } // 处理选项参数
             if (currentShortOption != null)
             {
                 // 如果存在短选项，将参数添加到最后一个短选项
                 shortOptions[currentShortOption.Value].Add(commandLineArgument);
                 currentShortOption = null;
-                continue;
-            }
-            else if (currentOption != null)
-            {
-                // 如果存在长选项，将参数添加到长选项
-                longOptions[currentOption].Add(commandLineArgument);
-                currentOption = null;
                 continue;
             }
 
@@ -101,7 +88,8 @@ internal sealed class PosixStyleParser : ICommandLineParser
 
         // 将选项转换为不可变集合。
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
+            // POSIX 风格不支持长选项，所以直接使用空字典
+            ImmutableDictionary<string, ImmutableArray<string>>.Empty,
             shortOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
             [..arguments]);
     }
