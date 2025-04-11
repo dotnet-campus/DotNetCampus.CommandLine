@@ -47,6 +47,17 @@ public class VerbCreatorGenerator : IIncrementalGenerator
 
     private string GenerateVerbCreatorCode(CommandOptionsGeneratingModel model)
     {
+        // | required | nullable | cli | 行为       |
+        // | -------- | -------- | --- | ---------- |
+        // | 0        | 0        | 0   | 分析器警告 |
+        // | 1        | 0        | 0   | 抛异常     |
+        // | 0        | 1        | 0   | 默认值     |
+        // | 1        | 1        | 0   | 抛异常     |
+        // | 0        | 0        | 1   | 赋值       |
+        // | 1        | 0        | 1   | 赋值       |
+        // | 0        | 1        | 1   | 赋值       |
+        // | 1        | 1        | 1   | 赋值       |
+
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
         var initValueProperties = model.ValueProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
         var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
@@ -64,11 +75,11 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
     {
         var result = new {{model.OptionsType.ToGlobalDisplayString()}}
         {
-{{(initOptionProperties.Length is 0 ? "            // There is no option to be assigned." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(initValueProperties.Length is 0 ? "            // There is no positional argument to be assigned." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+{{(initOptionProperties.Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(initValueProperties.Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
         };
-{{(setOptionProperties.Length is 0 ? "            // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(setValueProperties.Length is 0 ? "            // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+{{(setOptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(setValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
         return result;
     }
 }
@@ -78,17 +89,6 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
 
     private string GenerateOptionPropertyAssignment(OptionPropertyGeneratingModel property, int modelIndex)
     {
-        // | required | nullable | cli | 行为       |
-        // | -------- | -------- | --- | ---------- |
-        // | 0        | 0        | 0   | 分析器警告 |
-        // | 1        | 0        | 0   | 抛异常     |
-        // | 0        | 1        | 0   | 默认值     |
-        // | 1        | 1        | 0   | 抛异常     |
-        // | 0        | 0        | 1   | 赋值       |
-        // | 1        | 0        | 1   | 赋值       |
-        // | 0        | 1        | 1   | 赋值       |
-        // | 1        | 1        | 1   | 赋值       |
-
         var methodName = property.IsValueType ? "GetOptionValue" : "GetOption";
         var generic = property.Type.ToNotNullGlobalDisplayString();
         var caseSensitive = property.CaseSensitive switch

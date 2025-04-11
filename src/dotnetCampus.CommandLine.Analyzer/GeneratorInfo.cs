@@ -46,6 +46,17 @@ internal static class GeneratorInfo
 
     public static string ToNotNullGlobalDisplayString(this ISymbol symbol)
     {
+        // 对于 Nullable<T>（例如 Nullable<int>、int?）等，是类型而不是可空标记，所以需要特别取出里面的类型 T。
+        if (symbol is ITypeSymbol { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
+        {
+            return typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
+                // 获取 Nullable<T> 中的 T。
+                ? namedType.TypeArguments[0].ToDisplayString(GlobalDisplayFormat)
+                // 处理直接带有可空标记的类型 (int? 这种形式)。
+                : typeSymbol.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString(GlobalDisplayFormat);
+        }
+
+        // 对于其他符号或非可空类型，使用不包含可空引用类型修饰符的格式
         return symbol.ToDisplayString(NotNullGlobalDisplayFormat);
     }
 

@@ -89,24 +89,39 @@ public class GnuCommandLineParserTests
     public void MixedOptions_MultipleParsed_AllAssigned()
     {
         // Arrange
-        string[] args = ["-n", "42", "--text", "hello", "-b"];
+        string[] args =
+        [
+            "-n", "42", "-u", "11", "--text", "hello", "--nullable-text", "hello null", "--nullable-list", "a", "--nullable-nullable-list", "b", "-b"
+        ];
         int? number = null;
+        int? nullableNumber = null;
         string? text = null;
+        string? nullableText = null;
+        IReadOnlyList<string?>? nullableList = null;
+        IReadOnlyList<string?>? nullableNullableList = null;
         bool? flag = null;
 
         // Act
         CommandLine.Parse(args, GNU)
             .AddHandler<GNU03_MixedOptions>(o =>
             {
+                nullableNumber = o.NullableNumber;
                 number = o.Number;
                 text = o.Text;
+                nullableText = o.NullableText;
+                nullableList = o.NullableList;
+                nullableNullableList = o.NullableNullableList;
                 flag = o.Flag;
             })
             .Run();
 
         // Assert
+        Assert.AreEqual(11, nullableNumber);
         Assert.AreEqual(42, number);
         Assert.AreEqual("hello", text);
+        Assert.AreEqual("hello null", nullableText);
+        CollectionAssert.AreEqual(new[] { "a" }, nullableList?.ToList());
+        CollectionAssert.AreEqual(new[] { "b" }, nullableNullableList?.ToList());
         Assert.IsTrue(flag);
     }
 
@@ -714,8 +729,20 @@ internal record GNU03_MixedOptions
     [Option('n')]
     public int Number { get; init; }
 
+    [Option('u')]
+    public int? NullableNumber { get; init; }
+
     [Option]
     public required string Text { get; init; }
+
+    [Option]
+    public required string? NullableText { get; init; }
+
+    [Option]
+    public required IReadOnlyList<string?> NullableList { get; init; }
+
+    [Option]
+    public required IReadOnlyList<string?>? NullableNullableList { get; init; }
 
     [Option('b')]
     public bool Flag { get; init; }
