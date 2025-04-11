@@ -1,11 +1,11 @@
 # 命令行解析
 
-| [English][en] | [简体中文][zh-chs] | [繁體中文][zh-cht] |
-| ------------- | ------------------ | ------------------ |
+| [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
+| ------------- | ------------------- | ------------------- |
 
 [en]: /README.md
-[zh-chs]: /docs/zh-chs/README.md
-[zh-cht]: /docs/zh-cht/README.md
+[zh-hans]: /docs/zh-hans/README.md
+[zh-hant]: /docs/zh-hant/README.md
 
 dotnetCampus.CommandLine 提供了简单而高性能的命令行解析功能，得益于源代码生成器的加持，它现在提供了更高效的解析能力和更友好的开发体验。所有功能都位于 dotnetCampus.Cli 命名空间下。
 
@@ -272,8 +272,8 @@ public string OutputFile { get; init; }
 
 源代码生成器实现使得命令行解析的性能得到大幅提升：
 
-| Method                           | Mean           | Error        | StdDev       | Gen0   | Gen1   | Allocated |
-|--------------------------------- |---------------:|-------------:|-------------:|-------:|-------:|----------:|
+| Method                           |           Mean |        Error |       StdDev |   Gen0 |   Gen1 | Allocated |
+| -------------------------------- | -------------: | -----------: | -----------: | -----: | -----: | --------: |
 | 'parse  [] --flexible'           |       512.5 ns |      9.35 ns |      8.75 ns | 0.0792 |      - |    1328 B |
 | 'parse  [] --gnu'                |       301.1 ns |      2.05 ns |      1.91 ns | 0.0434 |      - |     728 B |
 | 'parse  [] --posix'              |       214.2 ns |      1.61 ns |      1.51 ns | 0.0291 |      - |     488 B |
