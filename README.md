@@ -2,101 +2,98 @@
 
 ![Build](https://github.com/dotnet-campus/dotnetCampus.CommandLine/workflows/.NET%20Build/badge.svg)  ![NuGet Package](https://github.com/dotnet-campus/dotnetCampus.CommandLine/workflows/NuGet%20Publish/badge.svg) [![dotnetCampus.CommandLine](https://img.shields.io/nuget/v/dotnetCampus.CommandLine)](https://www.nuget.org/packages/dotnetCampus.CommandLine/) [![dotnetCampus.CommandLine.Source](https://img.shields.io/nuget/v/dotnetCampus.CommandLine.Source)](https://www.nuget.org/packages/dotnetCampus.CommandLine.Source/)
 
-[English][en]|[简体中文][zh-chs]|[繁體中文][zh-cht]
--|-|-
+| [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
+| ------------- | ------------------- | ------------------- |
 
-[en]: /README.md
-[zh-chs]: /docs/zh-chs/README.md
-[zh-cht]: /docs/zh-cht/README.md
+[en]: /docs/en/README.md
+[zh-hans]: /docs/zh-hans/README.md
+[zh-hant]: /docs/zh-hant/README.md
 
-dotnetCampus.CommandLine is probably the fastest command line parser in all .NET open-source projects.
+dotnetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Thanks to the power of source code generators, it provides efficient parsing capabilities with a developer-friendly experience.
 
-Parsing a classical command line only takes 1091ns, thus 10 ticks.
+Parsing a typical command line takes only about 5000ns (0.005ms), making it one of the fastest command line parsers available in .NET.
 
 ## Get Started
 
-For your program `Main` method, write this code below:
+For your program `Main` method, write this code:
 
 ```csharp
 class Program
 {
     static void Main(string[] args)
     {
+        // Create a new instance of CommandLine type from command line arguments
         var commandLine = CommandLine.Parse(args);
-        var options = commandLine.As<Options>(new OptionsParser());
 
-        // Then, use your Options instance here.
+        // Parse the command line into an instance of Options type
+        // The source generator will automatically handle the parsing for you
+        var options = commandLine.As<Options>();
+
+        // Now use your options object to implement your functionality
     }
 }
 ```
 
-You need to define the `Options` class as followed below:
+Define a class that maps command line arguments:
 
 ```csharp
 class Options
 {
     [Value(0)]
-    public string FilePath { get; }
+    public string FilePath { get; init; }
 
-    [Option('s', "Silence")]
-    public bool IsSilence { get; }
+    [Option('s', "silence")]
+    public bool IsSilence { get; init; }
 
-    [Option('m', "Mode")]
-    public string StartMode { get; }
+    [Option('m', "mode")]
+    public string StartMode { get; init; }
 
-    [Option("StartupSessions")]
-    public IReadonlyList<string> StartupSessions { get; }
-
-    public Options(
-        string filePath,
-        bool isSilence,
-        string startMode,
-        IReadonlyList<string> startupSessions)
-    {
-        FilePath = filePath;
-        IsSilence = isSilence;
-        StartMode = startMode;
-        StartupSessions = startupSessions;
-    }
+    [Option("startup-sessions")]
+    public IReadOnlyList<string> StartupSessions { get; init; } = [];
 }
 ```
 
-Then you can run your program by passing these kind of command line args:
+Then use different command line styles to populate instances of this type:
 
-Windows style：
+### Windows PowerShell Style
 
 ```powershell
 > demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s -Mode Edit -StartupSessions A B C
 ```
 
+### Windows CMD Style
+
 ```cmd
 > demo.exe "C:\Users\lvyi\Desktop\demo.txt" /s /Mode Edit /StartupSessions A B C
 ```
 
-Linux style：
+### Linux/GNU Style
 
 ```bash
 $ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A B C
 ```
 
-Notice that you cannot use different styles in a single command line.
-
-For `bool`:
-
-- You can pass `true` / `True` / `false` / `False` to specify a boolean value;
-- You can pass nothing but only a switch.
-
-It means that `-s true`, `-s True`, `-s` are the same.
-
-For `ValueAttribute` and `OptionAttribute`:
-
-- You can specify both on a single property.
-- If there is a value without option the property got the value, but if another value with the specified option exists, the new value will override the old one.
-
-```csharp
-[Value(0), Option('f', "File")]
-public string FilePath { get; }
+### .NET CLI Style
 ```
+> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s:true --mode:Edit --startup-sessions:A;B;C
+```
+
+## Command Styles and Features
+
+The library supports multiple command line styles through `CommandLineStyle` enum:
+- Flexible (default): Intelligently recognizes multiple styles
+- GNU: GNU standard compliant
+- POSIX: POSIX standard compliant
+- DotNet: .NET CLI style
+- PowerShell: PowerShell style
+
+Advanced features include:
+- Support for various data types including collections and dictionaries
+- Positional arguments with `ValueAttribute`
+- Required properties with C# `required` modifier
+- Command handling with verb support
+- URL protocol parsing
+- High performance thanks to source generators
 
 ## Engage, Contribute and Provide Feedback
 

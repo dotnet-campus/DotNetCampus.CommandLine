@@ -3,7 +3,7 @@
 | [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
 | ------------- | ------------------- | ------------------- |
 
-[en]: /README.md
+[en]: /docs/en/README.md
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
