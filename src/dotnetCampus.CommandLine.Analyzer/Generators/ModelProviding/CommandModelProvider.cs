@@ -219,10 +219,6 @@ internal record OptionPropertyGeneratingModel
 
     public static OptionPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
     {
-        if (propertySymbol.SetMethod is null)
-        {
-            return null;
-        }
         var optionAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<OptionAttribute>());
         if (optionAttribute is null)
         {
@@ -251,7 +247,7 @@ internal record OptionPropertyGeneratingModel
             PropertyName = propertySymbol.Name,
             Type = propertySymbol.Type,
             IsRequired = propertySymbol.IsRequired,
-            IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
+            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
             IsValueType = propertySymbol.Type.IsValueType,
             ShortName = shortName?.Length == 1 ? shortName[0] : null,
@@ -283,10 +279,6 @@ internal record ValuePropertyGeneratingModel
 
     public static ValuePropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
     {
-        if (propertySymbol.SetMethod is null)
-        {
-            return null;
-        }
         var valueAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<ValueAttribute>());
         if (valueAttribute is null)
         {
@@ -301,7 +293,7 @@ internal record ValuePropertyGeneratingModel
             PropertyName = propertySymbol.Name,
             Type = propertySymbol.Type,
             IsRequired = propertySymbol.IsRequired,
-            IsInitOnly = propertySymbol.SetMethod.IsInitOnly,
+            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
             IsValueType = propertySymbol.Type.IsValueType,
             Index = index is not null && int.TryParse(index, out var result) ? result : null,
