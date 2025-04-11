@@ -11,11 +11,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- NU1803: 使用了 http 不安全的 NuGet 源
-  -->
-    <NoWarn>$(NU1803);NU1803</NoWarn>
-    <!-- CA1416: 平台兼容性警告
-  -->
+    <!--
+      DCL101: 命令行库自己的警告，是为了给库的用户报告的；而本仓库要测这些，所以不能放一堆警告破窗。
+    -->
+    <NoWarn>$(NoWarn);DCL101</NoWarn>
+    <!--
+      CA1416: 平台兼容性警告
+    -->
     <WarningsAsErrors>$(WarningAsErrors);CA1416</WarningsAsErrors>
   </PropertyGroup>
 
