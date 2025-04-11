@@ -3,6 +3,7 @@ using CommandLine;
 using dotnetCampus.Cli.Performance.Fakes;
 using dotnetCampus.Cli.Tests.Fakes;
 using static dotnetCampus.Cli.Tests.Fakes.CommandLineArgs;
+using static dotnetCampus.Cli.CommandLineParsingOptions;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
@@ -10,22 +11,85 @@ namespace dotnetCampus.Cli.Performance
 {
     public class CommandLineParserTest
     {
-        [Benchmark]
-        public void ParseNoArgsAuto()
+        [Benchmark(Description = "parse [] --flexible")]
+        public void Parse_NoArgs_Flexible()
         {
-            var commandLine = CommandLine.Parse(NoArgs);
+            var commandLine = CommandLine.Parse(NoArgs, Flexible);
             commandLine.As<Options>();
         }
 
-        [Benchmark]
-        public void ParseWindowsAuto()
+        [Benchmark(Description = "parse [] --gnu")]
+        public void Parse_NoArgs_Gnu()
         {
-            var commandLine = CommandLine.Parse(WindowsStyleArgs);
+            var commandLine = CommandLine.Parse(NoArgs, GNU);
             commandLine.As<Options>();
         }
 
-        [Benchmark]
-        public void HandleVerbs()
+        [Benchmark(Description = "parse [] --posix")]
+        public void Parse_NoArgs_Posix()
+        {
+            var commandLine = CommandLine.Parse(NoArgs, POSIX);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [] --dotnet")]
+        public void Parse_NoArgs_DotNet()
+        {
+            var commandLine = CommandLine.Parse(NoArgs, DotNet);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [] --powershell")]
+        public void Parse_NoArgs_PowerShell()
+        {
+            var commandLine = CommandLine.Parse(NoArgs, PowerShell);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [PowerShell] --flexible")]
+        public void Parse_PowerShell_Flexible()
+        {
+            var commandLine = CommandLine.Parse(WindowsStyleArgs, Flexible);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [PowerShell] --powershell")]
+        public void Parse_PowerShell_PowerShell()
+        {
+            var commandLine = CommandLine.Parse(WindowsStyleArgs, PowerShell);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [Cmd] --flexible")]
+        public void Parse_Cmd_Flexible()
+        {
+            var commandLine = CommandLine.Parse(CmdStyleArgs, Flexible);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [Cmd] --powershell")]
+        public void Parse_Cmd_PowerShell()
+        {
+            var commandLine = CommandLine.Parse(CmdStyleArgs, PowerShell);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [GNU] --flexible")]
+        public void Parse_Gnu_Flexible()
+        {
+            var commandLine = CommandLine.Parse(LinuxStyleArgs, Flexible);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "parse [GNU] --gnu")]
+        public void Parse_Gnu_Gnu()
+        {
+            var commandLine = CommandLine.Parse(LinuxStyleArgs, GNU);
+            commandLine.As<Options>();
+        }
+
+        [Benchmark(Description = "handle [Edit,Print] --flexible")]
+        public void Handle_Verbs_Flexible()
         {
             CommandLine.Parse(EditVerbArgs)
                 .AddHandler<EditOptions>(options => 0)
@@ -33,36 +97,14 @@ namespace dotnetCampus.Cli.Performance
                 .Run();
         }
 
-        [Benchmark]
-        public void HandleVerbsRuntime()
-        {
-            var commandLine = CommandLine.Parse(EditVerbArgs);
-            commandLine.AddHandler<EditOptions>(options => 0)
-                .AddHandler<PrintOptions>(options => 0).Run();
-        }
-
-        [Benchmark]
-        public void ParseCmdAuto()
-        {
-            var commandLine = CommandLine.Parse(CmdStyleArgs);
-            commandLine.As<Options>();
-        }
-
-        [Benchmark]
-        public void ParseLinuxAuto()
-        {
-            var commandLine = CommandLine.Parse(LinuxStyleArgs);
-            commandLine.As<Options>();
-        }
-
-        [Benchmark]
-        public void ParseUrlAuto()
+        [Benchmark(Description = "parse [URL]")]
+        public void Parse_Url()
         {
             var commandLine = CommandLine.Parse(UrlArgs, new CommandLineParsingOptions { SchemeNames = ["walterlv"] });
             commandLine.As<Options>();
         }
 
-        [Benchmark]
+        [Benchmark(Description = "NuGet: CommandLineParser")]
         public void CommandLineParser()
         {
             Parser.Default.ParseArguments<ComparedOptions>(LinuxStyleArgs).WithParsed(options => { });
