@@ -9,10 +9,16 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <Compile Remove="**\*.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="..\dotnetCampus.CommandLine.Tests\Fakes\**" LinkBase="Fakes" />
+    <Compile Remove="..\dotnetCampus.CommandLine.Tests\Fakes\**\Runtime*.cs" />
+    <Compile Remove="..\dotnetCampus.CommandLine.Tests\Fakes\**\*Parser.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj" />
   </ItemGroup>
 
 </Project>

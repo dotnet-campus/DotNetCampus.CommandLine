@@ -5,7 +5,8 @@
 /// 不同的命令行工具可能使用不同的参数风格，本枚举定义了常见的几种命令行参数风格。
 /// </summary>
 public enum CommandLineStyle
-{    /// <summary>
+{
+    /// <summary>
     /// 灵活风格。<br/>
     /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="GNU"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
     /// 适用于希望为用户提供更灵活的参数传递体验的工具。
@@ -38,34 +39,34 @@ public enum CommandLineStyle
     /// app -Parameter value       # PowerShell风格（Pascal命名）
     /// app --param-name value     # Kebab-case命名
     /// app --paramName value      # CamelCase命名
-    /// 
+    ///
     /// # 短选项示例（兼容多种形式）
     /// app -p value               # 短选项空格分隔
     /// app -p=value               # 短选项等号分隔
     /// app -p:value               # 短选项冒号分隔
     /// app -pvalue                # 短选项直接跟值（GNU风格）
-    /// 
+    ///
     /// # 斜杠选项（Windows风格）
     /// app /parameter value       # 斜杠前缀长选项
     /// app /p value               # 斜杠前缀短选项
     /// app /parameter:value       # 斜杠前缀冒号分隔（类MSBuild）
-    /// 
+    ///
     /// # 布尔开关参数
     /// app --enable               # 不带值的布尔参数（视为true）
     /// app --no-feature           # 否定形式（视为false）
     /// app --feature=false        # 显式布尔值
     /// app --feature=off          # 替代布尔值形式
     /// app -e                     # 短格式布尔参数
-    /// 
+    ///
     /// # 位置参数和混合用法
     /// app value1 --param value2  # 位置参数和命名参数混用
     /// app --param value -- -value1 --value2  # -- 后的内容视为位置参数
     /// app -a value1 --param-b value2 /c:value3  # 混合使用不同风格
-    /// 
+    ///
     /// # 大小写不敏感（便于初学者）
     /// app --PARAMETER value      # 等同于 --parameter value
     /// app -P value               # 等同于 -p value
-    /// 
+    ///
     /// # 有限支持的短选项组合
     /// app -abc                   # 等同于 -a -b -c（所有都是布尔开关）
     /// </code>

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using dotnetCampus.Cli.Compiler;
 
 namespace dotnetCampus.Cli.Performance.Fakes
 {

@@ -1,4 +1,6 @@
-﻿namespace dotnetCampus.Cli.Tests.Fakes
+﻿using dotnetCampus.Cli.Compiler;
+
+namespace dotnetCampus.Cli.Tests.Fakes
 {
     public class PrimaryOptions
     {

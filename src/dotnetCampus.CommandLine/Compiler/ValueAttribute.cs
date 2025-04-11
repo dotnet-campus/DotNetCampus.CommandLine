@@ -59,4 +59,15 @@ public sealed class ValueAttribute : CommandLineAttribute
         Index = index;
         Length = 1;
     }
+
+    /// <summary>
+    /// 标记一个属性为命令行位置参数，其接收指定索引、指定长度的参数。
+    /// </summary>
+    /// <param name="index">指定的位置参数的索引。</param>
+    /// <param name="length">指定的位置参数的长度。</param>
+    public ValueAttribute(int index, int length)
+    {
+        Index = index;
+        Length = length;
+    }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace dotnetCampus.Cli;
 
 /// <summary>
@@ -55,4 +57,16 @@ public record CommandLineParsingOptions
     /// 当然，可以在单独的属性上设置大小写敏感，设置后将在那个属性上覆盖此默认值。不设置的属性会使用此默认值。
     /// </remarks>
     public bool CaseSensitive { get; init; }
+
+    /// <summary>
+    /// 此命令行解析器支持从 Web 打开本地应用时传入的参数。<br/>
+    /// 此属性指定用于 URI 协议注册的方案名（scheme name）。
+    /// </summary>
+    /// <remarks>
+    /// 例如：sample://open?url=DotNetCampus%20is%20a%20great%20team<br/>
+    /// 这里的 "sample" 就是方案名。<br/>
+    /// 当解析命令行参数时，如果只传入了一个参数，且参数开头满足 sample:// 格式时，则会认为方案名匹配，将进行后续 url 的参数解析。
+    /// </remarks>
+    /// <returns>返回协议方案名，如 "sample"</returns>
+    public ImmutableArray<string> SchemeNames { get; init; }
 }

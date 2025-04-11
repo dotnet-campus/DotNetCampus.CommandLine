@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using dotnetCampus.Cli.Compiler;
 
 namespace dotnetCampus.Cli.Tests.Fakes
 {

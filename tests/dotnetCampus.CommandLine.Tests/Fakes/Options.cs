@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using dotnetCampus.Cli.Compiler;
 
 namespace dotnetCampus.Cli.Tests.Fakes
 {
@@ -48,26 +49,5 @@ namespace dotnetCampus.Cli.Tests.Fakes
         /// </summary>
         [Option("StartupSession")]
         public string? StartupSession { get; }
-
-        /// <summary>
-        /// 创建 <see cref="Options"/> 类的新实例。
-        /// </summary>
-        public Options(
-            string? filePath,
-            bool isFromCloud,
-            string? startupMode,
-            bool isSilence,
-            bool isIwb,
-            string? placement,
-            string? startupSession)
-        {
-            FilePath = filePath;
-            IsFromCloud = isFromCloud;
-            StartupMode = startupMode;
-            IsSilence = isSilence;
-            IsIwb = isIwb;
-            Placement = placement;
-            StartupSession = startupSession;
-        }
     }
 }

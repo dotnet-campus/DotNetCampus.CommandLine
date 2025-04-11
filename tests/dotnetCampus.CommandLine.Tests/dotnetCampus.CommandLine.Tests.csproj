@@ -29,7 +29,8 @@
 
   <ItemGroup>
     <Compile Remove="Analyzers\**" />
-    <Compile Remove="Fakes\**" />
+    <Compile Remove="Fakes\**\*Parser.cs" />
+    <Compile Remove="Fakes\**\Runtime*.cs" />
     <Compile Remove="CommandLineTests.bak.cs" />
     <Compile Remove="CommandLineTests.ValueRange.cs" />
     <Compile Include="Fakes\AssemblyCommandHandler.cs" />
