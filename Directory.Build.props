@@ -2,15 +2,34 @@
 
   <Import Project="build\Version.props" />
 
+  <!-- 框架和语言信息 -->
   <PropertyGroup>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)</PackageOutputPath>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <Deterministic>true</Deterministic>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      DCL101: 命令行库自己的警告，是为了给库的用户报告的；而本仓库要测这些，所以不能放一堆警告破窗。
+    -->
+    <NoWarn>$(NoWarn);DCL101</NoWarn>
+    <!--
+      CA1416: 平台兼容性警告
+    -->
+    <WarningsAsErrors>$(WarningAsErrors);CA1416</WarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- 库和项目信息 -->
+  <PropertyGroup>
+    <Description>使用源生成器高性能地辅助你的应用程序解析几种主流风格的命令行。</Description>
     <Authors>walterlv</Authors>
     <Company>dotnet-campus</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/dotnet-campus/dotnetCampus.CommandLine</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/dotnet-campus/dotnetCampus.CommandLine.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/dotnet-campus/DotNetCampus.CommandLine</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dotnet-campus/DotNetCampus.CommandLine.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
