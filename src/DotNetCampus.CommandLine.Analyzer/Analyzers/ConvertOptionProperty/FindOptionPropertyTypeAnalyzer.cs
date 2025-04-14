@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace dotnetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
@@ -53,8 +53,8 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
         var propertyNode = (PropertyDeclarationSyntax)context.Node;
         var optionTypes = new[]
         {
-            context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.Compiler.OptionAttribute"),
-            context.Compilation.GetTypeByMetadataName("dotnetCampus.Cli.Compiler.ValueAttribute"),
+            context.Compilation.GetTypeByMetadataName("DotNetCampus.Cli.Compiler.OptionAttribute"),
+            context.Compilation.GetTypeByMetadataName("DotNetCampus.Cli.Compiler.ValueAttribute"),
         };
 
         foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))

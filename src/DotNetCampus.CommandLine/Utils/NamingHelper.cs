@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace dotnetCampus.Cli.Utils;
+namespace DotNetCampus.Cli.Utils;
 
 internal static class NamingHelper
 {

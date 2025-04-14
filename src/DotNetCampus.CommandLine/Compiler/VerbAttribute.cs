@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 将一个类绑定一个命令行谓词。

@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Tests.Fakes;
+﻿namespace DotNetCampus.Cli.Tests.Fakes;
 
 internal static class CommandLineArgs
 {

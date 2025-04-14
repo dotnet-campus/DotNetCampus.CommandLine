@@ -1,4 +1,4 @@
-namespace dotnetCampus.Cli.Compiler;
+namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 标记一个属性为命令行选项。

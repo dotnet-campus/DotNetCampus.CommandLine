@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 管理一组命令处理器的集合，在谓词匹配的情况下辅助执行对应的命令处理器。

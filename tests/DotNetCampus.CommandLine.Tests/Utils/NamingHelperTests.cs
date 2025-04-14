@@ -1,7 +1,7 @@
-﻿using dotnetCampus.Cli.Utils;
+﻿using DotNetCampus.Cli.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace dotnetCampus.Cli.Tests.Utils;
+namespace DotNetCampus.Cli.Tests.Utils;
 
 [TestClass]
 public class NamingHelperTests

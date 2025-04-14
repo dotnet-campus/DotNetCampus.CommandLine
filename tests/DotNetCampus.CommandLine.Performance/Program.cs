@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using BenchmarkDotNet.Running;
 
-namespace dotnetCampus.Cli.Performance;
+namespace DotNetCampus.Cli.Performance;
 
 class Program
 {

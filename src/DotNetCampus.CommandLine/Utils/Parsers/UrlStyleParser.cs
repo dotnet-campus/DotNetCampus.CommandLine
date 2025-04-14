@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Web;
-using dotnetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Exceptions;
 
-namespace dotnetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Utils.Parsers;
 
 /// <summary>
 /// URL风格的命令行参数解析器

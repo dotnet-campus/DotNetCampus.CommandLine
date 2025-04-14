@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.CommandLine;
+namespace DotNetCampus.CommandLine;
 
 internal static class GeneratorInfo
 {

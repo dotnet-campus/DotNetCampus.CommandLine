@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.Cli.Utils.Parsers;
+using DotNetCampus.Cli.Utils.Parsers;
 
-namespace dotnetCampus.Cli.Utils;
+namespace DotNetCampus.Cli.Utils;
 
 /// <summary>
 /// 命令行参数转换器。

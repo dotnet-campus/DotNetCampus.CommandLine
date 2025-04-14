@@ -3,7 +3,7 @@
   "profiles": {
     "调试源生成器": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../../samples/dotnetCampus.CommandLine.Sample/dotnetCampus.CommandLine.Sample.csproj"
+      "targetProject": "../../samples/DotNetCampus.CommandLine.Sample/DotNetCampus.CommandLine.Sample.csproj"
     }
   }
 }

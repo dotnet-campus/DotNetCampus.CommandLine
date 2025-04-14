@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 
-using dotnetCampus.Cli.Tests.Fakes;
+using DotNetCampus.Cli.Tests.Fakes;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using MSTest.Extensions.Contracts;
 
-namespace dotnetCampus.Cli.Tests
+namespace DotNetCampus.Cli.Tests
 {
     public partial class CommandLineTests
     {

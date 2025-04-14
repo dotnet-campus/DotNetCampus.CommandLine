@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.Cli.Utils;
+using DotNetCampus.Cli.Utils;
 
-namespace dotnetCampus.Cli;
+namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。

@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Tests;
+﻿namespace DotNetCampus.Cli.Tests;
 
 internal enum LogLevel
 {

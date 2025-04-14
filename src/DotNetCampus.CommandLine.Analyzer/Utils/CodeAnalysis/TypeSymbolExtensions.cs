@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.CommandLine.Utils.CodeAnalysis;
+namespace DotNetCampus.CommandLine.Utils.CodeAnalysis;
 
 /// <summary>
 /// 为 <see cref="ITypeSymbol"/> 提供扩展方法。

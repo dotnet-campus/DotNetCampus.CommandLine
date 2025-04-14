@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace dotnetCampus.Cli.Compiler;
+namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 为命令行参数与类型属性的关联提供特性基类。

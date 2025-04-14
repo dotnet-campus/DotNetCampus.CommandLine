@@ -1,10 +1,10 @@
-﻿using dotnetCampus.CommandLine.Properties;
+﻿using DotNetCampus.CommandLine.Properties;
 using Microsoft.CodeAnalysis;
-using static dotnetCampus.CommandLine.Properties.Localizations;
+using static DotNetCampus.CommandLine.Properties.Localizations;
 
 // ReSharper disable InconsistentNaming
 
-namespace dotnetCampus.CommandLine;
+namespace DotNetCampus.CommandLine;
 
 public static class Diagnostics
 {
@@ -55,45 +55,45 @@ public static class Diagnostics
         /// <summary>
         /// 可能产生 bug，则报告此诊断。
         /// </summary>
-        public const string AvoidBugs = "dotnetCampus.AvoidBugs";
+        public const string AvoidBugs = "DotNetCampus.AvoidBugs";
 
         /// <summary>
         /// 为了提供代码生成能力，则报告此诊断。
         /// </summary>
-        public const string CodeFixOnly = "dotnetCampus.CodeFixOnly";
+        public const string CodeFixOnly = "DotNetCampus.CodeFixOnly";
 
         /// <summary>
         /// 因编译要求而必须满足的条件没有满足，则报告此诊断。
         /// </summary>
-        public const string Compiler = "dotnetCampus.Compiler";
+        public const string Compiler = "DotNetCampus.Compiler";
 
         /// <summary>
         /// 因库内的机制限制，必须满足此要求后库才可正常工作，则报告此诊断。
         /// </summary>
-        public const string Mechanism = "dotnetCampus.Mechanism";
+        public const string Mechanism = "DotNetCampus.Mechanism";
 
         /// <summary>
         /// 为了代码可读性，使之更易于理解、方便调试，则报告此诊断。
         /// </summary>
-        public const string Readable = "dotnetCampus.Readable";
+        public const string Readable = "DotNetCampus.Readable";
 
         /// <summary>
         /// 为了提升性能，或避免性能问题，则报告此诊断。
         /// </summary>
-        public const string Performance = "dotnetCampus.Performance";
+        public const string Performance = "DotNetCampus.Performance";
 
         /// <summary>
         /// 能写得出来正常编译，但会引发运行时异常，则报告此诊断。
         /// </summary>
-        public const string RuntimeException = "dotnetCampus.RuntimeException";
+        public const string RuntimeException = "DotNetCampus.RuntimeException";
 
         /// <summary>
         /// 编写了无法生效的代码，则报告此诊断。
         /// </summary>
-        public const string Useless = "dotnetCampus.Useless";
+        public const string Useless = "DotNetCampus.Useless";
     }
 
     private static LocalizableString Localize(string key) => new LocalizableResourceString(key, ResourceManager, typeof(Localizations));
 
-    public static string Url(string diagnosticId) => $"https://github.com/dotnet-campus/dotnetCampus.CommandLine/docs/analyzers/{diagnosticId}.md";
+    public static string Url(string diagnosticId) => $"https://github.com/dotnet-campus/DotNetCampus.CommandLine/docs/analyzers/{diagnosticId}.md";
 }

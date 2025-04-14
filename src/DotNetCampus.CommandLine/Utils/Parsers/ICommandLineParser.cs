@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 
-namespace dotnetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal interface ICommandLineParser
 {

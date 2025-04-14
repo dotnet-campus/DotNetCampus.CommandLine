@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <RootNamespace>dotnetCampus.Cli.Tests</RootNamespace>
+    <RootNamespace>DotNetCampus.Cli.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,14 +33,6 @@
     <Compile Remove="Fakes\**\Runtime*.cs" />
     <Compile Remove="CommandLineTests.bak.cs" />
     <Compile Remove="CommandLineTests.ValueRange.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="Analyzers\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Analyzers\**" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace dotnetCampus.Cli.Tests.Fakes
+namespace DotNetCampus.Cli.Tests.Fakes
 {
     public class OptionsParser : ICommandLineOptionParser<Options>
     {

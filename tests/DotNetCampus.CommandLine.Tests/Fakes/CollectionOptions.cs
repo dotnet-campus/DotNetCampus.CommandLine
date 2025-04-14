@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using dotnetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli.Tests.Fakes;
+namespace DotNetCampus.Cli.Tests.Fakes;
 
 public class CollectionOptions
 {

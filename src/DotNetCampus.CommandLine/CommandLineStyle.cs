@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli;
+﻿namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 命令行参数的风格规范。

@@ -7,7 +7,7 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-dotnetCampus.CommandLine provides a simple yet high-performance command line parsing functionality. Thanks to the power of source code generators, it now offers more efficient parsing capabilities and a more developer-friendly experience. All features are available under the dotnetCampus.Cli namespace.
+DotNetCampus.CommandLine provides a simple yet high-performance command line parsing functionality. Thanks to the power of source code generators, it now offers more efficient parsing capabilities and a more developer-friendly experience. All features are available under the DotNetCampus.Cli namespace.
 
 ## Quick Start
 
@@ -74,7 +74,7 @@ $ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A 
 
 ## Command Line Styles
 
-dotnetCampus.CommandLine supports multiple command line styles. You can specify which style to use when parsing:
+DotNetCampus.CommandLine supports multiple command line styles. You can specify which style to use when parsing:
 
 ```csharp
 // Parse command line arguments using .NET CLI style
@@ -237,10 +237,10 @@ await commandLine.AddHandler<ImportOptions>(async options =>
 
 ## URL Protocol Support
 
-dotnetCampus.CommandLine supports parsing URL protocol strings:
+DotNetCampus.CommandLine supports parsing URL protocol strings:
 
 ```
-dotnetCampus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
+dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
 ```
 
 Features and usage of URL protocol parsing:

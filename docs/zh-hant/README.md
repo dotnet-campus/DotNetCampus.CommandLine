@@ -7,7 +7,7 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-dotnetCampus.CommandLine 提供了簡單而高性能的命令行解析功能，得益於源代碼生成器的加持，它現在提供了更高效的解析能力和更友好的開發體驗。所有功能都位於 dotnetCampus.Cli 命名空間下。
+DotNetCampus.CommandLine 提供了簡單而高性能的命令行解析功能，得益於源代碼生成器的加持，它現在提供了更高效的解析能力和更友好的開發體驗。所有功能都位於 DotNetCampus.Cli 命名空間下。
 
 ## 快速使用
 
@@ -74,7 +74,7 @@ $ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A 
 
 ## 命令行風格
 
-dotnetCampus.CommandLine 支持多種命令行風格，你可以在解析時指定使用哪種風格：
+DotNetCampus.CommandLine 支持多種命令行風格，你可以在解析時指定使用哪種風格：
 
 ```csharp
 // 使用 .NET CLI 風格解析命令行參數
@@ -237,10 +237,10 @@ await commandLine.AddHandler<ImportOptions>(async options =>
 
 ## URL協議支持
 
-dotnetCampus.CommandLine 支持解析 URL 協議字符串：
+DotNetCampus.CommandLine 支持解析 URL 協議字符串：
 
 ```
-dotnetCampus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
+dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
 ```
 
 URL協議解析的特點和用法：

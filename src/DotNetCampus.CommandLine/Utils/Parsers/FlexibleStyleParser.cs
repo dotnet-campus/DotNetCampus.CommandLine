@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
-using dotnetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Exceptions;
 
-namespace dotnetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal sealed class FlexibleStyleParser : ICommandLineParser
 {

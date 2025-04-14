@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Exceptions;
+﻿namespace DotNetCampus.Cli.Exceptions;
 
 /// <summary>
 /// 在解析命令行参数的过程中发生的异常。

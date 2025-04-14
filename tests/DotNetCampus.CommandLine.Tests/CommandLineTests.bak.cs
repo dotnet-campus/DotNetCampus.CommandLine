@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using dotnetCampus.Cli.Tests.Fakes;
+using DotNetCampus.Cli.Tests.Fakes;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using MSTest.Extensions.Contracts;
 
-using static dotnetCampus.Cli.Tests.Fakes.CommandLineArgs;
+using static DotNetCampus.Cli.Tests.Fakes.CommandLineArgs;
 
-namespace dotnetCampus.Cli.Tests
+namespace DotNetCampus.Cli.Tests
 {
     [TestClass]
     public partial class CommandLineTests

@@ -1,13 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using dotnetCampus.CommandLine.Properties;
+using DotNetCampus.CommandLine.Properties;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace dotnetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToListCodeFix)), Shared]
 public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix

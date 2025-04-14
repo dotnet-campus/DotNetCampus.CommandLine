@@ -1,4 +1,4 @@
-namespace dotnetCampus.Cli.Exceptions;
+namespace DotNetCampus.Cli.Exceptions;
 
 /// <summary>
 /// 表示多个命令行参数选项、谓词或处理器被标记为匹配同一个命令行谓词的异常。

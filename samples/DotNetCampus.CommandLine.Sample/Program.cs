@@ -1,6 +1,6 @@
-﻿using dotnetCampus.Cli.Compiler;
+﻿using DotNetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli;
+namespace DotNetCampus.Cli;
 
 class Program
 {

@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
-using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable InconsistentNaming
 
-namespace dotnetCampus.Cli.Tests;
+namespace DotNetCampus.Cli.Tests;
 
 /// <summary>
 /// 测试 Flexible 风格命令行参数是否正确被解析。

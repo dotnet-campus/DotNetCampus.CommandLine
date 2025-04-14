@@ -1,6 +1,6 @@
-# dotnetCampus.CommandLine
+# DotNetCampus.CommandLine
 
-![Build](https://github.com/dotnet-campus/dotnetCampus.CommandLine/workflows/.NET%20Build/badge.svg)  ![NuGet Package](https://github.com/dotnet-campus/dotnetCampus.CommandLine/workflows/NuGet%20Publish/badge.svg) [![dotnetCampus.CommandLine](https://img.shields.io/nuget/v/dotnetCampus.CommandLine)](https://www.nuget.org/packages/dotnetCampus.CommandLine/) [![dotnetCampus.CommandLine.Source](https://img.shields.io/nuget/v/dotnetCampus.CommandLine.Source)](https://www.nuget.org/packages/dotnetCampus.CommandLine.Source/)
+![Build](https://github.com/dotnet-campus/DotNetCampus.CommandLine/workflows/.NET%20Build/badge.svg)  ![NuGet Package](https://github.com/dotnet-campus/DotNetCampus.CommandLine/workflows/NuGet%20Publish/badge.svg) [![dotnetCampus.CommandLine](https://img.shields.io/nuget/v/dotnetCampus.CommandLine)](https://www.nuget.org/packages/dotnetCampus.CommandLine/) [![dotnetCampus.CommandLine.Source](https://img.shields.io/nuget/v/dotnetCampus.CommandLine.Source)](https://www.nuget.org/packages/dotnetCampus.CommandLine.Source/)
 
 | [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
 | ------------- | ------------------- | ------------------- |
@@ -9,7 +9,7 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-dotnetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Thanks to the power of source code generators, it provides efficient parsing capabilities with a developer-friendly experience.
+DotNetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Thanks to the power of source code generators, it provides efficient parsing capabilities with a developer-friendly experience.
 
 Parsing a typical command line takes only about 5000ns (0.005ms), making it one of the fastest command line parsers available in .NET.
 
@@ -103,7 +103,7 @@ Thank you very much for firing a new issue and providing new pull requests.
 
 Click here to file a new issue:
 
-- [New Issue · dotnet-campus/dotnetCampus.CommandLine](https://github.com/dotnet-campus/dotnetCampus.CommandLine/issues/new)
+- [New Issue · dotnet-campus/DotNetCampus.CommandLine](https://github.com/dotnet-campus/DotNetCampus.CommandLine/issues/new)
 
 ### Contributing Guide
 
@@ -111,4 +111,4 @@ Be kindly.
 
 ## License
 
-dotnetCampus.CommandLine is licensed under the [MIT license](/LICENSE).
+DotNetCampus.CommandLine is licensed under the [MIT license](/LICENSE).

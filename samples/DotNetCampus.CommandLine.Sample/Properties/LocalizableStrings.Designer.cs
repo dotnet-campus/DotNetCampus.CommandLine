@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace dotnetCampus.Cli.Properties {
+namespace DotNetCampus.Cli.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace dotnetCampus.Cli.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dotnetCampus.Cli.Properties.LocalizableStrings", typeof(LocalizableStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DotNetCampus.Cli.Properties.LocalizableStrings", typeof(LocalizableStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

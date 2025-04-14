@@ -2,14 +2,14 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using CommandLine;
-using dotnetCampus.Cli.Performance.Fakes;
-using dotnetCampus.Cli.Tests.Fakes;
-using static dotnetCampus.Cli.Tests.Fakes.CommandLineArgs;
-using static dotnetCampus.Cli.CommandLineParsingOptions;
+using DotNetCampus.Cli.Performance.Fakes;
+using DotNetCampus.Cli.Tests.Fakes;
+using static DotNetCampus.Cli.Tests.Fakes.CommandLineArgs;
+using static DotNetCampus.Cli.CommandLineParsingOptions;
 
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
-namespace dotnetCampus.Cli.Performance;
+namespace DotNetCampus.Cli.Performance;
 
 // [DryJob] // 取消注释以验证测试能否运行。
 [MemoryDiagnoser]

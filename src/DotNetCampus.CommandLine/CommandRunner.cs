@@ -1,9 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
-using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Utils.Handlers;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Utils.Handlers;
 
-namespace dotnetCampus.Cli;
+namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。

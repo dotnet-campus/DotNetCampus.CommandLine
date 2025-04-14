@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.CommandLine.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Generators.ModelProviding;
 using Microsoft.CodeAnalysis;
 
-namespace dotnetCampus.CommandLine.Generators;
+namespace DotNetCampus.CommandLine.Generators;
 
 [Generator(LanguageNames.CSharp)]
 public class VerbCreatorGenerator : IIncrementalGenerator
@@ -69,9 +69,9 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 辅助 <see cref="{{model.OptionsType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
 /// </summary>
-internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.Cli.Compiler.IVerbCreator<{{model.OptionsType.ToGlobalDisplayString()}}>
+internal sealed class {{model.GetVerbCreatorTypeName()}} : global::DotNetCampus.Cli.Compiler.IVerbCreator<{{model.OptionsType.ToGlobalDisplayString()}}>
 {
-    public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::dotnetCampus.Cli.CommandLine commandLine)
+    public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
         var result = new {{model.OptionsType.ToGlobalDisplayString()}}
         {
@@ -102,7 +102,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
             $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}{(name.Contains(' ') ? name : $"\"{name}\"")}{caseSensitive}";
 
         var exception = property.IsRequired
-            ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
@@ -165,7 +165,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
         };
         var verbText = model.VerbName is { } verbName ? $"\"{verbName}\"" : "null";
         var exception = property.IsRequired
-            ? $"throw new global::dotnetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
@@ -190,7 +190,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}} : global::dotnetCampus.
     {
         return $$"""
 #nullable enable
-namespace dotnetCampus.Cli;
+namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 为本程序集中的所有命令行选项、谓词或处理函数编译时信息初始化。
@@ -212,7 +212,7 @@ internal static class CommandLineModuleInitializer
         var verbCode = model.VerbName is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
         // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
-        global::dotnetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
+        global::DotNetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
             {{verbCode}},
             cl => new global::{{model.Namespace}}.{{model.GetVerbCreatorTypeName()}}().CreateInstance(cl));
 """;
@@ -227,9 +227,9 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 提供一种辅助自动搜集并执行本程序集中所有命令行处理器的方式。
 /// </summary>
-partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.Cli.Compiler.ICommandHandlerCollection
+partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.Cli.Compiler.ICommandHandlerCollection
 {
-    public global::dotnetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::dotnetCampus.Cli.CommandLine cl) => verb switch
+    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::DotNetCampus.Cli.CommandLine cl) => verb switch
     {
 {{string.Join("\n", models.GroupBy(x => x.VerbName).Select(GenerateAssemblyCommandHandlerMatchCode))}}
         _ => null,
@@ -262,7 +262,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::dotnetCampus.C
         {
             var verbCode = group.Key is { } vn ? $"\"{vn}\"" : "null";
             return $"""
-        {verbCode} => throw new global::dotnetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.OptionsType.Name))}.", {verbCode}),
+        {verbCode} => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.OptionsType.Name))}.", {verbCode}),
 """;
         }
     }

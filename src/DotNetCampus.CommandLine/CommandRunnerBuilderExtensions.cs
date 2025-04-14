@@ -1,6 +1,6 @@
-using dotnetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli;
+namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 辅助创建命令行执行程序。

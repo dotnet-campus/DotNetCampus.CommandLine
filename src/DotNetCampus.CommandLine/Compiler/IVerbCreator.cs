@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 供源生成器实现，辅助命令行选项或命令处理器的创建。

@@ -1,11 +1,11 @@
 ﻿using System.Collections.Immutable;
-using dotnetCampus.Cli.Compiler;
-using dotnetCampus.Cli.Utils;
-using dotnetCampus.CommandLine.Utils.CodeAnalysis;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace dotnetCampus.CommandLine.Generators.ModelProviding;
+namespace DotNetCampus.CommandLine.Generators.ModelProviding;
 
 internal static class CommandModelProvider
 {
@@ -42,10 +42,10 @@ internal static class CommandModelProvider
 
                 // 1. 实现 ICommandOptions 接口。
                 var isOptions = typeSymbol.AllInterfaces.Any(i =>
-                    i.IsSubclassOrImplementOf(["dotnetCampus.Cli.ICommandOptions"], true));
+                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.ICommandOptions"], true));
                 // 2. 实现 ICommandHandler 接口。
                 var isHandler = typeSymbol.AllInterfaces.Any(i =>
-                    i.IsSubclassOrImplementOf(["dotnetCampus.Cli.ICommandHandler"], true));
+                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.ICommandHandler"], true));
                 // 3. 拥有 [Verb] 特性。
                 var attribute = typeSymbol.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());

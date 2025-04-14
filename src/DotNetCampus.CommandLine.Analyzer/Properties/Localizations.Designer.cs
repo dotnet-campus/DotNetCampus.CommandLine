@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace dotnetCampus.CommandLine.Properties {
+namespace DotNetCampus.CommandLine.Properties {
     using System;
     
     
@@ -38,7 +38,7 @@ namespace dotnetCampus.CommandLine.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("dotnetCampus.CommandLine.Properties.Localizations", typeof(Localizations).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DotNetCampus.CommandLine.Properties.Localizations", typeof(Localizations).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

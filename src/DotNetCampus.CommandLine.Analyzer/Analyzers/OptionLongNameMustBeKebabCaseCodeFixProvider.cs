@@ -5,10 +5,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using dotnetCampus.CommandLine.Properties;
-using dotnetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Properties;
+using DotNetCampus.Cli.Utils;
 
-namespace dotnetCampus.CommandLine.Analyzers;
+namespace DotNetCampus.CommandLine.Analyzers;
 
 /// <summary>
 /// [Option("LongName")]

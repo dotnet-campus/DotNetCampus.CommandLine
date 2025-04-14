@@ -28,8 +28,8 @@
     <Authors>walterlv</Authors>
     <Company>dotnet-campus</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/dotnet-campus/dotnetCampus.CommandLine</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/dotnet-campus/dotnetCampus.CommandLine.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/dotnet-campus/DotNetCampus.CommandLine</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dotnet-campus/DotNetCampus.CommandLine.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 

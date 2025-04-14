@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>dotnetCampus.Cli.Performance</RootNamespace>
+    <RootNamespace>DotNetCampus.Cli.Performance</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

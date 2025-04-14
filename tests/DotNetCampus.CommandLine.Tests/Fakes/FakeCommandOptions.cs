@@ -1,7 +1,7 @@
 using System;
-using dotnetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli.Tests.Fakes;
+namespace DotNetCampus.Cli.Tests.Fakes;
 
 public class FakeCommandOptions
 {

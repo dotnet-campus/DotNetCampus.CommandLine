@@ -5,8 +5,8 @@
 //using System.Threading.Tasks;
 //using System.Xml;
 
-//using dotnetCampus.CommandLine;
-//using dotnetCampus.CommandLine.Analyzers;
+//using DotNetCampus.CommandLine;
+//using DotNetCampus.CommandLine.Analyzers;
 
 //using Microsoft.CodeAnalysis;
 //using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,7 +16,7 @@
 
 //using RoslynTestKit;
 
-//namespace dotnetCampus.Cli.Tests.Analyzers
+//namespace DotNetCampus.Cli.Tests.Analyzers
 //{
 //    [TestClass]
 //    public class OptionLongNameMustBePascalCaseAnalyzerTest : AnalyzerTestFixture

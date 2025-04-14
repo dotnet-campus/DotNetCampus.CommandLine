@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
-using dotnetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Compiler;
 
-namespace dotnetCampus.Cli.Tests.Fakes;
+namespace DotNetCampus.Cli.Tests.Fakes;
 
 /// <summary>
 /// 表示此程序在被启动的时候使用的参数信息。此类型是不可变类型，所有实例都是线程安全的。

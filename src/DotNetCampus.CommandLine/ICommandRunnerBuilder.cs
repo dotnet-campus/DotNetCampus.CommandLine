@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Cli;
+﻿namespace DotNetCampus.Cli;
 
 /// <summary>
 /// 命令行执行器构造器，用于链式创建命令行执行器。

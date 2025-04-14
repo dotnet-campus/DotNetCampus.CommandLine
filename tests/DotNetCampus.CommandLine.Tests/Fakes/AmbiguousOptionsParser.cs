@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dotnetCampus.Cli.Tests.Fakes
+namespace DotNetCampus.Cli.Tests.Fakes
 {
     public class AmbiguousOptionsParser : CommandLineOptionParser<AmbiguousOptions>
     {

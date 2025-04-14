@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using dotnetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Exceptions;
 
-namespace dotnetCampus.Cli.Utils;
+namespace DotNetCampus.Cli.Utils;
 
 internal static class CommandLineValueConverter
 {
