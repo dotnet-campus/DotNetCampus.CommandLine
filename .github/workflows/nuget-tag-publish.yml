@@ -12,20 +12,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
- 
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: |
+          3.1.x
+          6.0.x
+          8.0.x
+
     - name: Install dotnet tool
       run: dotnet tool install -g dotnetCampus.TagToVersion
 
-    - name: Set tag to version
+    - name: Set tag to version  
       run: dotnet TagToVersion -t ${{ github.ref }}
 
     - name: Build with dotnet
-      run: dotnet build --configuration Release
+      run: |
+        dotnet build --configuration Release
+        dotnet pack --configuration Release --no-build
 
     - name: Install Nuget
       uses: nuget/setup-nuget@v1
       with:
-        nuget-version: '5.x'
+        nuget-version: '6.x'
 
     - name: Add private GitHub registry to NuGet
       run: |
@@ -33,5 +43,5 @@ jobs:
 
     - name: Push generated package to GitHub registry
       run: |
-        nuget push .\bin\Release\*.nupkg -Source github -SkipDuplicate
-        nuget push .\bin\Release\*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NugetKey }} 
+        nuget push .\artifacts\package\release\*.nupkg -Source github -SkipDuplicate
+        nuget push .\artifacts\package\release\*.nupkg -Source https://api.nuget.org/v3/index.json -SkipDuplicate -ApiKey ${{ secrets.NugetKey }} 
