@@ -193,6 +193,60 @@ class Options
 
 如果未提供必需選項，解析時會拋出`RequiredPropertyNotAssignedException`異常。
 
+## 屬性初始值與訪問器修飾符
+
+在定義選項類型時，需要注意屬性初始值與訪問器修飾符（`init`、`required`）之間的關係：
+
+```csharp
+class Options
+{
+    // 錯誤示例：當使用 init 或 required 時，默認值將被忽略
+    [Option('f', "format")]
+    public string Format { get; init; } = "json";  // 默認值不會生效！
+    
+    // 正確示例：使用 set 以保留默認值
+    [Option('f', "format")]
+    public string Format { get; set; } = "json";  // 默認值會正確保留
+}
+```
+
+### 關於屬性初始值的重要說明
+
+1. **使用 `init` 或 `required` 時的行為**：
+   - 當屬性包含 `required` 或 `init` 修飾符時，屬性的初始值會被忽略
+   - 如果命令行參數中未提供該選項的值，屬性將被設置為 `default(T)`（對於引用類型為 `null`）
+   - 這是由 C# 語言特性決定的，命令行庫如果希望突破此限制需要針對所有屬性排列組合進行處理，顯然是非常浪費的
+
+2. **保留默認值的方式**：
+   - 如果需要為屬性提供默認值，應使用 `{ get; set; }` 而非 `{ get; init; }`
+
+3. **可空類型與警告處理**：
+   - 對於非必需的引用類型屬性，應將其標記為可空（如 `string?`）以避免可空警告
+   - 對於值類型（如 `int`、`bool`），如果想保留默認值而非 `null`，不應將其標記為可空
+
+示例：
+
+```csharp
+class OptionsBestPractice
+{
+    // 必需選項：使用 required，無需擔心默認值
+    [Option("input")]
+    public required string InputFile { get; init; }
+    
+    // 可選選項：標記為可空類型以避免警告
+    [Option("output")]
+    public string? OutputFile { get; init; }
+    
+    // 需要默認值的選項：使用 set 而非 init
+    [Option("format")]
+    public string Format { get; set; } = "json";
+    
+    // 值類型選項：不需要標記為可空
+    [Option("count")]
+    public int Count { get; set; } = 1;
+}
+```
+
 ## 命令處理與謂詞
 
 你可以使用命令處理器模式處理不同的命令（謂詞），類似於`git commit`、`git push`等。DotNetCampus.CommandLine 提供了多種添加命令處理器的方式：
@@ -241,7 +295,7 @@ internal class ConvertCommandHandler : ICommandHandler
     public string? OutputFile { get; init; }
     
     [Option('f', "format")]
-    public string Format { get; init; } = "json";
+    public string Format { get; set; } = "json";
     
     public Task<int> RunAsync()
     {

@@ -193,6 +193,60 @@ class Options
 
 If a required option is not provided, a `RequiredPropertyNotAssignedException` will be thrown during parsing.
 
+## Property Initial Values and Accessors
+
+When defining option types, it's important to understand the relationship between property initial values and accessor modifiers (`init`, `required`):
+
+```csharp
+class Options
+{
+    // Incorrect example: when using init or required, default values will be ignored
+    [Option('f', "format")]
+    public string Format { get; init; } = "json";  // Default value won't work!
+    
+    // Correct example: use set to retain the default value
+    [Option('f', "format")]
+    public string Format { get; set; } = "json";  // Default value will be preserved
+}
+```
+
+### Important Notes About Property Initial Values
+
+1. **Behavior with `init` or `required`**:
+   - When a property includes `required` or `init` modifiers, the initial value will be ignored
+   - If the option is not provided in command line arguments, the property will be set to `default(T)` (null for reference types)
+   - This is determined by C# language design, not a limitation of the command line library
+
+2. **How to preserve default values**:
+   - If you need to provide a default value for a property, use `{ get; set; }` instead of `{ get; init; }`
+
+3. **Nullable types and warning handling**:
+   - For non-required reference type properties, mark them as nullable (e.g., `string?`) to avoid nullable warnings
+   - For value types (e.g., `int`, `bool`), if you want to keep the default value rather than null, don't mark them as nullable
+
+Example:
+
+```csharp
+class OptionsBestPractice
+{
+    // Required option: using required, no need to worry about default values
+    [Option("input")]
+    public required string InputFile { get; init; }
+    
+    // Optional option: mark as nullable type to avoid warnings
+    [Option("output")]
+    public string? OutputFile { get; init; }
+    
+    // Option needing default value: use set instead of init
+    [Option("format")]
+    public string Format { get; set; } = "json";
+    
+    // Value type option: no need to mark as nullable
+    [Option("count")]
+    public int Count { get; set; } = 1;
+}
+```
+
 ## Command Handling and Verbs
 
 You can use the command handler pattern to handle different commands (verbs), similar to `git commit`, `git push`, etc. DotNetCampus.CommandLine provides several ways to add command handlers:
@@ -241,7 +295,7 @@ internal class ConvertCommandHandler : ICommandHandler
     public string? OutputFile { get; init; }
     
     [Option('f', "format")]
-    public string Format { get; init; } = "json";
+    public string Format { get; set; } = "json";
     
     public Task<int> RunAsync()
     {
