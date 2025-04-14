@@ -40,13 +40,13 @@ Define a class that maps command line arguments:
 class Options
 {
     [Value(0)]
-    public string FilePath { get; init; }
+    public required string FilePath { get; init; }
 
     [Option('s', "silence")]
     public bool IsSilence { get; init; }
 
     [Option('m', "mode")]
-    public string StartMode { get; init; }
+    public string? StartMode { get; init; }
 
     [Option("startup-sessions")]
     public IReadOnlyList<string> StartupSessions { get; init; } = [];

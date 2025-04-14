@@ -34,13 +34,13 @@ You need to define a type that maps command line arguments:
 class Options
 {
     [Value(0)]
-    public string FilePath { get; init; }
+    public required string FilePath { get; init; }
 
     [Option('s', "silence")]
     public bool IsSilence { get; init; }
 
     [Option('m', "mode")]
-    public string StartMode { get; init; }
+    public string? StartMode { get; init; }
 
     [Option("startup-sessions")]
     public IReadOnlyList<string> StartupSessions { get; init; } = [];
@@ -195,7 +195,11 @@ If a required option is not provided, a `RequiredPropertyNotAssignedException` w
 
 ## Command Handling and Verbs
 
-You can use the command handler pattern to handle different commands (verbs), similar to `git commit`, `git push`, etc.:
+You can use the command handler pattern to handle different commands (verbs), similar to `git commit`, `git push`, etc. DotNetCampus.CommandLine provides several ways to add command handlers:
+
+### 1. Using Delegates to Handle Commands
+
+The simplest way is to handle commands through delegates, separating the command option type from the handling logic:
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
@@ -221,6 +225,99 @@ public class RemoveOptions
     public string ItemToRemove { get; init; }
 }
 ```
+
+### 2. Using the ICommandHandler Interface
+
+For more complex command handling logic, you can create a class that implements the `ICommandHandler` interface, encapsulating both the command options and handling logic together:
+
+```csharp
+[Verb("convert")]
+internal class ConvertCommandHandler : ICommandHandler
+{
+    [Option('i', "input")]
+    public required string InputFile { get; init; }
+    
+    [Option('o', "output")]
+    public string? OutputFile { get; init; }
+    
+    [Option('f', "format")]
+    public string Format { get; init; } = "json";
+    
+    public Task<int> RunAsync()
+    {
+        // Implement command handling logic
+        Console.WriteLine($"Converting {InputFile} to {Format} format");
+        // ...
+        return Task.FromResult(0); // Return exit code
+    }
+}
+```
+
+Then add it directly to the command line parser:
+
+```csharp
+var commandLine = CommandLine.Parse(args);
+commandLine.AddHandler<ConvertCommandHandler>()
+    .Run();
+```
+
+### 3. Using Assembly Auto-discovery for Command Handlers
+
+To manage a large number of commands more conveniently without having to manually add each one, you can use the assembly auto-discovery feature to automatically add all classes in the assembly that implement the `ICommandHandler` interface:
+
+```csharp
+// Define a partial class to mark for auto-discovery of command handlers
+[CollectCommandHandlersFromThisAssembly]
+internal partial class AssemblyCommandHandler;
+
+// Add all command handlers at the program entry point
+var commandLine = CommandLine.Parse(args);
+commandLine.AddHandlers<AssemblyCommandHandler>()
+    .Run();
+```
+
+Typically, handler classes need to have the `[Verb]` attribute and implement the `ICommandHandler` interface to be automatically discovered and added:
+
+```csharp
+[Verb("sample")]
+internal class SampleCommandHandler : ICommandHandler
+{
+    [Option("SampleProperty")]
+    public required string Option { get; init; }
+
+    [Value(Length = int.MaxValue)]
+    public string? Argument { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        // Implement command handling logic
+        return Task.FromResult(0);
+    }
+}
+```
+
+Additionally, you can create a command handler without the `[Verb]` attribute to serve as a default handler. There can be at most one command handler without the `[Verb]` attribute in the assembly, and it will be used when no other commands match:
+
+```csharp
+// Default handler without [Verb] attribute
+internal class DefaultCommandHandler : ICommandHandler
+{
+    [Option('h', "help")]
+    public bool ShowHelp { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        // Handle default command, such as displaying help information
+        if (ShowHelp)
+        {
+            Console.WriteLine("Displaying help information...");
+        }
+        return Task.FromResult(0);
+    }
+}
+```
+
+This approach is particularly suitable for large applications or command line tools with strong extensibility, allowing you to add new commands without modifying the entry code.
 
 ### Asynchronous Command Handling
 

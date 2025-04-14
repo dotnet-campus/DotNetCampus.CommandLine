@@ -34,13 +34,13 @@ class Program
 class Options
 {
     [Value(0)]
-    public string FilePath { get; init; }
+    public required string FilePath { get; init; }
 
     [Option('s', "silence")]
     public bool IsSilence { get; init; }
 
     [Option('m', "mode")]
-    public string StartMode { get; init; }
+    public string? StartMode { get; init; }
 
     [Option("startup-sessions")]
     public IReadOnlyList<string> StartupSessions { get; init; } = [];
@@ -195,7 +195,11 @@ class Options
 
 ## 命令处理与谓词
 
-你可以使用命令处理器模式处理不同的命令（谓词），类似于`git commit`、`git push`等：
+你可以使用命令处理器模式处理不同的命令（谓词），类似于`git commit`、`git push`等。DotNetCampus.CommandLine 提供了多种添加命令处理器的方式：
+
+### 1. 使用委托处理命令
+
+最简单的方式是通过委托处理命令，将命令选项类型和处理逻辑分离：
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
@@ -221,6 +225,99 @@ public class RemoveOptions
     public string ItemToRemove { get; init; }
 }
 ```
+
+### 2. 使用 ICommandHandler 接口
+
+对于更复杂的命令处理逻辑，你可以创建实现 `ICommandHandler` 接口的类，将命令选项和处理逻辑封装在一起：
+
+```csharp
+[Verb("convert")]
+internal class ConvertCommandHandler : ICommandHandler
+{
+    [Option('i', "input")]
+    public required string InputFile { get; init; }
+    
+    [Option('o', "output")]
+    public string? OutputFile { get; init; }
+    
+    [Option('f', "format")]
+    public string Format { get; init; } = "json";
+    
+    public Task<int> RunAsync()
+    {
+        // 实现命令处理逻辑
+        Console.WriteLine($"Converting {InputFile} to {Format} format");
+        // ...
+        return Task.FromResult(0); // 返回退出代码
+    }
+}
+```
+
+然后直接添加到命令行解析器中：
+
+```csharp
+var commandLine = CommandLine.Parse(args);
+commandLine.AddHandler<ConvertCommandHandler>()
+    .Run();
+```
+
+### 3. 使用程序集自动发现命令处理器
+
+为了更方便地管理大量命令且无需手动逐个添加，可以使用程序集自动发现功能，自动添加程序集中所有实现了 `ICommandHandler` 接口的类：
+
+```csharp
+// 定义一个部分类用于标记自动发现命令处理器
+[CollectCommandHandlersFromThisAssembly]
+internal partial class AssemblyCommandHandler;
+
+// 在程序入口添加所有命令处理器
+var commandLine = CommandLine.Parse(args);
+commandLine.AddHandlers<AssemblyCommandHandler>()
+    .Run();
+```
+
+通常，处理器类需要添加 `[Verb]` 特性并实现 `ICommandHandler` 接口，它就会被自动发现和添加：
+
+```csharp
+[Verb("sample")]
+internal class SampleCommandHandler : ICommandHandler
+{
+    [Option("SampleProperty")]
+    public required string Option { get; init; }
+
+    [Value(Length = int.MaxValue)]
+    public string? Argument { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        // 实现命令处理逻辑
+        return Task.FromResult(0);
+    }
+}
+```
+
+此外，你也可以创建一个没有 `[Verb]` 特性的命令处理器作为默认处理器。在程序集中最多只能有一个没有 `[Verb]` 特性的命令处理器，它将在没有其他命令匹配时被使用：
+
+```csharp
+// 没有 [Verb] 特性的默认处理器
+internal class DefaultCommandHandler : ICommandHandler
+{
+    [Option('h', "help")]
+    public bool ShowHelp { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        // 处理默认命令，如显示帮助信息等
+        if (ShowHelp)
+        {
+            Console.WriteLine("显示帮助信息...");
+        }
+        return Task.FromResult(0);
+    }
+}
+```
+
+这种方式特别适合大型应用或扩展性强的命令行工具，可以在不修改入口代码的情况下添加新命令。
 
 ### 异步命令处理
 
