@@ -6,6 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RootNamespace>dotnetCampus.Cli</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
 
   <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
+      <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="\" />
       <None Include="$(ArtifactsPath)bin\dotnetCampus.CommandLine.Analyzer\$(Configuration)\**\*.dll" Pack="True" PackagePath="analyzers\dotnet\cs" />
     </ItemGroup>
   </Target>
