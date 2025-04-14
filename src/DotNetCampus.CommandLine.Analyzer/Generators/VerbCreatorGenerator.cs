@@ -69,9 +69,9 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 辅助 <see cref="{{model.OptionsType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
 /// </summary>
-internal sealed class {{model.GetVerbCreatorTypeName()}} : global::DotNetCampus.Cli.Compiler.IVerbCreator<{{model.OptionsType.ToGlobalDisplayString()}}>
+internal sealed class {{model.GetVerbCreatorTypeName()}}
 {
-    public {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    public static {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
         var result = new {{model.OptionsType.ToGlobalDisplayString()}}
         {
@@ -214,7 +214,7 @@ internal static class CommandLineModuleInitializer
         // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
             {{verbCode}},
-            cl => new global::{{model.Namespace}}.{{model.GetVerbCreatorTypeName()}}().CreateInstance(cl));
+            cl => global::{{model.Namespace}}.{{model.GetVerbCreatorTypeName()}}.CreateInstance(cl));
 """;
     }
 
@@ -248,7 +248,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             if (model.IsHandler)
             {
                 return $"""
-        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => new global::{model.Namespace}.{model.GetVerbCreatorTypeName()}().CreateInstance(cl),
+        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => global::{model.Namespace}.{model.GetVerbCreatorTypeName()}.CreateInstance(cl),
 """;
             }
             else

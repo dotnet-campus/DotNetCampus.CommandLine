@@ -1,18 +1,11 @@
-using DotNetCampus.Cli.Compiler;
-
 namespace DotNetCampus.Cli.Utils.Handlers;
 
 internal sealed class TaskCommandHandler<TOptions>(
     Func<TOptions> optionsCreator,
-    Func<TOptions, Task<int>> handler) : ICommandHandler, IVerbCreator<TaskCommandHandler<TOptions>>
+    Func<TOptions, Task<int>> handler) : ICommandHandler
     where TOptions : class
 {
     private TOptions? _options;
-
-    public TaskCommandHandler<TOptions> CreateInstance(CommandLine cl)
-    {
-        return this;
-    }
 
     public Task<int> RunAsync()
     {
