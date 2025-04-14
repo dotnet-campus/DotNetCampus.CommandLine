@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="dotnetCampus.CommandLine.Tests" />
+    <InternalsVisibleTo Include="dotnet-campus.CommandLine.Tests" />
   </ItemGroup>
 
   <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">

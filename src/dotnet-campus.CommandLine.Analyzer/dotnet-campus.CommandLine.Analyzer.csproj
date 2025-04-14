@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\dotnetCampus.CommandLine\Compiler\*Attribute.cs" LinkBase="Compiler" />
-    <Compile Include="..\dotnetCampus.CommandLine\Utils\NamingHelper.cs" Link="Utils\NamingHelper.cs" />
+    <Compile Include="..\dotnet-campus.CommandLine\Compiler\*Attribute.cs" LinkBase="Compiler" />
+    <Compile Include="..\dotnet-campus.CommandLine\Utils\NamingHelper.cs" Link="Utils\NamingHelper.cs" />
     <Compile Update="Properties\Localizations.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

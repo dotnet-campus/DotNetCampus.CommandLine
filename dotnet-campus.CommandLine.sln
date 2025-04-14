@@ -13,19 +13,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{2AC77BF2
 		build\Version.props = build\Version.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Analyzer", "src\dotnetCampus.CommandLine.Analyzer\dotnetCampus.CommandLine.Analyzer.csproj", "{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-campus.CommandLine.Analyzer", "src\dotnet-campus.CommandLine.Analyzer\dotnet-campus.CommandLine.Analyzer.csproj", "{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7DDA8183-3606-4B08-86E3-A4537860448F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Tests", "tests\dotnetCampus.CommandLine.Tests\dotnetCampus.CommandLine.Tests.csproj", "{470A596C-D8C4-4506-A71A-4BEEA08BCC62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-campus.CommandLine.Tests", "tests\dotnet-campus.CommandLine.Tests\dotnet-campus.CommandLine.Tests.csproj", "{470A596C-D8C4-4506-A71A-4BEEA08BCC62}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Performance", "tests\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Performance.csproj", "{7B664373-31A0-47AB-9076-15153EF4722A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-campus.CommandLine.Performance", "tests\dotnet-campus.CommandLine.Performance\dotnet-campus.CommandLine.Performance.csproj", "{7B664373-31A0-47AB-9076-15153EF4722A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F26EAA27-AA79-4B28-890C-D759F1D1A374}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.CommandLine.Sample", "samples\dotnetCampus.CommandLine.Sample\dotnetCampus.CommandLine.Sample.csproj", "{B44D0273-A584-4845-899A-597D52387DC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-campus.CommandLine.Sample", "samples\dotnet-campus.CommandLine.Sample\dotnet-campus.CommandLine.Sample.csproj", "{B44D0273-A584-4845-899A-597D52387DC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnetCampus.CommandLine", "src\dotnetCampus.CommandLine\dotnetCampus.CommandLine.csproj", "{B61424A0-02C5-4C24-819B-8153D52BC0B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-campus.CommandLine", "src\dotnet-campus.CommandLine\dotnet-campus.CommandLine.csproj", "{B61424A0-02C5-4C24-819B-8153D52BC0B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
