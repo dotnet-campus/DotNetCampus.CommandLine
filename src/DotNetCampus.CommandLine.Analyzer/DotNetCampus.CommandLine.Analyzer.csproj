@@ -20,11 +20,33 @@
 
   <ItemGroup>
     <Compile Include="..\dotnet-campus.CommandLine\Compiler\*Attribute.cs" LinkBase="Compiler" />
-    <Compile Include="..\dotnet-campus.CommandLine\Utils\NamingHelper.cs" Link="Utils\NamingHelper.cs" />
     <Compile Update="Properties\Localizations.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Localizations.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Compiler\CollectCommandHandlersFromThisAssemblyAttribute.cs">
+      <LinkBase>Compiler\</LinkBase>
+      <Link>Compiler\CollectCommandHandlersFromThisAssemblyAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Compiler\CommandLineAttribute.cs">
+      <LinkBase>Compiler\</LinkBase>
+      <Link>Compiler\CommandLineAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Compiler\OptionAttribute.cs">
+      <LinkBase>Compiler\</LinkBase>
+      <Link>Compiler\OptionAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Compiler\ValueAttribute.cs">
+      <LinkBase>Compiler\</LinkBase>
+      <Link>Compiler\ValueAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Compiler\VerbAttribute.cs">
+      <LinkBase>Compiler\</LinkBase>
+      <Link>Compiler\VerbAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine\Utils\NamingHelper.cs">
+      <Link>Utils\NamingHelper.cs</Link>
     </Compile>
     <EmbeddedResource Update="Properties\Localizations.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>

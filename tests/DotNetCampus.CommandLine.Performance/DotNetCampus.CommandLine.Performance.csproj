@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>dotnetCampus.Cli.Performance</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\dotnet-campus.CommandLine.Tests\Fakes\**" LinkBase="Fakes" />
+    <Compile Remove="..\dotnet-campus.CommandLine.Tests\Fakes\**\Runtime*.cs" />
+    <Compile Remove="..\dotnet-campus.CommandLine.Tests\Fakes\**\*Parser.cs" />
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\AmbiguousOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\AmbiguousOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\AssemblyCommandHandler.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\AssemblyCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\CollectionOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\CollectionOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\CommandLineArgs.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\CommandLineArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\DefaultVerbCommandHandler.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\DefaultVerbCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\DictionaryOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\DictionaryOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\FakeCommandOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\FakeCommandOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\FakeVerbCommandHandler.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\FakeVerbCommandHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\Options.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\Options.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\PrimaryOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\PrimaryOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\UnlimitedValueOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\UnlimitedValueOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\ValueOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\ValueOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\VerbOptions.cs">
+      <LinkBase>Fakes\</LinkBase>
+      <Link>Fakes\VerbOptions.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotNetCampus.CommandLine.Analyzer\DotNetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
+  </ItemGroup>
+
+</Project>
