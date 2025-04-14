@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>dotnetCampus.CommandLine</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -11,6 +11,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedAllSources Condition="'$(Configuration)' != 'debug'">true</EmbedAllSources>
+    <WarningLevel Condition="'$(TargetFramework)' == 'net6.0'">0</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Condition="'$(TargetFramework)' == 'net6.0'" Include="System.Collections.Immutable" Version="8.0.0" />
   </ItemGroup>
 
   <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
