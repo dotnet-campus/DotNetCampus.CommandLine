@@ -5,38 +5,38 @@ namespace DotNetCampus.Cli;
 /// <summary>
 /// 在解析命令行参数时，指定命令行参数的解析方式。
 /// </summary>
-public record CommandLineParsingOptions
+public readonly record struct CommandLineParsingOptions()
 {
     /// <inheritdoc cref="CommandLineStyle.Flexible" />
-    public static CommandLineParsingOptions Flexible { get; } = new CommandLineParsingOptions
+    public static CommandLineParsingOptions Flexible => new CommandLineParsingOptions
     {
         Style = CommandLineStyle.Flexible,
         CaseSensitive = false,
     };
 
     /// <inheritdoc cref="CommandLineStyle.GNU" />
-    public static CommandLineParsingOptions GNU { get; } = new CommandLineParsingOptions
+    public static CommandLineParsingOptions GNU => new CommandLineParsingOptions
     {
         Style = CommandLineStyle.GNU,
         CaseSensitive = true,
     };
 
     /// <inheritdoc cref="CommandLineStyle.POSIX" />
-    public static CommandLineParsingOptions POSIX { get; } = new CommandLineParsingOptions
+    public static CommandLineParsingOptions POSIX => new CommandLineParsingOptions
     {
         Style = CommandLineStyle.POSIX,
         CaseSensitive = true,
     };
 
     /// <inheritdoc cref="CommandLineStyle.DotNet" />
-    public static CommandLineParsingOptions DotNet { get; } = new CommandLineParsingOptions
+    public static CommandLineParsingOptions DotNet => new CommandLineParsingOptions
     {
         Style = CommandLineStyle.DotNet,
         CaseSensitive = false,
     };
 
     /// <inheritdoc cref="CommandLineStyle.PowerShell" />
-    public static CommandLineParsingOptions PowerShell { get; } = new CommandLineParsingOptions
+    public static CommandLineParsingOptions PowerShell => new CommandLineParsingOptions
     {
         Style = CommandLineStyle.PowerShell,
         CaseSensitive = false,

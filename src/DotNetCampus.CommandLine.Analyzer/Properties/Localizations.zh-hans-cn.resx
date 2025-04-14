@@ -22,8 +22,8 @@
         <value>命令行选项：改为字典类型 (IReadOnlyDictionary&lt;string, string&gt;)</value>
     </data>
   <data name="DCL201_202_Fix_OptionTypeToDouble" xml:space="preserve">
-        <value>命令行选项：改为小数类型 (double)</value>
-    </data>
+    <value>命令行选项：改为浮点数类型 (double)</value>
+  </data>
   <data name="DCL201_202_Fix_OptionTypeToInt32" xml:space="preserve">
         <value>命令行选项：改为整数类型 (int)</value>
     </data>
@@ -34,8 +34,8 @@
         <value>命令行选项：改为字符串类型 (string)</value>
     </data>
   <data name="DCL202_Description" xml:space="preserve">
-        <value>作为命令行选项，此属性的类型 {0} 不被内置支持。 建议使用 bool / string / IList&lt;string&gt; 或代码修复会建议您更改的其他类型，或者在 Value / Option 特性上添加自定义转换器。</value>
-    </data>
+    <value>作为命令行选项，此属性的类型 {0} 不被内置支持。 建议使用 bool / string / IReadOnlyList&lt;string&gt; 或代码修复会建议您更改的其他类型，或者在 Value / Option 特性上添加自定义转换器。</value>
+  </data>
   <data name="DCL202_Message" xml:space="preserve">
         <value>作为命令行选项，此属性的类型 {0} 不被内置支持。</value>
     </data>

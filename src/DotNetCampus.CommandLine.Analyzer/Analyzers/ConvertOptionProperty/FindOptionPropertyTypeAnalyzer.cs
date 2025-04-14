@@ -9,20 +9,20 @@ namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
-    private readonly ImmutableArray<string> _nonGenericTypeNames =
+    private readonly ImmutableHashSet<string> _nonGenericTypeNames =
     [
         "String", "string", "Boolean", "bool", "Byte", "byte", "Int16", "short", "UInt16", "ushort", "Int32", "int", "UInt32", "uint", "Int64", "long",
         "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable",
     ];
 
-    private readonly ImmutableArray<string> _oneGenericTypeNames =
+    private readonly ImmutableHashSet<string> _oneGenericTypeNames =
     [
         "[]", "ImmutableArray", "List", "IList", "IReadOnlyList", "ImmutableHashSet", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable",
     ];
 
-    private readonly ImmutableArray<string> _twoGenericTypeNames = ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
-    private readonly ImmutableArray<string> _genericKeyArgumentTypeNames = ["String", "string"];
-    private readonly ImmutableArray<string> _genericArgumentTypeNames = ["String", "string"];
+    private readonly ImmutableHashSet<string> _twoGenericTypeNames = ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
+    private readonly ImmutableHashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
+    private readonly ImmutableHashSet<string> _genericArgumentTypeNames = ["String", "string"];
 
     /// <summary>
     /// Supported diagnostics.

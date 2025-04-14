@@ -28,8 +28,13 @@ public static class AttributeExtensions
 
     public static bool IsAttributeOf<TAttribute>(this INamedTypeSymbol attribute)
     {
+        if (attribute.ContainingNamespace.ToString() != typeof(TAttribute).Namespace)
+        {
+            return false;
+        }
+
         var compareName = typeof(TAttribute).Name;
-        if (attribute.Name == compareName)
+        if (attribute.Name == typeof(TAttribute).Name)
         {
             return true;
         }

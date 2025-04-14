@@ -229,10 +229,6 @@ internal record OptionPropertyGeneratingModel
         var shortName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_Char).Value?.ToString();
         var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
         var exactSpelling = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.ExactSpelling)).Value.Value is true;
-        if (exactSpelling)
-        {
-            throw new InvalidOperationException($"Property: {propertySymbol.Name}");
-        }
         var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
         {
             { Kind: TypedConstantKind.Array } typedConstant => typedConstant.Values.Select(a => a.Value?.ToString())

@@ -186,7 +186,7 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported. It&apos;s recommended to use bool/string/IList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute..
+        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported. It&apos;s recommended to use bool/string/IReadOnlyList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute..
         /// </summary>
         public static string DCL202_Description {
             get {

@@ -5,7 +5,7 @@ namespace DotNetCampus.CommandLine;
 
 internal static class GeneratorInfo
 {
-    public static string RootNamespace { get; } = typeof(GeneratorInfo).Namespace!;
+    public static string RootNamespace => typeof(GeneratorInfo).Namespace!;
 
     public static string ToolName { get; } = typeof(GeneratorInfo).Assembly
         .GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? typeof(GeneratorInfo).Namespace!;

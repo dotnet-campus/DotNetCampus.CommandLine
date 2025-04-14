@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Utils.Handlers;
@@ -5,7 +6,7 @@ namespace DotNetCampus.Cli.Utils.Handlers;
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
     private Func<CommandLine, ICommandHandler>? _defaultHandlerCreator;
-    private readonly Dictionary<string, Func<CommandLine, ICommandHandler>> _verbHandlers = [];
+    private readonly ConcurrentDictionary<string, Func<CommandLine, ICommandHandler>> _verbHandlers = [];
 
     public void AddHandler(string? verbName, Func<CommandLine, ICommandHandler> handlerCreator)
     {
@@ -19,7 +20,10 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         }
         else
         {
-            _verbHandlers[verbName] = handlerCreator;
+            if (!_verbHandlers.TryAdd(verbName, handlerCreator))
+            {
+                throw new InvalidOperationException($"Duplicate handler with verb {verbName}. Existed: {_verbHandlers}, new: {handlerCreator}");
+            }
         }
     }
 

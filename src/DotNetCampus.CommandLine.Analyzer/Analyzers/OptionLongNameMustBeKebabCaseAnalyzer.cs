@@ -17,7 +17,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Recognize these attributes.
     /// </summary>
-    private readonly IList<string> _attributeNames = new List<string> { "Option", "OptionAttribute" };
+    private readonly ImmutableHashSet<string> _attributeNames = ["Option", "OptionAttribute"];
 
     /// <summary>
     /// Supported diagnostics.

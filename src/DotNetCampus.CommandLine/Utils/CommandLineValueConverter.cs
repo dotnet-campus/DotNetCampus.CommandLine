@@ -82,13 +82,13 @@ internal static class CommandLineValueConverter
         }
     }
 
-    internal static T ArgumentStringsToEnum<T>(ImmutableArray<string>? arguments) where T : unmanaged, Enum => arguments switch
+    private static T? ArgumentStringsToValue<T>(ImmutableArray<string>? arguments) where T : IParsable<T> => arguments switch
     {
         null or { Length: 0 } => default,
-        { } values => Enum.TryParse<T>(values[0], true, out var result)
+        { } values => T.TryParse(values[0], null, out var result)
             ? result
             : throw new CommandLineParseValueException(
-                $"Value [{values[0]}] is not a valid enum value for type {typeof(T).Name}."),
+                $"Value [{values[0]}] is not a valid value for type {typeof(T).Name}."),
     };
 
     internal static byte ArgumentStringsToByte(ImmutableArray<string>? arguments) => arguments switch

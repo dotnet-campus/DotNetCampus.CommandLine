@@ -14,6 +14,13 @@
     <InternalsVisibleTo Include="DotNetCampus.CommandLine.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="\" />

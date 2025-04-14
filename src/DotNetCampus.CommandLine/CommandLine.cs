@@ -413,7 +413,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     {
         return MatchedUrlScheme is { } scheme
             ? $"{scheme}://{string.Join("/", PositionalArguments)}?{string.Join("&", LongOptionValues.Select(x => $"{x.Key}={string.Join("&", x.Value)}"))}"
-            : string.Join(" ", CommandLineArguments);
+            : string.Join(" ", CommandLineArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 }
 

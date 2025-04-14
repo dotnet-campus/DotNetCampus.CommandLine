@@ -141,7 +141,7 @@
     <value>Use 'string' type instead</value>
   </data>
   <data name="DCL202_Description" xml:space="preserve">
-    <value>This property has the type '{0}' which is not built-in supported. It's recommended to use bool/string/IList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute.</value>
+    <value>This property has the type '{0}' which is not built-in supported. It's recommended to use bool/string/IReadOnlyList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute.</value>
   </data>
   <data name="DCL202_Message" xml:space="preserve">
     <value>This property has the type '{0}' which is not built-in supported.</value>

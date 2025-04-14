@@ -57,6 +57,7 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
     private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
     {
         var expression = expressionSyntax.ToString();
+        // 去掉引号。
         var oldName = expression.Substring(1, expression.Length - 2);
         var newName = NamingHelper.MakeKebabCase(oldName);
 

@@ -14,7 +14,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
     private readonly CommandLine _commandLine;
     private readonly DictionaryCommandHandlerCollection _dictionaryVerbHandlers = new();
-    private readonly List<ICommandHandlerCollection> _assemblyVerbHandlers = [];
+    private readonly ConcurrentDictionary<ICommandHandlerCollection, ICommandHandlerCollection> _assemblyVerbHandlers = [];
 
     internal CommandRunner(CommandLine commandLine)
     {
@@ -97,7 +97,8 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     internal CommandRunner AddHandlers<T>()
         where T : ICommandHandlerCollection, new()
     {
-        _assemblyVerbHandlers.Add(new T());
+        var c = new T();
+        _assemblyVerbHandlers.TryAdd(c, c);
         return this;
     }
 
@@ -114,7 +115,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         // 其次寻找程序集中自动搜集到的处理器。
         foreach (var handler in _assemblyVerbHandlers)
         {
-            if (handler.TryMatch(verbName, _commandLine) is { } h2)
+            if (handler.Value.TryMatch(verbName, _commandLine) is { } h2)
             {
                 return h2;
             }
@@ -127,7 +128,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         }
         foreach (var handler in _assemblyVerbHandlers)
         {
-            if (handler.TryMatch(null, _commandLine) is { } h4)
+            if (handler.Value.TryMatch(null, _commandLine) is { } h4)
             {
                 return h4;
             }
