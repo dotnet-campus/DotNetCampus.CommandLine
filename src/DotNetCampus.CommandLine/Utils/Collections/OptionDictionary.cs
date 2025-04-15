@@ -249,7 +249,7 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
     public static string MakeKebabCase(ReadOnlySpan<char> span)
     {
         Span<char> builder = stackalloc char[span.Length * 2];
-        var isWordStart = true;
+        var needSeparator = false;
         var actualBuilderCount = 0;
         for (var i = 0; i < span.Length; i++)
         {
@@ -257,19 +257,18 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
             if (char.IsUpper(c))
             {
                 // 大写字母。
-                if (!isWordStart)
+                if (needSeparator)
                 {
-                    // 单词的中间，添加分隔符。
+                    // 需要使用分隔符。
                     builder[actualBuilderCount++] = '-';
                 }
                 builder[actualBuilderCount++] = char.ToLowerInvariant(c);
-                isWordStart = false;
             }
             else if (char.IsLetterOrDigit(c))
             {
                 // 无大小写，但可作为标识符的字符（对 char 来说也视为字母）。
                 builder[actualBuilderCount++] = c;
-                isWordStart = false;
+                needSeparator = i + 1 < span.Length && char.IsUpper(span[i + 1]);
             }
             else
             {
@@ -279,7 +278,7 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
         }
         if (actualBuilderCount == 0)
         {
-            return string.Empty;
+            return "";
         }
         if (actualBuilderCount == builder.Length)
         {
