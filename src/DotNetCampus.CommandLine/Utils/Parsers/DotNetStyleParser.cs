@@ -145,7 +145,7 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
                     // 遇到 PascalCase 或 camelCase，需要转换为 kebab-case。
                     isKebabCase = false;
                 }
-                if (c == ':')
+                if (c is ':')
                 {
                     // 带值的长选项。--option:value
                     return new DotNetArgument(DotNetParsedType.LongOptionWithValue)
@@ -158,7 +158,12 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
                 }
             }
             // 单独的长选项。--option
-            return new DotNetArgument(DotNetParsedType.LongOption) { Option = new OptionName(argument, Range.StartAt(2)) };
+            return new DotNetArgument(DotNetParsedType.LongOption)
+            {
+                Option = isKebabCase
+                    ? new OptionName(argument, Range.StartAt(wordStartIndex))
+                    : new OptionName(OptionName.MakeKebabCase(spans), Range.All),
+            };
         }
 
         // 处理各种类型的位置参数
@@ -211,12 +216,12 @@ internal enum DotNetParsedType
     PositionalArgument,
 
     /// <summary>
-    /// 长选项。--option /option -tl /tl
+    /// 长选项。--option -Option /option -tl /tl
     /// </summary>
     LongOption,
 
     /// <summary>
-    /// 带值的长选项。--option:value /option:value -tl:off /tl:off
+    /// 带值的长选项。--option:value -Option:value /option:value -tl:off /tl:off
     /// </summary>
     LongOptionWithValue,
 
