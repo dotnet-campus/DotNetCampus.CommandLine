@@ -245,6 +245,48 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
     public static implicit operator OptionName(string optionName) => new OptionName(optionName, Range.All);
 
     public static implicit operator OptionName(char optionName) => new OptionName(optionName.ToString(), Range.All);
+
+    public static string MakeKebabCase(ReadOnlySpan<char> span)
+    {
+        Span<char> builder = stackalloc char[span.Length * 2];
+        var isWordStart = true;
+        var actualBuilderCount = 0;
+        for (var i = 0; i < span.Length; i++)
+        {
+            var c = span[i];
+            if (char.IsUpper(c))
+            {
+                // 大写字母。
+                if (!isWordStart)
+                {
+                    // 单词的中间，添加分隔符。
+                    builder[actualBuilderCount++] = '-';
+                }
+                builder[actualBuilderCount++] = char.ToLowerInvariant(c);
+                isWordStart = false;
+            }
+            else if (char.IsLetterOrDigit(c))
+            {
+                // 无大小写，但可作为标识符的字符（对 char 来说也视为字母）。
+                builder[actualBuilderCount++] = c;
+                isWordStart = false;
+            }
+            else
+            {
+                // 其他字符，直接添加。
+                builder[actualBuilderCount++] = c;
+            }
+        }
+        if (actualBuilderCount == 0)
+        {
+            return string.Empty;
+        }
+        if (actualBuilderCount == builder.Length)
+        {
+            return builder.ToString();
+        }
+        return new string(builder[..actualBuilderCount]);
+    }
 }
 
 /// <summary>

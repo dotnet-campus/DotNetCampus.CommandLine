@@ -161,7 +161,7 @@ public enum CommandLineStyle
     /// 2. 短选项以单破折线(-)开头，后跟选项名，然后是冒号和参数值<br/>
     /// 3. 长选项以双破折线(--)开头，后跟选项名，然后是冒号和参数值<br/>
     /// 4. 也支持使用斜杠(/)作为选项前缀，特别是在Windows环境中<br/>
-    /// 5. 参数名通常是单个字母、缩写或完整的驼峰式单词<br/>
+    /// 5. 参数名可以是单个字母、多字符缩写或完整的单词，支持各种命名规范<br/>
     /// 6. 布尔选项通常不需要值，或使用true/false、on/off等值<br/>
     /// 7. 多个短选项一般不支持合并（与GNU/POSIX不同）<br/>
     /// 8. 某些.NET工具也接受等号(=)作为选项和值的分隔符<br/>
@@ -171,16 +171,25 @@ public enum CommandLineStyle
     /// dotnet build -c:Release           # 短选项冒号语法
     /// dotnet test -t:UnitTest           # 短选项指定测试类别
     /// dotnet publish -o:./publish       # 指定输出目录
+    /// dotnet build -tl:off              # 双字符短选项
     ///
     /// # 长选项示例
     /// dotnet build --verbosity:minimal  # 长选项冒号语法
     /// dotnet run --project:App1         # 指定项目
     /// msbuild --target:Rebuild          # MSBuild长选项
     ///
+    /// # 不同命名风格
+    /// dotnet build -Configuration:Release      # PascalCase，单破折号
+    /// dotnet build --Configuration:Release     # PascalCase，双破折号
+    /// dotnet build /Configuration:Release      # PascalCase，斜杠前缀
+    /// dotnet test --test-category:UnitTest     # kebab-case，双破折号
+    /// dotnet run --projectName:App1            # camelCase，双破折号
+    ///
     /// # 斜杠前缀(Windows风格)
     /// msbuild /p:Configuration=Release  # MSBuild属性
     /// dotnet test /blame                # 启用故障分析
     /// dotnet nuget push /source:feed    # 指定源
+    /// dotnet test /tl:off               # 斜杠前缀的短选项
     ///
     /// # 布尔选项
     /// dotnet build -m:1                 # 最大并行度
@@ -189,6 +198,7 @@ public enum CommandLineStyle
     ///
     /// # 混合用法
     /// dotnet publish -c:Release --no-build -o:./bin
+    /// dotnet test -Framework:net8.0 --verbosity:normal /blame
     /// </code>
     /// </remarks>
     DotNet,

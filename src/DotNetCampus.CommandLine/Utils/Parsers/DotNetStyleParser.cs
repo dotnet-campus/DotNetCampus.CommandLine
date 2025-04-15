@@ -129,20 +129,32 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
             }
 
             // 长选项。
+            var isKebabCase = true;
             var wordStartIndex = argument[1] is '-' ? 2 : 1;
             var spans = argument.AsSpan(wordStartIndex);
             for (var i = 0; i < spans.Length; i++)
             {
-                if (i == 0 && !char.IsLetterOrDigit(spans[i]))
+                var c = spans[i];
+                if (i == 0 && !char.IsLetterOrDigit(c))
                 {
                     // 长选项的第一个字符必须是字母或数字。
                     throw new CommandLineParseException($"Invalid option format at index [{i}, 2]: {argument}");
                 }
-                if (spans[i] == ':')
+                if (i > 0 && char.IsUpper(c) && spans[i - 1] != '-')
+                {
+                    // 遇到 PascalCase 或 camelCase，需要转换为 kebab-case。
+                    isKebabCase = false;
+                }
+                if (c == ':')
                 {
                     // 带值的长选项。--option:value
                     return new DotNetArgument(DotNetParsedType.LongOptionWithValue)
-                        { Option = new OptionName(argument, new Range(wordStartIndex, i + wordStartIndex)), Value = spans[(i + 1)..] };
+                    {
+                        Option = isKebabCase
+                            ? new OptionName(argument, new Range(wordStartIndex, i + wordStartIndex))
+                            : new OptionName(OptionName.MakeKebabCase(spans[..i]), Range.All),
+                        Value = spans[(i + 1)..],
+                    };
                 }
             }
             // 单独的长选项。--option
@@ -178,6 +190,10 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
 
         // 其他情况，都是选项的值。
         return new DotNetArgument(DotNetParsedType.OptionValue) { Value = argument.AsSpan() };
+    }
+
+    internal readonly ref struct KebabOptionNameBuilder(string argument)
+    {
     }
 }
 

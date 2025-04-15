@@ -9,7 +9,7 @@ class Program
     static void Main(string[] args)
     {
         const int testCount = 100000;
-        CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.GNU;
+        CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
 
         Console.WriteLine($"# Test Count: {testCount}");
 

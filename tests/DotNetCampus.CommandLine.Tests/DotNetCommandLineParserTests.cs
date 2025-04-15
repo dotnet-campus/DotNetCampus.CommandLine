@@ -94,6 +94,101 @@ public class DotNetCommandLineParserTests
         Assert.IsTrue(flag);
     }
 
+    [TestMethod("1.5. PascalCase命名风格选项，可正常解析。")]
+    public void PascalCaseOption_Parsed_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["-PascalCase:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet02_PascalCaseOptions>(o => value = o.PascalCase)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("1.6. camelCase命名风格选项，可正常解析。")]
+    public void CamelCaseOption_Parsed_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--camelCase:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet02_PascalCaseOptions>(o => value = o.CamelCase)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("1.7. kebab-case命名风格选项，可正常解析。")]
+    public void KebabCaseOption_Parsed_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--kebab-case:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet02_PascalCaseOptions>(o => value = o.KebabCase)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("1.8. 不同前缀的PascalCase风格选项，可正常解析。")]
+    public void MixedPrefixWithPascalCase_Parsed_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["-Option1:value1", "--Option2:value2", "/Option3:value3"];
+        string? option1 = null;
+        string? option2 = null;
+        string? option3 = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet25_MixedPrefixOptions>(o =>
+            {
+                option1 = o.Option1;
+                option2 = o.Option2;
+                option3 = o.Option3;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value1", option1);
+        Assert.AreEqual("value2", option2);
+        Assert.AreEqual("value3", option3);
+    }
+
+    [TestMethod("1.9. 单字符短选项，不同前缀，可正常解析。")]
+    public void SingleCharOptions_DifferentPrefixes_Parsed()
+    {
+        // Arrange
+        string[] args = ["-a:value1", "/b:value2"];
+        string? optionA = null;
+        string? optionB = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet26_SingleCharOptions>(o =>
+            {
+                optionA = o.A;
+                optionB = o.B;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value1", optionA);
+        Assert.AreEqual("value2", optionB);
+    }
+
     #endregion
 
     #region 2. 类型转换
@@ -678,6 +773,90 @@ public class DotNetCommandLineParserTests
     }
 
     #endregion
+
+    #region 8. DotNet特定风格测试
+
+    [TestMethod("8.1. DotNet风格，双破折号+PascalCase，可正常解析。")]
+    public void DotNetStyle_DoubleDashPascalCase_Parsed()
+    {
+        // Arrange
+        string[] args = ["--OptionName:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet28_DotNetSpecificOptions>(o => value = o.OptionName)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("8.2. DotNet风格，单破折号+PascalCase，可正常解析。")]
+    public void DotNetStyle_SingleDashPascalCase_Parsed()
+    {
+        // Arrange
+        string[] args = ["-OptionName:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet28_DotNetSpecificOptions>(o => value = o.OptionName)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("8.3. DotNet风格，斜杠+PascalCase，可正常解析。")]
+    public void DotNetStyle_SlashPascalCase_Parsed()
+    {
+        // Arrange
+        string[] args = ["/OptionName:value"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet28_DotNetSpecificOptions>(o => value = o.OptionName)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("value", value);
+    }
+
+    [TestMethod("8.4. DotNet风格，支持两字符短选项，可正常解析。")]
+    public void DotNetStyle_TwoCharShortOption_Parsed()
+    {
+        // Arrange
+        string[] args = ["-tl:off"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.Tl)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("off", value);
+    }
+
+    [TestMethod("8.5. DotNet风格，斜杠前缀两字符短选项，可正常解析。")]
+    public void DotNetStyle_SlashTwoCharOption_Parsed()
+    {
+        // Arrange
+        string[] args = ["/tl:off"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.Tl)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("off", value);
+    }
+
+    #endregion
 }
 
 #region 测试用数据模型
@@ -686,6 +865,18 @@ internal record DotNet01_StringOptions
 {
     [Option]
     public required string Value { get; init; }
+}
+
+internal record DotNet02_PascalCaseOptions
+{
+    [Option("PascalCase")]
+    public string PascalCase { get; init; } = string.Empty;
+
+    [Option("camelCase")]
+    public string CamelCase { get; init; } = string.Empty;
+
+    [Option("kebab-case")]
+    public string KebabCase { get; init; } = string.Empty;
 }
 
 internal record DotNet03_MixedOptions
@@ -835,10 +1026,43 @@ internal record DotNet24_ImmutableCollectionOptions
     public ImmutableArray<string> Items { get; init; } = ImmutableArray<string>.Empty;
 }
 
+internal record DotNet25_MixedPrefixOptions
+{
+    [Option("Option1")]
+    public string Option1 { get; init; } = string.Empty;
+
+    [Option("Option2")]
+    public string Option2 { get; init; } = string.Empty;
+
+    [Option("Option3")]
+    public string Option3 { get; init; } = string.Empty;
+}
+
+internal record DotNet26_SingleCharOptions
+{
+    [Option("a")]
+    public string A { get; init; } = string.Empty;
+
+    [Option("b")]
+    public string B { get; init; } = string.Empty;
+}
+
 internal record DotNet27_NonRequiredNonNullableOption
 {
     [Option]
     public string Value { get; init; } = string.Empty;
+}
+
+internal record DotNet28_DotNetSpecificOptions
+{
+    [Option("OptionName")]
+    public string OptionName { get; init; } = string.Empty;
+}
+
+internal record DotNet29_TwoCharOptions
+{
+    [Option("tl")]
+    public string Tl { get; init; } = string.Empty;
 }
 
 #endregion
