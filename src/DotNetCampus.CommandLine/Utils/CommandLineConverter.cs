@@ -13,14 +13,14 @@ internal static class CommandLineConverter
     /// </summary>
     /// <param name="singleLineCommandLineArgs">一整行命令。</param>
     /// <returns>命令行参数数组。</returns>
-    internal static ImmutableArray<string> SingleLineCommandLineArgsToArrayCommandLineArgs(string singleLineCommandLineArgs)
+    internal static IReadOnlyList<string> SingleLineCommandLineArgsToArrayCommandLineArgs(string singleLineCommandLineArgs)
     {
         if (string.IsNullOrWhiteSpace(singleLineCommandLineArgs))
         {
             return ImmutableArray<string>.Empty;
         }
 
-        var parts = ImmutableArray.CreateBuilder<Range>();
+        List<Range> parts = [];
 
         var start = 0;
         var length = 0;
