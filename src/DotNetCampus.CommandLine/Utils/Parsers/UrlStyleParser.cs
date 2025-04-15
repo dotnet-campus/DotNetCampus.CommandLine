@@ -36,7 +36,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             throw new CommandLineParseException($"URL must start with '{_scheme}://'");
         }
 
-        Dictionary<string, List<string>> longOptions = [];
+        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
 
@@ -53,7 +53,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             var fragment = urlWithoutScheme.Substring(fragmentIndex + 1);
 
             // 添加fragment作为选项
-            longOptions["fragment"] = [fragment];
+            longOptions.TryAdd("fragment", fragment);
         }
 
         // 分离查询参数和路径
@@ -86,17 +86,17 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            longOptions,
             // URL 不支持短选项，所以直接使用空字典。
 #if NET8_0_OR_GREATER
-            ReadOnlyDictionary<char, IReadOnlyList<string>>.Empty,
+            ReadOnlyDictionary<char, SingleOptimizedList<string>>.Empty,
 #else
-            new Dictionary<char, IReadOnlyList<string>>(),
+            new Dictionary<char, SingleOptimizedList<string>>(),
 #endif
             arguments.ToReadOnlyList());
     }
 
-    private static void ParseQueryString(string queryString, Dictionary<string, List<string>> options)
+    private static void ParseQueryString(string queryString, Dictionary<string, SingleOptimizedList<string>> options)
     {
         if (string.IsNullOrEmpty(queryString))
         {
@@ -112,8 +112,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             {
                 string decodedName1 = HttpUtility.UrlDecode(param);
                 decodedName1 = NamingHelper.MakeKebabCase(decodedName1);
-                options.TryAdd(decodedName1, []);
-                options[decodedName1].Add("true");
+                options.TryAdd(decodedName1, "true");
                 continue;
             }
 
@@ -127,8 +126,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             string decodedValue = HttpUtility.UrlDecode(value);
             decodedName = NamingHelper.MakeKebabCase(decodedName);
 
-            options.TryAdd(decodedName, []);
-            options[decodedName].Add(decodedValue);
+            options.TryAdd(decodedName, decodedValue);
         }
     }
 }

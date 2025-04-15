@@ -6,7 +6,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, List<string>> longOptions = [];
+        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -54,12 +54,12 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                         var arrayValues = commandLineArgument.Split(',', StringSplitOptions.RemoveEmptyEntries);
                         foreach (var value in arrayValues)
                         {
-                            longValue.Add(value.Trim());
+                            longOptions.TryAdd(currentOption, value.Trim());
                         }
                     }
                     else
                     {
-                        longValue.Add(commandLineArgument);
+                        longOptions.TryAdd(currentOption, commandLineArgument);
                     }
                     currentOption = null; // 在PowerShell中处理完一个值后，即完成当前选项的解析
                 }
@@ -77,12 +77,12 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 
         // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
 #if NET8_0_OR_GREATER
-            ReadOnlyDictionary<char, IReadOnlyList<string>>.Empty,
+            ReadOnlyDictionary<char, SingleOptimizedList<string>>.Empty,
 #else
-            new Dictionary<char, IReadOnlyList<string>>(),
+            new Dictionary<char, SingleOptimizedList<string>>(),
 #endif
             arguments.ToReadOnlyList());
     }

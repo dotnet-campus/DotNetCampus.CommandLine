@@ -7,7 +7,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<char, List<string>> shortOptions = [];
+        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
         char? currentShortOption = null;
@@ -68,11 +68,12 @@ internal sealed class PosixStyleParser : ICommandLineParser
                     currentShortOption = option[0];
                 }
                 continue;
-            } // 处理选项参数
+            }
+            // 处理选项参数
             if (currentShortOption != null)
             {
                 // 如果存在短选项，将参数添加到最后一个短选项
-                shortOptions[currentShortOption.Value].Add(commandLineArgument);
+                shortOptions.AddOrUpdateSingle(currentShortOption.Value, commandLineArgument);
                 currentShortOption = null;
                 continue;
             }
@@ -90,11 +91,11 @@ internal sealed class PosixStyleParser : ICommandLineParser
         return new CommandLineParsedResult(guessedVerbName,
             // POSIX 风格不支持长选项，所以直接使用空字典。
 #if NET8_0_OR_GREATER
-            ReadOnlyDictionary<string, IReadOnlyList<string>>.Empty,
+            ReadOnlyDictionary<string, SingleOptimizedList<string>>.Empty,
 #else
-            new Dictionary<string, IReadOnlyList<string>>(),
+            new Dictionary<string, SingleOptimizedList<string>>(),
 #endif
-            shortOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            shortOptions,
             arguments.ToReadOnlyList());
     }
 }

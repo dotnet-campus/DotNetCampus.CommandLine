@@ -6,8 +6,8 @@ internal sealed class GnuStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, List<string>> longOptions = [];
-        Dictionary<char, List<string>> shortOptions = [];
+        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
+        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -56,8 +56,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    longOptions.TryAdd(option, []);
-                    longOptions[option].Add(value);
+                    longOptions.TryAdd(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -67,8 +66,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    longOptions.TryAdd(option, []);
-                    longOptions[option].Add(value);
+                    longOptions.TryAdd(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -116,8 +114,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    longOptions.TryAdd(option, []);
-                    longOptions[option].Add(value);
+                    longOptions.TryAdd(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -127,8 +124,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    longOptions.TryAdd(option, []);
-                    longOptions[option].Add(value);
+                    longOptions.TryAdd(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -142,12 +138,12 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 // 如果当前有选项，则将其值设置为此选项的值。
                 if (longOptions.TryGetValue(currentOption, out var longValue))
                 {
-                    longValue.Add(commandLineArgument);
+                    longOptions[currentOption] = longValue.Add(commandLineArgument);
                     currentOption = null;
                 }
-                else if (shortOptions.TryGetValue(currentOption[0], out List<string>? shortValue))
+                else if (shortOptions.TryGetValue(currentOption[0], out var shortValue))
                 {
-                    shortValue.Add(commandLineArgument);
+                    shortOptions[currentOption[0]] = shortValue.Add(commandLineArgument);
                     currentOption = null;
                 }
                 continue;
@@ -164,8 +160,8 @@ internal sealed class GnuStyleParser : ICommandLineParser
 
         // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
-            shortOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            longOptions,
+            shortOptions,
             arguments.ToReadOnlyList());
     }
 }

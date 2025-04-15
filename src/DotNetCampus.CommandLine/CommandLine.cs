@@ -41,22 +41,22 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 从命令行中解析出来的长名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<string, IReadOnlyList<string>> LongOptionValues { get; }
+    private IReadOnlyDictionary<string, SingleOptimizedList<string>> LongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<string, IReadOnlyList<string>> RawLongOptionValues { get; }
+    private IReadOnlyDictionary<string, SingleOptimizedList<string>> RawLongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<char, IReadOnlyList<string>> ShortOptionValues { get; }
+    private IReadOnlyDictionary<char, SingleOptimizedList<string>> ShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。始终大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<char, IReadOnlyList<string>> RawShortOptionValues { get; }
+    private IReadOnlyDictionary<char, SingleOptimizedList<string>> RawShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的位置参数。
