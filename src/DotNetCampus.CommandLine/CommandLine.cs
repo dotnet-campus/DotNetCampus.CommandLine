@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Cli.Utils;
+﻿using System.Diagnostics.Contracts;
+using DotNetCampus.Cli.Utils;
 using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli;
@@ -93,6 +94,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="args">命令行参数。</param>
     /// <param name="parsingOptions">以此方式解析命令行参数。</param>
     /// <returns>统一的命令行参数解析中间类型。</returns>
+    [Pure]
     public static CommandLine Parse(IReadOnlyList<string> args, CommandLineParsingOptions? parsingOptions = null)
     {
         ArgumentNullException.ThrowIfNull(args);
@@ -105,6 +107,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="singleLineCommandLineArgs">一整行命令。</param>
     /// <param name="parsingOptions">以此方式解析命令行参数。</param>
     /// <returns>统一的命令行参数解析中间类型。</returns>
+    [Pure]
     public static CommandLine Parse(string singleLineCommandLineArgs, CommandLineParsingOptions? parsingOptions = null)
     {
         var args = CommandLineConverter.SingleLineCommandLineArgsToArrayCommandLineArgs(singleLineCommandLineArgs);
@@ -118,6 +121,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <typeparam name="T">要转换的类型。</typeparam>
     /// <returns>转换后的实例。</returns>
+    [Pure]
     public T As<T>() where T : class => CommandRunner.CreateInstance<T>(this);
 
     /// <summary>
@@ -127,6 +131,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOption<T>(string optionName, bool? caseSensitive = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
@@ -145,6 +150,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOption<T>(char shortOption, bool? caseSensitive = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
@@ -164,6 +170,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOption<T>(char shortName, string longName, bool? caseSensitive = null) where T : class =>
         // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
         GetOption<T>(shortName, caseSensitive)
@@ -177,6 +184,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOptionValue<T>(string optionName, bool? caseSensitive = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
@@ -195,6 +203,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOptionValue<T>(char shortOption, bool? caseSensitive = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
@@ -214,6 +223,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
     public T? GetOptionValue<T>(char shortName, string longName, bool? caseSensitive = null) where T : struct =>
         // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
         GetOptionValue<T>(shortName, caseSensitive)
@@ -226,6 +236,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
+    [Pure]
     public T? GetPositionalArgument<T>(string? verbName = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
@@ -244,6 +255,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
+    [Pure]
     public T? GetPositionalArgument<T>(int index, int length, string? verbName = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
@@ -262,6 +274,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
+    [Pure]
     public T? GetPositionalArgumentValue<T>(string? verbName = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
@@ -280,6 +293,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
+    [Pure]
     public T? GetPositionalArgumentValue<T>(int index, int length, string? verbName = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
@@ -297,6 +311,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <returns>命令行参数中位置参数值的集合。</returns>
+    [Pure]
     public IReadOnlyList<string> GetPositionalArguments(string? verbName = null)
     {
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
@@ -307,6 +322,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// 输出传入的命令行参数字符串。
     /// </summary>
     /// <returns>传入的命令行参数字符串。</returns>
+    [Pure]
     public override string ToString()
     {
         return MatchedUrlScheme is { } scheme
