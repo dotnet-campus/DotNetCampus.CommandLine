@@ -107,7 +107,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             if (!param.Contains('='))
             {
                 string decodedName1 = HttpUtility.UrlDecode(param);
-                options.AddOption(decodedName1);
+                options.AddOption(OptionName.MakeKebabCase(decodedName1.AsSpan()));
                 continue;
             }
 
@@ -120,7 +120,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             string decodedName = HttpUtility.UrlDecode(name);
             string decodedValue = HttpUtility.UrlDecode(value);
 
-            options.AddValue(decodedName, decodedValue);
+            options.AddValue(OptionName.MakeKebabCase(decodedName.AsSpan()), decodedValue);
         }
     }
 }
