@@ -16,12 +16,11 @@ public class InheritanceCommandLineParserTests
     private CommandLineParsingOptions Flexible { get; } = CommandLineParsingOptions.Flexible;
 
     #region 1. 基本继承测试
-
     [TestMethod("1.1. 父类可选属性可被正确赋值")]
     public void ParentOptionalProperty_Assigned()
     {
         // Arrange
-        string[] args = ["--parent-value", "parent-test"];
+        string[] args = ["--parent-value", "parent-test", "--child-value", "required-child-value"];
         string? parentValue = null;
 
         // Act
