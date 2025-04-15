@@ -253,7 +253,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-invalid-format"];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsException<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX01_ShortOptions>(_ => { })

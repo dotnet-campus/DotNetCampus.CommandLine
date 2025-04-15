@@ -191,10 +191,6 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
         // 其他情况，都是选项的值。
         return new DotNetArgument(DotNetParsedType.OptionValue) { Value = argument.AsSpan() };
     }
-
-    internal readonly ref struct KebabOptionNameBuilder(string argument)
-    {
-    }
 }
 
 internal enum DotNetParsedType
