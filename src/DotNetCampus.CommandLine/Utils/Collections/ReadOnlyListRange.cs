@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace DotNetCampus.Cli.Utils;
+namespace DotNetCampus.Cli.Utils.Collections;
 
 /// <summary>
 /// 从一个只读集合中取出一个范围，让此集合表现得就像那个范围内的一个子集合一样。

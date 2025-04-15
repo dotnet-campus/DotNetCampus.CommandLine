@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli;
 
@@ -74,7 +75,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </remarks>
     private ReadOnlyListRange<string> PositionalArguments { get; }
 
-    private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
+    private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         CommandLineArguments = arguments;

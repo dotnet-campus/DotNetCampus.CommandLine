@@ -1,4 +1,5 @@
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
