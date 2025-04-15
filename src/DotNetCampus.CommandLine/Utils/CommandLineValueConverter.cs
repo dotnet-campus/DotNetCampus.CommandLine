@@ -82,6 +82,7 @@ internal static class CommandLineValueConverter
         }
     }
 
+#if NET8_0_OR_GREATER
     private static T? ArgumentStringsToValue<T>(ImmutableArray<string>? arguments) where T : IParsable<T> => arguments switch
     {
         null or { Length: 0 } => default,
@@ -90,6 +91,7 @@ internal static class CommandLineValueConverter
             : throw new CommandLineParseValueException(
                 $"Value [{values[0]}] is not a valid value for type {typeof(T).Name}."),
     };
+#endif
 
     internal static byte ArgumentStringsToByte(ImmutableArray<string>? arguments) => arguments switch
     {
