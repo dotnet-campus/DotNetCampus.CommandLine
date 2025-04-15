@@ -27,14 +27,14 @@ public class CommandLineParserTest
     [Benchmark(Description = "parse  [] --gnu")]
     public void Parse_NoArgs_Gnu()
     {
-        var commandLine = CommandLine.Parse(NoArgs, GNU);
+        var commandLine = CommandLine.Parse(NoArgs, Gnu);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "parse  [] --posix")]
     public void Parse_NoArgs_Posix()
     {
-        var commandLine = CommandLine.Parse(NoArgs, POSIX);
+        var commandLine = CommandLine.Parse(NoArgs, Posix);
         commandLine.As<Options>();
     }
 
@@ -132,7 +132,7 @@ public class CommandLineParserTest
     [Benchmark(Description = "parse  [GNU] --gnu")]
     public void Parse_Gnu_Gnu()
     {
-        var commandLine = CommandLine.Parse(LinuxStyleArgs, GNU);
+        var commandLine = CommandLine.Parse(LinuxStyleArgs, Gnu);
         commandLine.As<Options>();
     }
 
