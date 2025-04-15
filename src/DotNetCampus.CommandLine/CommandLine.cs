@@ -77,15 +77,16 @@ public record CommandLine : ICoreCommandRunnerBuilder
 
     private CommandLine()
     {
-        DefaultCaseSensitive = true;
-        CommandLineArguments = [];
-        GuessedVerbName = null;
         var options = new OptionDictionary(true);
+        var arguments = new ReadOnlyListRange<string>([], Range.All);
+        DefaultCaseSensitive = true;
+        CommandLineArguments = arguments;
+        GuessedVerbName = null;
         LongOptionValuesCaseSensitive = options;
         LongOptionValuesIgnoreCase = options;
         ShortOptionValuesCaseSensitive = options;
         ShortOptionValuesIgnoreCase = options;
-        PositionalArguments = [];
+        PositionalArguments = arguments;
     }
 
     private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
