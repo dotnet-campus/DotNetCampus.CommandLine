@@ -644,6 +644,143 @@ public class FlexibleCommandLineParserTests
     }
 
     #endregion
+
+    #region 11. 父子类参数继承测试
+
+    [TestMethod("11.1. 父类属性可被正确赋值")]
+    public void ParentClass_PropertiesAssigned()
+    {
+        // Arrange
+        string[] args = ["--parent-value", "parent-test"];
+        string? parentValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible17_ChildOptions>(o => parentValue = o.ParentValue)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("parent-test", parentValue);
+    }
+
+    [TestMethod("11.2. 子类属性可被正确赋值")]
+    public void ChildClass_PropertiesAssigned()
+    {
+        // Arrange
+        string[] args = ["--child-value", "child-test"];
+        string? childValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible17_ChildOptions>(o => childValue = o.ChildValue)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("child-test", childValue);
+    }
+
+    [TestMethod("11.3. 父类和子类属性同时赋值")]
+    public void ParentAndChildClass_BothPropertiesAssigned()
+    {
+        // Arrange
+        string[] args = ["--parent-value", "parent-test", "--child-value", "child-test"];
+        string? parentValue = null;
+        string? childValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible17_ChildOptions>(o =>
+            {
+                parentValue = o.ParentValue;
+                childValue = o.ChildValue;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("parent-test", parentValue);
+        Assert.AreEqual("child-test", childValue);
+    }
+
+    [TestMethod("11.4. 自动属性名映射正确处理父类与子类属性")]
+    public void ParentAndChildClass_AutoNameMappingWorks()
+    {
+        // Arrange
+        string[] args = ["--auto-parent", "parent-auto", "--auto-child", "child-auto"];
+        string? parentAuto = null;
+        string? childAuto = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible17_ChildOptions>(o =>
+            {
+                parentAuto = o.AutoParent;
+                childAuto = o.AutoChild;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("parent-auto", parentAuto);
+        Assert.AreEqual("child-auto", childAuto);
+    }
+
+    [TestMethod("11.5. 深层次继承关系中的属性都能被正确赋值")]
+    public void DeepInheritance_AllPropertiesAssigned()
+    {
+        // Arrange
+        string[] args = ["--grandparent-value", "grand-test", "--parent-value", "parent-test", "--child-value", "child-test"];
+        string? grandparentValue = null;
+        string? parentValue = null;
+        string? childValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible18_GrandChildOptions>(o =>
+            {
+                grandparentValue = o.GrandparentValue;
+                parentValue = o.ParentValue;
+                childValue = o.ChildValue;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("grand-test", grandparentValue);
+        Assert.AreEqual("parent-test", parentValue);
+        Assert.AreEqual("child-test", childValue);
+    }
+
+    [TestMethod("11.6. 父类和子类具有相同名称的属性时，以子类优先")]
+    public void SameName_ChildOverridesParent()
+    {
+        // Arrange
+        string[] args = ["--same-name-value", "child-override"];
+        string? sameNameValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible19_OverrideOptions>(o => sameNameValue = o.SameNameValue)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("child-override", sameNameValue);
+    }
+
+    [TestMethod("11.7. 父类和子类中具有不同类型但相同名称的属性，解析正确")]
+    public void DifferentType_SameName_CorrectlyParsed()
+    {
+        // Arrange
+        string[] args = ["--type-value=123"];
+        int? typeValue = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible20_DifferentTypeOptions>(o => typeValue = o.TypeValue)
+            .Run();
+
+        // Assert
+        Assert.AreEqual(123, typeValue);
+    }
+
+    #endregion
 }
 
 #region 测试用数据模型
@@ -652,6 +789,9 @@ internal record Flexible01_StringOptions
 {
     [Option]
     public required string Value { get; init; }
+
+    [Option("parent-value")]
+    public string? ParentValue { get; init; }
 }
 
 internal record Flexible02_ShortOption
@@ -775,6 +915,36 @@ internal record Flexible16_RequiredOptions
 {
     [Option]
     public required string RequiredValue { get; init; }
+}
+
+internal record Flexible17_ChildOptions : Flexible01_StringOptions
+{
+    [Option("child-value")]
+    public required string ChildValue { get; init; }
+
+    [Option("auto-parent")]
+    public required string AutoParent { get; init; }
+
+    [Option("auto-child")]
+    public required string AutoChild { get; init; }
+}
+
+internal record Flexible18_GrandChildOptions : Flexible17_ChildOptions
+{
+    [Option("grandparent-value")]
+    public required string GrandparentValue { get; init; }
+}
+
+internal record Flexible19_OverrideOptions : Flexible17_ChildOptions
+{
+    [Option("same-name-value")]
+    public required string SameNameValue { get; init; }
+}
+
+internal record Flexible20_DifferentTypeOptions : Flexible17_ChildOptions
+{
+    [Option("type-value")]
+    public required int TypeValue { get; init; }
 }
 
 #endregion
