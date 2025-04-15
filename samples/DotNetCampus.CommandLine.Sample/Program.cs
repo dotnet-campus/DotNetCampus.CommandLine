@@ -9,6 +9,7 @@ class Program
     static void Main(string[] args)
     {
         const int testCount = 100000;
+        CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.GNU;
 
         Console.WriteLine($"# Test Count: {testCount}");
 
@@ -18,11 +19,11 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         for (var i = 0; i < testCount; i++)
         {
-            _ = CommandLine.Parse(args);
+            _ = CommandLine.Parse(args, parsingOptions);
         }
         stopwatch.Stop();
         Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-        var newCommandLine = CommandLine.Parse(args);
+        var newCommandLine = CommandLine.Parse(args, parsingOptions);
         stopwatch.Restart();
         for (var i = 0; i < testCount; i++)
         {

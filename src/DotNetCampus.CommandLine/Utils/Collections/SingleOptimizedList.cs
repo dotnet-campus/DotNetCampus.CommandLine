@@ -57,7 +57,9 @@ internal readonly struct SingleOptimizedList<T> : IReadOnlyList<T>
     /// <summary>
     /// 获取集合中指定索引处的值。
     /// </summary>
-    public T this[int index] => index is 0 ? _firstValue! : _restValues![index - 1];
+    public T this[int index] => HasValue
+        ? index is 0 ? _firstValue! : _restValues![index - 1]
+        : throw new ArgumentOutOfRangeException(nameof(index), "集合中没有值。");
 
     /// <summary>
     /// 添加一个值到集合中，并返回包含该值的新集合。
