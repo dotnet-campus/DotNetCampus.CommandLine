@@ -107,7 +107,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             if (!param.Contains('='))
             {
                 string decodedName1 = HttpUtility.UrlDecode(param);
-                options.AddValue(decodedName1, "true");
+                options.AddOption(decodedName1);
                 continue;
             }
 
