@@ -8,23 +8,53 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Parse the command line.");
-        var stopwatch = Stopwatch.StartNew();
-        for (var i = 0; i < 100000; i++)
-        {
-            _ = CommandLine.Parse(args).As<Options>();
-        }
-        stopwatch.Stop();
-        Console.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds} ms");
+        const int testCount = 100000;
 
-        Console.WriteLine("Legacy parse the command line.");
-        stopwatch.Restart();
-        for (var i = 0; i < 100000; i++)
+        Console.WriteLine($"# Test Count: {testCount}");
+
+        Console.WriteLine("| Version | Parse   | As(Parser) | As(Runtime) |");
+        Console.WriteLine("| ------- | ------- | ---------- | ----------- |");
+        Console.Write("| 4.x     | ");
+        var stopwatch = Stopwatch.StartNew();
+        for (var i = 0; i < testCount; i++)
         {
-            _ = dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
+            _ = CommandLine.Parse(args);
         }
         stopwatch.Stop();
-        Console.WriteLine($"Legacy elapsed time: {stopwatch.ElapsedMilliseconds} ms");
+        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
+        var newCommandLine = CommandLine.Parse(args);
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = newCommandLine.As<Options>();
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | {stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
+
+
+        Console.Write("| 3.x     | ");
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = dotnetCampus.Cli.CommandLine.Parse(args);
+        }
+        stopwatch.Stop();
+        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
+        var oldCommandLine = dotnetCampus.Cli.CommandLine.Parse(args);
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = oldCommandLine.As(new OptionsParser());
+        }
+        stopwatch.Stop();
+        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = oldCommandLine.As<Options>();
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
     }
 
     private static int Run(Options options)
