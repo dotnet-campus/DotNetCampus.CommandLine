@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using dotnetCampus.Cli;
 
 namespace DotNetCampus.Cli.Tests.Fakes
 {
