@@ -67,9 +67,9 @@ internal static class CommandLineConverter
     }
 
     public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
-        ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
+        IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        var matchedUrlScheme = arguments.Length is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
+        var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
             ? schemeNames.FirstOrDefault(x => arguments[0].StartsWith($"{x}://", StringComparison.OrdinalIgnoreCase))
             : null;
 

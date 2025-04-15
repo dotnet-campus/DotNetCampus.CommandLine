@@ -1,11 +1,11 @@
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal sealed class PosixStyleParser : ICommandLineParser
 {
-    public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
+    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         Dictionary<char, List<string>> shortOptions = [];
         List<string> arguments = [];
@@ -13,7 +13,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
         char? currentShortOption = null;
         bool? isInPositionalArgumentsSection = null;
 
-        for (var i = 0; i < commandLineArguments.Length; i++)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
             if (isInPositionalArgumentsSection is true)
@@ -55,7 +55,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
                 if (option.Length > 1)
                 {
                     // 如果当前是组合短选项，并且下一个参数不是选项，则说明尝试为组合短选项提供参数，这在POSIX风格中是不允许的
-                    if (i + 1 < commandLineArguments.Length && !commandLineArguments[i + 1].StartsWith('-'))
+                    if (i + 1 < commandLineArguments.Count && !commandLineArguments[i + 1].StartsWith('-'))
                     {
                         throw new CommandLineParseException(
                             $"Combined short options cannot have parameters in POSIX style: {commandLineArgument} {commandLineArguments[i + 1]}");
@@ -86,11 +86,15 @@ internal sealed class PosixStyleParser : ICommandLineParser
             }
         }
 
-        // 将选项转换为不可变集合。
+        // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
-            // POSIX 风格不支持长选项，所以直接使用空字典
-            ImmutableDictionary<string, ImmutableArray<string>>.Empty,
-            shortOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            [..arguments]);
+            // POSIX 风格不支持长选项，所以直接使用空字典。
+#if NET8_0_OR_GREATER
+            ReadOnlyDictionary<string, IReadOnlyList<string>>.Empty,
+#else
+            new Dictionary<string, IReadOnlyList<string>>(),
+#endif
+            shortOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            arguments.ToReadOnlyList());
     }
 }

@@ -1,11 +1,10 @@
-using System.Collections.Immutable;
 using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal sealed class FlexibleStyleParser : ICommandLineParser
 {
-    public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
+    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         Dictionary<string, List<string>> longOptions = [];
         Dictionary<char, List<string>> shortOptions = [];
@@ -14,7 +13,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         string? currentOption = null;
         bool? isInPositionalArgumentsSection = null;
 
-        for (var i = 0; i < commandLineArguments.Length; i++)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
             if (isInPositionalArgumentsSection is true)
@@ -245,10 +244,10 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             }
         }
 
-        // 将选项转换为不可变集合。
+        // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            shortOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            [..arguments]);
+            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            shortOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            arguments.ToReadOnlyList());
     }
 }

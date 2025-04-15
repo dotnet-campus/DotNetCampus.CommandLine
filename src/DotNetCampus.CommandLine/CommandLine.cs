@@ -11,7 +11,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取此命令行解析类型所关联的命令行参数。
     /// </summary>
-    public ImmutableArray<string> CommandLineArguments { get; }
+    public IReadOnlyList<string> CommandLineArguments { get; }
 
     /// <summary>
     /// 在特定的属性不指定时，默认应使用的大小写敏感性。
@@ -31,32 +31,32 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </code>
     /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有谓词来决定这个词是否是位置参数。
     /// </remarks>
-    public string? GuessedVerbName { get; }
+    internal string? GuessedVerbName { get; }
 
     /// <summary>
     /// 如果此命令行是从 Web 请求的 URL 中解析出来的，则此属性保存 URL 的 Scheme 部分。
     /// </summary>
-    public string? MatchedUrlScheme { get; }
+    private string? MatchedUrlScheme { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    public ImmutableDictionary<string, ImmutableArray<string>> LongOptionValues { get; }
+    private IReadOnlyDictionary<string, IReadOnlyList<string>> LongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
     /// </summary>
-    public ImmutableDictionary<string, ImmutableArray<string>> RawLongOptionValues { get; }
+    private IReadOnlyDictionary<string, IReadOnlyList<string>> RawLongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    public ImmutableDictionary<char, ImmutableArray<string>> ShortOptionValues { get; }
+    private IReadOnlyDictionary<char, IReadOnlyList<string>> ShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。始终大小写敏感。
     /// </summary>
-    public ImmutableDictionary<char, ImmutableArray<string>> RawShortOptionValues { get; }
+    private IReadOnlyDictionary<char, IReadOnlyList<string>> RawShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的位置参数。
@@ -72,7 +72,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </code>
     /// 如果处理器决定将 something 作为谓词，那么当需要取出位置参数时，此属性的第一个值需要排除。
     /// </remarks>
-    public ImmutableArray<string> PositionalArguments { get; }
+    private ReadOnlyListRange<string> PositionalArguments { get; }
 
     private CommandLine(ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
@@ -89,13 +89,13 @@ public record CommandLine : ICoreCommandRunnerBuilder
         {
             LongOptionValues = RawLongOptionValues
                 .DistinctBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
-                .ToImmutableDictionary(
+                .ToDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value,
                     StringComparer.OrdinalIgnoreCase);
             ShortOptionValues = RawShortOptionValues
                 .DistinctBy(x => x.Key)
-                .ToImmutableDictionary(
+                .ToDictionary(
                     kvp => char.ToLowerInvariant(kvp.Key),
                     kvp => kvp.Value);
         }
@@ -333,7 +333,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return PositionalArguments.Length <= 0
+        return PositionalArguments.Count <= 0
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
     }
@@ -351,11 +351,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return index < 0 || index >= PositionalArguments.Length
+        return index < 0 || index >= PositionalArguments.Count
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), context);
+                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), context);
     }
 
     /// <summary>
@@ -369,7 +369,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return PositionalArguments.Length <= 0
+        return PositionalArguments.Count <= 0
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
     }
@@ -387,11 +387,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return index < 0 || index >= PositionalArguments.Length
+        return index < 0 || index >= PositionalArguments.Count
             ? null
             : CommandLineValueConverter.ArgumentStringsToValue<T>(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Length - index - verbOffset)), context);
+                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), context);
     }
 
     /// <summary>
@@ -399,10 +399,10 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
     /// <returns>命令行参数中位置参数值的集合。</returns>
-    public ImmutableArray<string> GetPositionalArguments(string? verbName = null)
+    public IReadOnlyList<string> GetPositionalArguments(string? verbName = null)
     {
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        return shouldSkipVerb ? PositionalArguments.Slice(1, PositionalArguments.Length - 1) : PositionalArguments;
+        return shouldSkipVerb ? PositionalArguments.Slice(1, PositionalArguments.Count - 1) : PositionalArguments;
     }
 
     /// <summary>

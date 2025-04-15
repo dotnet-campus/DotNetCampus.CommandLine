@@ -1,10 +1,10 @@
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal sealed class PowerShellStyleParser : ICommandLineParser
 {
-    public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
+    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         Dictionary<string, List<string>> longOptions = [];
         List<string> arguments = [];
@@ -12,7 +12,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         string? currentOption = null;
         bool? isInPositionalArgumentsSection = null;
 
-        for (var i = 0; i < commandLineArguments.Length; i++)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
             if (isInPositionalArgumentsSection is true)
@@ -75,10 +75,15 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
             }
         }
 
-        // 将选项转换为不可变集合。
+        // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            ImmutableDictionary<char, ImmutableArray<string>>.Empty, // PowerShell风格不使用短选项
-            [..arguments]);
+            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            // PowerShell 风格不使用短选项，所以直接使用空字典。
+#if NET8_0_OR_GREATER
+            ReadOnlyDictionary<char, IReadOnlyList<string>>.Empty,
+#else
+            new Dictionary<char, IReadOnlyList<string>>(),
+#endif
+            arguments.ToReadOnlyList());
     }
 }

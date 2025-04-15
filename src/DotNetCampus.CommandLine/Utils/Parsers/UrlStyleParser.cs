@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Web;
 using DotNetCampus.Cli.Exceptions;
 
@@ -21,9 +21,9 @@ internal sealed class UrlStyleParser : ICommandLineParser
         _scheme = scheme;
     }
 
-    public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
+    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        if (commandLineArguments.Length != 1)
+        if (commandLineArguments.Count != 1)
         {
             throw new CommandLineParseException("URL style parser expects exactly one argument.");
         }
@@ -86,9 +86,14 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            ImmutableDictionary<char, ImmutableArray<string>>.Empty,
-            [..arguments]);
+            longOptions.ToDictionary(x => x.Key, x => (IReadOnlyList<string>)x.Value.ToReadOnlyList()),
+            // URL 不支持短选项，所以直接使用空字典。
+#if NET8_0_OR_GREATER
+            ReadOnlyDictionary<char, IReadOnlyList<string>>.Empty,
+#else
+            new Dictionary<char, IReadOnlyList<string>>(),
+#endif
+            arguments.ToReadOnlyList());
     }
 
     private static void ParseQueryString(string queryString, Dictionary<string, List<string>> options)

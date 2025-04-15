@@ -12,4 +12,8 @@
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\Options.cs" Link="Fakes\Options.cs" />
+  </ItemGroup>
+
 </Project>
