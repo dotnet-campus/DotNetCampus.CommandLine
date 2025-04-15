@@ -446,9 +446,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     private bool Match(string existedOptionName, string comparingOptionName) => namingStyle switch
     {
-        CommandLineStyle.DotNet or CommandLineStyle.GNU => MatchKebabCase(existedOptionName, comparingOptionName),
+        CommandLineStyle.DotNet or CommandLineStyle.Gnu => MatchKebabCase(existedOptionName, comparingOptionName),
         CommandLineStyle.PowerShell => MatchPascalCase(existedOptionName, comparingOptionName),
-        CommandLineStyle.POSIX => MatchSingleLetter(existedOptionName, comparingOptionName),
+        CommandLineStyle.Posix => MatchSingleLetter(existedOptionName, comparingOptionName),
         _ => MatchFlexible(existedOptionName, comparingOptionName),
     };
 

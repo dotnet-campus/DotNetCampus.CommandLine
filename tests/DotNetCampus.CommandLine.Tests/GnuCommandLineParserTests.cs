@@ -16,7 +16,7 @@ namespace DotNetCampus.Cli.Tests;
 [TestClass]
 public class GnuCommandLineParserTests
 {
-    private CommandLineParsingOptions GNU { get; } = CommandLineParsingOptions.GNU;
+    private CommandLineParsingOptions GNU { get; } = CommandLineParsingOptions.Gnu;
 
     #region 1. 选项识别与解析
 

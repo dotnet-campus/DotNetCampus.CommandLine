@@ -3,7 +3,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-/// <inheritdoc cref="CommandLineStyle.GNU"/>
+/// <inheritdoc cref="CommandLineStyle.Gnu"/>
 internal sealed class GnuStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)

@@ -7,7 +7,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        var shortOptions = new OptionDictionary(CommandLineStyle.POSIX, true);
+        var shortOptions = new OptionDictionary(CommandLineStyle.Posix, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         char? currentShortOption = null;

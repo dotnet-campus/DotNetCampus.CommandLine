@@ -14,17 +14,17 @@ public readonly record struct CommandLineParsingOptions()
         CaseSensitive = false,
     };
 
-    /// <inheritdoc cref="CommandLineStyle.GNU" />
-    public static CommandLineParsingOptions GNU => new CommandLineParsingOptions
+    /// <inheritdoc cref="CommandLineStyle.Gnu" />
+    public static CommandLineParsingOptions Gnu => new CommandLineParsingOptions
     {
-        Style = CommandLineStyle.GNU,
+        Style = CommandLineStyle.Gnu,
         CaseSensitive = true,
     };
 
-    /// <inheritdoc cref="CommandLineStyle.POSIX" />
-    public static CommandLineParsingOptions POSIX => new CommandLineParsingOptions
+    /// <inheritdoc cref="CommandLineStyle.Posix" />
+    public static CommandLineParsingOptions Posix => new CommandLineParsingOptions
     {
-        Style = CommandLineStyle.POSIX,
+        Style = CommandLineStyle.Posix,
         CaseSensitive = true,
     };
 

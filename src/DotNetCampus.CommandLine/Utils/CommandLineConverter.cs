@@ -77,8 +77,8 @@ internal static class CommandLineConverter
         {
             ({ } scheme, _) => new UrlStyleParser(scheme),
             (_, CommandLineStyle.Flexible) => new FlexibleStyleParser(),
-            (_, CommandLineStyle.GNU) => new GnuStyleParser(),
-            (_, CommandLineStyle.POSIX) => new PosixStyleParser(),
+            (_, CommandLineStyle.Gnu) => new GnuStyleParser(),
+            (_, CommandLineStyle.Posix) => new PosixStyleParser(),
             (_, CommandLineStyle.DotNet) => new DotNetStyleParser(),
             (_, CommandLineStyle.PowerShell) => new PowerShellStyleParser(),
             _ => new FlexibleStyleParser(),

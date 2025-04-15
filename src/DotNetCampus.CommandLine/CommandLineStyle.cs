@@ -8,7 +8,7 @@ public enum CommandLineStyle
 {
     /// <summary>
     /// 灵活风格。<br/>
-    /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="GNU"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
+    /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="Gnu"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
     /// 适用于希望为用户提供更灵活的参数传递体验的工具。
     /// </summary>
     /// <remarks>
@@ -111,7 +111,7 @@ public enum CommandLineStyle
     /// app --option value -- -value1 --value2  # -- 后的 -value1 和 --value2 被视为位置参数
     /// </code>
     /// </remarks>
-    GNU,
+    Gnu,
 
     /// <summary>
     /// POSIX/UNIX风格，类似GNU但更严格：<br/>
@@ -145,7 +145,7 @@ public enum CommandLineStyle
     /// app file1.txt -a file2.txt  # file1.txt 和 file2.txt 是位置参数
     /// </code>
     /// </remarks>
-    POSIX,
+    Posix,
 
     /// <summary>
     /// .NET CLI风格，使用冒号分隔参数：<br/>

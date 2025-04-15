@@ -14,7 +14,7 @@ namespace DotNetCampus.Cli.Tests;
 [TestClass]
 public class PosixCommandLineParserTests
 {
-    private CommandLineParsingOptions POSIX { get; } = CommandLineParsingOptions.POSIX;
+    private CommandLineParsingOptions POSIX { get; } = CommandLineParsingOptions.Posix;
 
     #region 1. 基本短选项解析
 
