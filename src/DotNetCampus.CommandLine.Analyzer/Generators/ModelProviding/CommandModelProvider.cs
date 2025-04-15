@@ -50,13 +50,17 @@ internal static class CommandModelProvider
                 var attribute = typeSymbol.GetAttributes()
                     .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());
                 // 4. 拥有 [Option] 特性的属性。
-                var optionProperties = typeSymbol.GetMembers()
+                var optionProperties = typeSymbol
+                    .EnumerateBaseTypesRecursively()
+                    .SelectMany(x => x.GetMembers())
                     .OfType<IPropertySymbol>()
                     .Select(OptionPropertyGeneratingModel.TryParse)
                     .OfType<OptionPropertyGeneratingModel>()
                     .ToImmutableArray();
                 // 5. 拥有 [Value] 特性的属性。
-                var valueProperties = typeSymbol.GetMembers()
+                var valueProperties = typeSymbol
+                    .EnumerateBaseTypesRecursively()
+                    .SelectMany(x => x.GetMembers())
                     .OfType<IPropertySymbol>()
                     .Select(ValuePropertyGeneratingModel.TryParse)
                     .OfType<ValuePropertyGeneratingModel>()
@@ -303,4 +307,17 @@ internal record AssemblyCommandsGeneratingModel
     public required string Namespace { get; init; }
 
     public required INamedTypeSymbol AssemblyCommandHandlerType { get; init; }
+}
+
+file static class Extensions
+{
+    public static IEnumerable<ITypeSymbol> EnumerateBaseTypesRecursively(this ITypeSymbol type)
+    {
+        var current = type;
+        while (current != null)
+        {
+            yield return current;
+            current = current.BaseType;
+        }
+    }
 }
