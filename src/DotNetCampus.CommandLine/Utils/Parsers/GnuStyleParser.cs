@@ -3,6 +3,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
+/// <inheritdoc cref="CommandLineStyle.GNU"/>
 internal sealed class GnuStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
@@ -154,12 +155,12 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                 }
                 if (spans[i] == '=')
                 {
-                    // 带值的长选项。
+                    // 带值的长选项。--option=value
                     return new GnuArgument(GnuParsedType.LongOptionWithValue)
                         { Option = new OptionName(argument, new Range(2, i + 2)), Value = spans[(i + 1)..] };
                 }
             }
-            // 单独的长选项。
+            // 单独的长选项。--option
             return new GnuArgument(GnuParsedType.LongOption) { Option = new OptionName(argument, Range.StartAt(2)) };
         }
 
@@ -213,7 +214,10 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
             return new GnuArgument(GnuParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
-        if (lastType is GnuParsedType.OptionValue)
+        if (lastType is GnuParsedType.OptionValue
+            or GnuParsedType.LongOptionWithValue
+            or GnuParsedType.ShortOptionWithValue
+            or GnuParsedType.MultiShortOptionsOrShortOptionWithValue)
         {
             // 如果前一个已经是选项值了，那么后一个是位置参数。
             return new GnuArgument(GnuParsedType.PositionalArgument) { Value = argument.AsSpan() };
