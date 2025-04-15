@@ -13,8 +13,8 @@ internal sealed class DotNetStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
-        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
+        var longOptions = new OptionDictionary(CommandLineStyle.DotNet, true);
+        var shortOptions = new OptionDictionary(CommandLineStyle.DotNet, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -53,7 +53,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                 if (indexOfColon < 0)
                 {
                     // 选项没有值，可能是布尔选项 (--option) 或者下一个参数是值
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -62,7 +62,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值 (--option:value)
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -83,7 +83,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                 if (indexOfColon < 0)
                 {
                     // DotNet风格不支持合并短选项，所以整个都视为一个选项名
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -96,12 +96,11 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                     // 检查是否为单字符选项
                     if (option.Length == 1 && char.IsLetterOrDigit(option[0]))
                     {
-                        shortOptions.TryAdd(option[0], []);
-                        shortOptions[option[0]].Add(value);
+                        shortOptions.AddValue(option[0], value);
                     }
                     else
                     {
-                        longOptions.TryAdd(option, value);
+                        longOptions.AddValue(option, value);
                     }
                     currentOption = null;
                     continue;
@@ -123,7 +122,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                 if (indexOfColon < 0)
                 {
                     // 选项没有值，可能是布尔选项 (/option) 或者下一个参数是值
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -134,7 +133,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                     option = option[..indexOfColon];
 
                     // 对于斜杠风格，通常都视为长选项
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -145,11 +144,11 @@ internal sealed class DotNetStyleParser : ICommandLineParser
                 // 如果当前有选项，则将其值设置为此选项的值。
                 if (currentOption.Length == 1 && char.IsLetterOrDigit(currentOption[0]))
                 {
-                    shortOptions.TryAdd(currentOption[0], commandLineArgument);
+                    shortOptions.AddValue(currentOption[0], commandLineArgument);
                 }
                 else
                 {
-                    longOptions.TryAdd(currentOption, commandLineArgument);
+                    longOptions.AddValue(currentOption, commandLineArgument);
                 }
                 currentOption = null;
                 continue;

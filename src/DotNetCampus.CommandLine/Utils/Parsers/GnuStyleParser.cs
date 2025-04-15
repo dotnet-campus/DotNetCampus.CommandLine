@@ -7,8 +7,8 @@ internal sealed class GnuStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
-        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
+        var longOptions = new OptionDictionary(CommandLineStyle.GNU, true);
+        var shortOptions = new OptionDictionary(CommandLineStyle.GNU, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -47,7 +47,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 if (indexOfEqual < 0 && indexOfColon < 0)
                 {
                     // 选项没有值，或使用空格分隔值。
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -57,7 +57,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -67,7 +67,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -94,7 +94,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     if (option.Length is 1)
                     {
                         // 选项没有值，或使用空格分隔值。
-                        shortOptions.TryAdd(option[0], []);
+                        shortOptions.AddOption(option[0]);
                         currentOption = option;
                     }
                     else
@@ -103,7 +103,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                         // 例如：-abc
                         foreach (var shortOption in option)
                         {
-                            shortOptions.TryAdd(shortOption, []);
+                            shortOptions.AddOption(shortOption);
                         }
                         currentOption = null;
                     }
@@ -115,7 +115,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -125,7 +125,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -137,14 +137,14 @@ internal sealed class GnuStyleParser : ICommandLineParser
             if (currentOption is not null)
             {
                 // 如果当前有选项，则将其值设置为此选项的值。
-                if (longOptions.TryGetValue(currentOption, out var longValue))
+                if (longOptions.ContainsKey(currentOption))
                 {
-                    longOptions[currentOption] = longValue.Add(commandLineArgument);
+                    longOptions.AddValue(currentOption, commandLineArgument);
                     currentOption = null;
                 }
-                else if (shortOptions.TryGetValue(currentOption[0], out var shortValue))
+                else if (shortOptions.ContainsKey(currentOption[0]))
                 {
-                    shortOptions[currentOption[0]] = shortValue.Add(commandLineArgument);
+                    shortOptions.AddValue(currentOption[0], commandLineArgument);
                     currentOption = null;
                 }
                 continue;

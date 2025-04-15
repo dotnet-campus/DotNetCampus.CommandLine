@@ -7,8 +7,8 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
-        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
+        var longOptions = new OptionDictionary(CommandLineStyle.Flexible, true);
+        var shortOptions = new OptionDictionary(CommandLineStyle.Flexible, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -49,7 +49,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                 {
                     // 选项没有值，或使用空格分隔值。
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -60,7 +60,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -71,7 +71,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -98,19 +98,22 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     if (option.Length is 1)
                     {
                         // 单个短选项。
-                        shortOptions.TryAdd(option[0], []);
+                        shortOptions.AddOption(option[0]);
                         currentOption = option;
                     }
                     else
                     {
                         option = NamingHelper.MakeKebabCase(option);
                         // 对于灵活风格，如果不是单字符，将其视为长选项
-                        longOptions.TryAdd(option, []);
+                        longOptions.AddOption(option);
                         // 同时也将多个短选项合并
                         // 例如：-abc 被解析为 -abc 长选项，也被解析为 -a -b -c 组合短选项
                         foreach (var shortOption in option)
                         {
-                            shortOptions.TryAdd(shortOption, []);
+                            if (char.IsLetter(shortOption))
+                            {
+                                shortOptions.AddOption(shortOption);
+                            }
                         }
                         currentOption = option;
                     }
@@ -126,13 +129,13 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     if (option.Length is 1)
                     {
                         // 短选项
-                        shortOptions.TryAdd(option[0], value);
+                        shortOptions.AddValue(option[0], value);
                     }
                     else
                     {
                         // 长选项
                         option = NamingHelper.MakeKebabCase(option);
-                        longOptions.TryAdd(option, value);
+                        longOptions.AddValue(option, value);
                     }
                     currentOption = null;
                     continue;
@@ -147,13 +150,13 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     if (option.Length is 1)
                     {
                         // 短选项
-                        shortOptions.TryAdd(option[0], value);
+                        shortOptions.AddValue(option[0], value);
                     }
                     else
                     {
                         // 长选项
                         option = NamingHelper.MakeKebabCase(option);
-                        longOptions.TryAdd(option, value);
+                        longOptions.AddValue(option, value);
                     }
                     currentOption = null;
                     continue;
@@ -181,7 +184,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                 {
                     // 选项没有值，或使用空格分隔值。
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, []);
+                    longOptions.AddOption(option);
                     currentOption = option;
                     continue;
                 }
@@ -192,7 +195,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -203,7 +206,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
                     option = NamingHelper.MakeKebabCase(option);
-                    longOptions.TryAdd(option, value);
+                    longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
                 }
@@ -215,14 +218,14 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             if (currentOption is not null)
             {
                 // 如果当前有选项，则将其值设置为此选项的值。
-                if (currentOption.Length is 1 && shortOptions.TryGetValue(currentOption[0], out var shortValue))
+                if (currentOption.Length is 1 && shortOptions.ContainsKey(currentOption[0]))
                 {
-                    shortOptions[currentOption[0]] = shortValue.Add(commandLineArgument);
+                    shortOptions.AddValue(currentOption[0], commandLineArgument);
                     currentOption = null;
                 }
-                else if (longOptions.TryGetValue(currentOption, out var longValue))
+                else if (longOptions.ContainsKey(currentOption))
                 {
-                    longOptions[currentOption] = longValue.Add(commandLineArgument);
+                    longOptions.AddValue(currentOption, commandLineArgument);
                     currentOption = null;
                 }
                 continue;

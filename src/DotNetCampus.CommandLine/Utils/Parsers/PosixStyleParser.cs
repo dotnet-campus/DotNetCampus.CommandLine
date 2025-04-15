@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Utils.Collections;
 
@@ -8,7 +7,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<char, SingleOptimizedList<string>> shortOptions = [];
+        var shortOptions = new OptionDictionary(CommandLineStyle.POSIX, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         char? currentShortOption = null;
@@ -50,7 +49,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
                 // POSIX风格中，短选项可以组合（如 -abc），每个字符是一个选项
                 foreach (var shortOption in option)
                 {
-                    shortOptions.TryAdd(shortOption, []);
+                    shortOptions.AddOption(shortOption);
                 }
                 // 在POSIX风格中，组合短选项的最后一个选项不能带参数
                 if (option.Length > 1)
@@ -74,7 +73,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
             if (currentShortOption != null)
             {
                 // 如果存在短选项，将参数添加到最后一个短选项
-                shortOptions.AddOrUpdateSingle(currentShortOption.Value, commandLineArgument);
+                shortOptions.UpdateValue(currentShortOption.Value, commandLineArgument);
                 currentShortOption = null;
                 continue;
             }
@@ -91,11 +90,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
         // 将选项转换为只读集合。
         return new CommandLineParsedResult(guessedVerbName,
             // POSIX 风格不支持长选项，所以直接使用空字典。
-#if NET8_0_OR_GREATER
-            ReadOnlyDictionary<string, SingleOptimizedList<string>>.Empty,
-#else
-            new Dictionary<string, SingleOptimizedList<string>>(),
-#endif
+            OptionDictionary.Empty,
             shortOptions,
             arguments.ToReadOnlyList());
     }

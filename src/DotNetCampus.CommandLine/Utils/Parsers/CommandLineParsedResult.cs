@@ -4,6 +4,6 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal readonly record struct CommandLineParsedResult(
     string? GuessedVerbName,
-    IReadOnlyDictionary<string, SingleOptimizedList<string>> LongOptions,
-    IReadOnlyDictionary<char, SingleOptimizedList<string>> ShortOptions,
+    OptionDictionary LongOptions,
+    OptionDictionary ShortOptions,
     ReadOnlyListRange<string> Arguments);

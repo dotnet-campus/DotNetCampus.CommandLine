@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using DotNetCampus.Cli.Utils;
+﻿using DotNetCampus.Cli.Utils;
 using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli;
@@ -42,22 +41,22 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 从命令行中解析出来的长名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<string, SingleOptimizedList<string>> LongOptionValues { get; }
+    private OptionDictionary LongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<string, SingleOptimizedList<string>> RawLongOptionValues { get; }
+    private OptionDictionary RawLongOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<char, SingleOptimizedList<string>> ShortOptionValues { get; }
+    private OptionDictionary ShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。始终大小写敏感。
     /// </summary>
-    private IReadOnlyDictionary<char, SingleOptimizedList<string>> RawShortOptionValues { get; }
+    private OptionDictionary RawShortOptionValues { get; }
 
     /// <summary>
     /// 从命令行中解析出来的位置参数。
@@ -80,26 +79,12 @@ public record CommandLine : ICoreCommandRunnerBuilder
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         CommandLineArguments = arguments;
         (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
-        (GuessedVerbName, RawLongOptionValues, RawShortOptionValues, PositionalArguments) = result;
-        if (DefaultCaseSensitive)
-        {
-            LongOptionValues = RawLongOptionValues;
-            ShortOptionValues = RawShortOptionValues;
-        }
-        else
-        {
-            LongOptionValues = RawLongOptionValues
-                .DistinctBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
-                .ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value,
-                    StringComparer.OrdinalIgnoreCase);
-            ShortOptionValues = RawShortOptionValues
-                .DistinctBy(x => x.Key)
-                .ToDictionary(
-                    kvp => char.ToLowerInvariant(kvp.Key),
-                    kvp => kvp.Value);
-        }
+        GuessedVerbName = result.GuessedVerbName;
+        LongOptionValues = result.LongOptions.ToOptionLookup(DefaultCaseSensitive);
+        ShortOptionValues = result.ShortOptions.ToOptionLookup(DefaultCaseSensitive);
+        RawLongOptionValues = result.LongOptions;
+        RawShortOptionValues = result.ShortOptions;
+        PositionalArguments = result.Arguments;
     }
 
     /// <summary>
@@ -146,33 +131,18 @@ public record CommandLine : ICoreCommandRunnerBuilder
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
 
-        // 默认的大小写敏感性，使用默认字典匹配。
+        // 默认的大小写敏感性。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
-            return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            return LongOptionValues.TryGetValue(optionName, out var defaultValues)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
                 : null;
         }
 
-        // 与默认不同的大小写敏感性：敏感。
-        if (caseSensitive is true)
-        {
-            return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性：不敏感。
-        foreach (var pair in RawLongOptionValues)
-        {
-            if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
-            {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
-            }
-        }
-
-        // 没有找到。
-        return null;
+        // 与默认不同的大小写敏感性。
+        return RawLongOptionValues.TryGetValue(optionName, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            : null;
     }
 
     /// <summary>
@@ -186,33 +156,18 @@ public record CommandLine : ICoreCommandRunnerBuilder
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
 
-        // 默认的大小写敏感性，使用默认字典匹配。
+        // 默认的大小写敏感性。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
-            return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            return ShortOptionValues.TryGetValue(shortOption, out var defaultValues)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
                 : null;
         }
 
-        // 与默认不同的大小写敏感性：敏感。
-        if (caseSensitive is true)
-        {
-            return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性：不敏感。
-        foreach (var pair in RawShortOptionValues)
-        {
-            if (pair.Key == char.ToLowerInvariant(shortOption))
-            {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
-            }
-        }
-
-        // 没有找到。
-        return null;
+        // 与默认不同的大小写敏感性。
+        return RawShortOptionValues.TryGetValue(shortOption, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            : null;
     }
 
     /// <summary>
@@ -240,33 +195,18 @@ public record CommandLine : ICoreCommandRunnerBuilder
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
 
-        // 默认的大小写敏感性，使用默认字典匹配。
+        // 默认的大小写敏感性。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
-            return LongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            return LongOptionValues.TryGetValue(optionName, out var defaultValues)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
                 : null;
         }
 
-        // 与默认不同的大小写敏感性：敏感。
-        if (caseSensitive is true)
-        {
-            return RawLongOptionValues.TryGetValue(optionName, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性：不敏感。
-        foreach (var pair in RawLongOptionValues)
-        {
-            if (string.Equals(pair.Key, optionName, StringComparison.OrdinalIgnoreCase))
-            {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
-            }
-        }
-
-        // 没有找到。
-        return null;
+        // 与默认不同的大小写敏感性。
+        return RawLongOptionValues.TryGetValue(optionName, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            : null;
     }
 
     /// <summary>
@@ -280,33 +220,18 @@ public record CommandLine : ICoreCommandRunnerBuilder
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
 
-        // 默认的大小写敏感性，使用默认字典匹配。
+        // 默认的大小写敏感性。
         if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
         {
-            return ShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            return ShortOptionValues.TryGetValue(shortOption, out var defaultValues)
+                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
                 : null;
         }
 
-        // 与默认不同的大小写敏感性：敏感。
-        if (caseSensitive is true)
-        {
-            return RawShortOptionValues.TryGetValue(shortOption, out var values)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性：不敏感。
-        foreach (var pair in RawShortOptionValues)
-        {
-            if (pair.Key == char.ToLowerInvariant(shortOption))
-            {
-                return CommandLineValueConverter.ArgumentStringsToValue<T>(pair.Value, context);
-            }
-        }
-
-        // 没有找到。
-        return null;
+        // 与默认不同的大小写敏感性。
+        return RawShortOptionValues.TryGetValue(shortOption, out var values)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+            : null;
     }
 
     /// <summary>

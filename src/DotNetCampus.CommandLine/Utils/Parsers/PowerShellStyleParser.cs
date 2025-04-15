@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
@@ -7,7 +6,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 {
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        Dictionary<string, SingleOptimizedList<string>> longOptions = [];
+        var longOptions = new OptionDictionary(CommandLineStyle.PowerShell, true);
         List<string> arguments = [];
         string? guessedVerbName = null;
         string? currentOption = null;
@@ -38,7 +37,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                 // PowerShell 参数不使用等号或冒号，而是用空格分隔
                 // 将其作为长选项处理
                 option = NamingHelper.MakeKebabCase(option);
-                longOptions.TryAdd(option, []);
+                longOptions.AddOption(option);
                 currentOption = option;
                 continue;
             }
@@ -55,12 +54,12 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                         var arrayValues = commandLineArgument.Split(',', StringSplitOptions.RemoveEmptyEntries);
                         foreach (var value in arrayValues)
                         {
-                            longOptions.TryAdd(currentOption, value.Trim());
+                            longOptions.AddValue(currentOption, value.Trim());
                         }
                     }
                     else
                     {
-                        longOptions.TryAdd(currentOption, commandLineArgument);
+                        longOptions.AddValue(currentOption, commandLineArgument);
                     }
                     currentOption = null; // 在PowerShell中处理完一个值后，即完成当前选项的解析
                 }
@@ -80,11 +79,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         return new CommandLineParsedResult(guessedVerbName,
             longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
-#if NET8_0_OR_GREATER
-            ReadOnlyDictionary<char, SingleOptimizedList<string>>.Empty,
-#else
-            new Dictionary<char, SingleOptimizedList<string>>(),
-#endif
+            OptionDictionary.Empty,
             arguments.ToReadOnlyList());
     }
 }
