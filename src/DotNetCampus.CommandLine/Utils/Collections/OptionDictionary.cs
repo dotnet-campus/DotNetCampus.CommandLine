@@ -210,16 +210,19 @@ internal class OptionDictionary(CommandLineStyle namingStyle, bool caseSensitive
             {
                 var ec = existedOptionName[existedIndex];
                 var cc = comparingOptionName[comparingIndex];
-                existedIndex++;
-                comparingIndex++;
                 if (!char.IsLetterOrDigit(ec))
                 {
+                    existedIndex++;
                     continue;
                 }
                 if (!char.IsLetterOrDigit(cc))
                 {
+                    comparingIndex++;
                     continue;
                 }
+
+                existedIndex++;
+                comparingIndex++;
 
                 // 二者都没有到达末尾，继续匹配。
                 if (caseSensitive)
@@ -272,18 +275,29 @@ internal class OptionDictionary(CommandLineStyle namingStyle, bool caseSensitive
                 {
                     var ec = existedOptionName[existedIndex];
                     var cc = comparingOptionName[comparingIndex];
-                    existedIndex++;
-                    comparingIndex++;
+                    if (char.IsUpper(ec))
+                    {
+                        isExistedWordStart = true;
+                    }
+                    if (char.IsUpper(cc))
+                    {
+                        isComparingWordStart = true;
+                    }
                     if (!char.IsLetterOrDigit(ec))
                     {
+                        existedIndex++;
                         isExistedWordStart = true;
                         continue;
                     }
                     if (!char.IsLetterOrDigit(cc))
                     {
+                        comparingIndex++;
                         isComparingWordStart = true;
                         continue;
                     }
+
+                    existedIndex++;
+                    comparingIndex++;
 
                     // 二者都没有到达末尾，继续匹配。
                     if (caseSensitive)

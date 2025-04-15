@@ -48,7 +48,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                 if (indexOfEqual < 0 && indexOfColon < 0)
                 {
                     // 选项没有值，或使用空格分隔值。
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddOption(option);
                     currentOption = option;
                     continue;
@@ -59,7 +58,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
@@ -70,7 +68,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
@@ -103,7 +100,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     }
                     else
                     {
-                        option = NamingHelper.MakeKebabCase(option);
                         // 对于灵活风格，如果不是单字符，将其视为长选项
                         longOptions.AddOption(option);
                         // 同时也将多个短选项合并
@@ -134,7 +130,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     else
                     {
                         // 长选项
-                        option = NamingHelper.MakeKebabCase(option);
                         longOptions.AddValue(option, value);
                     }
                     currentOption = null;
@@ -155,7 +150,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     else
                     {
                         // 长选项
-                        option = NamingHelper.MakeKebabCase(option);
                         longOptions.AddValue(option, value);
                     }
                     currentOption = null;
@@ -183,7 +177,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                 if (indexOfEqual < 0 && indexOfColon < 0)
                 {
                     // 选项没有值，或使用空格分隔值。
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddOption(option);
                     currentOption = option;
                     continue;
@@ -194,7 +187,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     // 选项使用等号分隔值。
                     var value = option[(indexOfEqual + 1)..];
                     option = option[..indexOfEqual];
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;
@@ -205,7 +197,6 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
                     // 选项使用冒号分隔值。
                     var value = option[(indexOfColon + 1)..];
                     option = option[..indexOfColon];
-                    option = NamingHelper.MakeKebabCase(option);
                     longOptions.AddValue(option, value);
                     currentOption = null;
                     continue;

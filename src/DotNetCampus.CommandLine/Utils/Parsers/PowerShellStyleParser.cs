@@ -36,7 +36,6 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 
                 // PowerShell 参数不使用等号或冒号，而是用空格分隔
                 // 将其作为长选项处理
-                option = NamingHelper.MakeKebabCase(option);
                 longOptions.AddOption(option);
                 currentOption = option;
                 continue;
