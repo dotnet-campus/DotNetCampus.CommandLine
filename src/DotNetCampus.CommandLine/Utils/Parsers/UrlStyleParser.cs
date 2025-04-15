@@ -36,7 +36,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             throw new CommandLineParseException($"URL must start with '{_scheme}://'");
         }
 
-        var longOptions = new OptionDictionary(CommandLineStyle.Gnu, true);
+        var longOptions = new OptionDictionary(true);
         List<string> arguments = [];
         string? guessedVerbName = null;
 

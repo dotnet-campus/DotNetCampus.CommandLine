@@ -8,13 +8,9 @@ namespace DotNetCampus.Cli.Utils.Collections;
 /// </summary>
 internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<OptionName, IReadOnlyList<string>>
 {
-    public static OptionDictionary Empty { get; } = new OptionDictionary(CommandLineStyle.Flexible, true);
+    public static OptionDictionary Empty { get; } = new OptionDictionary(true);
 
     private readonly List<KeyValuePair<OptionName, SingleOptimizedList<string>>> _optionValues = [];
-
-    public OptionDictionary(CommandLineStyle style, bool caseSensitive) : this(caseSensitive)
-    {
-    }
 
     private OptionDictionary(bool caseSensitive, List<KeyValuePair<OptionName, SingleOptimizedList<string>>> optionValues) : this(caseSensitive)
     {

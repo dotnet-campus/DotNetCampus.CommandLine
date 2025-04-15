@@ -75,6 +75,19 @@ public record CommandLine : ICoreCommandRunnerBuilder
     /// </remarks>
     private ReadOnlyListRange<string> PositionalArguments { get; }
 
+    private CommandLine()
+    {
+        DefaultCaseSensitive = true;
+        CommandLineArguments = [];
+        GuessedVerbName = null;
+        var options = new OptionDictionary(true);
+        LongOptionValuesCaseSensitive = options;
+        LongOptionValuesIgnoreCase = options;
+        ShortOptionValuesCaseSensitive = options;
+        ShortOptionValuesIgnoreCase = options;
+        PositionalArguments = [];
+    }
+
     private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
@@ -98,7 +111,9 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public static CommandLine Parse(IReadOnlyList<string> args, CommandLineParsingOptions? parsingOptions = null)
     {
         ArgumentNullException.ThrowIfNull(args);
-        return new CommandLine([..args], parsingOptions);
+        return args.Count is 0
+            ? new CommandLine()
+            : new CommandLine([..args], parsingOptions);
     }
 
     /// <summary>
