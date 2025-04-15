@@ -39,24 +39,24 @@ public record CommandLine : ICoreCommandRunnerBuilder
     private string? MatchedUrlScheme { get; }
 
     /// <summary>
-    /// 从命令行中解析出来的长名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
-    /// </summary>
-    private OptionDictionary LongOptionValues { get; }
-
-    /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
     /// </summary>
-    private OptionDictionary RawLongOptionValues { get; }
+    private OptionDictionary LongOptionValuesCaseSensitive { get; }
 
     /// <summary>
-    /// 从命令行中解析出来的短名称选项。根据 <see cref="DefaultCaseSensitive"/> 的值决定是否大小写敏感。
+    /// 从命令行中解析出来的长名称选项。始终大小写不敏感。
     /// </summary>
-    private OptionDictionary ShortOptionValues { get; }
+    private OptionDictionary LongOptionValuesIgnoreCase { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。始终大小写敏感。
     /// </summary>
-    private OptionDictionary RawShortOptionValues { get; }
+    private OptionDictionary ShortOptionValuesCaseSensitive { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的短名称选项。始终大小写不敏感。
+    /// </summary>
+    private OptionDictionary ShortOptionValuesIgnoreCase { get; }
 
     /// <summary>
     /// 从命令行中解析出来的位置参数。
@@ -80,10 +80,10 @@ public record CommandLine : ICoreCommandRunnerBuilder
         CommandLineArguments = arguments;
         (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
         GuessedVerbName = result.GuessedVerbName;
-        LongOptionValues = result.LongOptions.ToOptionLookup(DefaultCaseSensitive);
-        ShortOptionValues = result.ShortOptions.ToOptionLookup(DefaultCaseSensitive);
-        RawLongOptionValues = result.LongOptions;
-        RawShortOptionValues = result.ShortOptions;
+        LongOptionValuesCaseSensitive = result.LongOptions.ToOptionLookup(true);
+        LongOptionValuesIgnoreCase = result.LongOptions.ToOptionLookup(false);
+        ShortOptionValuesCaseSensitive = result.ShortOptions.ToOptionLookup(true);
+        ShortOptionValuesIgnoreCase = result.ShortOptions.ToOptionLookup(false);
         PositionalArguments = result.Arguments;
     }
 
@@ -130,18 +130,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOption<T>(string optionName, bool? caseSensitive = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-
-        // 默认的大小写敏感性。
-        if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
-        {
-            return LongOptionValues.TryGetValue(optionName, out var defaultValues)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性。
-        return RawLongOptionValues.TryGetValue(optionName, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+            ? LongOptionValuesCaseSensitive
+            : LongOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(optionName, out var defaultValues)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
             : null;
     }
 
@@ -155,18 +148,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOption<T>(char shortOption, bool? caseSensitive = null) where T : class
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-
-        // 默认的大小写敏感性。
-        if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
-        {
-            return ShortOptionValues.TryGetValue(shortOption, out var defaultValues)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性。
-        return RawShortOptionValues.TryGetValue(shortOption, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+            ? ShortOptionValuesCaseSensitive
+            : ShortOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(shortOption, out var defaultValues)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
             : null;
     }
 
@@ -194,18 +180,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOptionValue<T>(string optionName, bool? caseSensitive = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-
-        // 默认的大小写敏感性。
-        if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
-        {
-            return LongOptionValues.TryGetValue(optionName, out var defaultValues)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性。
-        return RawLongOptionValues.TryGetValue(optionName, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+            ? LongOptionValuesCaseSensitive
+            : LongOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(optionName, out var defaultValues)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
             : null;
     }
 
@@ -219,18 +198,11 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public T? GetOptionValue<T>(char shortOption, bool? caseSensitive = null) where T : struct
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-
-        // 默认的大小写敏感性。
-        if (caseSensitive is null || caseSensitive == DefaultCaseSensitive)
-        {
-            return ShortOptionValues.TryGetValue(shortOption, out var defaultValues)
-                ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-                : null;
-        }
-
-        // 与默认不同的大小写敏感性。
-        return RawShortOptionValues.TryGetValue(shortOption, out var values)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(values, context)
+        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+            ? ShortOptionValuesCaseSensitive
+            : ShortOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(shortOption, out var defaultValues)
+            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
             : null;
     }
 
@@ -338,7 +310,7 @@ public record CommandLine : ICoreCommandRunnerBuilder
     public override string ToString()
     {
         return MatchedUrlScheme is { } scheme
-            ? $"{scheme}://{string.Join("/", PositionalArguments)}?{string.Join("&", LongOptionValues.Select(x => $"{x.Key}={string.Join("&", x.Value)}"))}"
+            ? $"{scheme}://{string.Join("/", PositionalArguments)}?{string.Join("&", LongOptionValuesCaseSensitive.Select(x => $"{x.Key}={string.Join("&", x.Value)}"))}"
             : string.Join(" ", CommandLineArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 }
