@@ -51,19 +51,23 @@ internal static class CommandModelProvider
                     .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());
                 // 4. 拥有 [Option] 特性的属性。
                 var optionProperties = typeSymbol
-                    .EnumerateBaseTypesRecursively()
-                    .SelectMany(x => x.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Select(OptionPropertyGeneratingModel.TryParse)
+                    .EnumerateBaseTypesRecursively()                                            // 递归获取所有基类
+                    .SelectMany(x => x.GetMembers())                              //                 的所有成员，
+                    .OfType<IPropertySymbol>()                                                  //                             然后取出属性，
+                    .Select(OptionPropertyGeneratingModel.TryParse)                             // 解析出 OptionPropertyGeneratingModel。
                     .OfType<OptionPropertyGeneratingModel>()
+                    .GroupBy(x => x.PropertyName)              // 按属性名去重。
+                    .Select(x => x.First()) // 随后，取子类的属性（去除父类的重名属性）。
                     .ToImmutableArray();
                 // 5. 拥有 [Value] 特性的属性。
                 var valueProperties = typeSymbol
-                    .EnumerateBaseTypesRecursively()
-                    .SelectMany(x => x.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Select(ValuePropertyGeneratingModel.TryParse)
+                    .EnumerateBaseTypesRecursively()                                            // 递归获取所有基类
+                    .SelectMany(x => x.GetMembers())                              //                 的所有成员，
+                    .OfType<IPropertySymbol>()                                                  //                             然后取出属性，
+                    .Select(ValuePropertyGeneratingModel.TryParse)                              // 解析出 ValuePropertyGeneratingModel。
                     .OfType<ValuePropertyGeneratingModel>()
+                    .GroupBy(x => x.PropertyName)               // 按属性名去重。
+                    .Select(x => x.First())  // 随后，取子类的属性（去除父类的重名属性）。
                     .ToImmutableArray();
 
                 if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty)
