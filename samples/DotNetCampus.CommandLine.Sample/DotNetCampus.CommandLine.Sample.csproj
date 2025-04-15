@@ -14,6 +14,13 @@
 
   <ItemGroup>
     <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\Options.cs" Link="Fakes\Options.cs" />
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\OptionsParser.cs" Link="Fakes\OptionsParser.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="dotnetCampus.CommandLine.Legacy">
+      <HintPath>..\..\tests\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
