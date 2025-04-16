@@ -275,6 +275,7 @@ public class FlexibleCommandLineParserTests
         Assert.AreEqual("file.txt", value2);
     }
 
+    [Ignore("自动形式经过讨论，不支持短选项组合；如果需要，请改用 GNU 风格。")]
     [TestMethod("5.2. 支持有限的短选项组合")]
     public void ShortOptionCombination_AllAssigned()
     {
