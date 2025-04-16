@@ -5,21 +5,41 @@ namespace DotNetCampus.Cli.Utils.Collections;
 /// <summary>
 /// 从一个只读集合中取出一个范围，让此集合表现得就像那个范围内的一个子集合一样。
 /// </summary>
-/// <param name="sourceList">原集合。</param>
-/// <param name="range">范围。</param>
 /// <typeparam name="T">集合的元素类型。</typeparam>
-internal readonly struct ReadOnlyListRange<T>(IReadOnlyList<T> sourceList, Range range) : IReadOnlyList<T>
+internal readonly struct ReadOnlyListRange<T> : IReadOnlyList<T>
 {
-    public int Count => range.GetOffsetAndLength(sourceList.Count).Length;
+    private readonly IReadOnlyList<T>? _sourceList;
+    private readonly Range _range;
 
-    public T this[int index] => sourceList[range.GetOffsetAndLength(sourceList.Count).Offset + index];
+    /// <summary>
+    /// 从一个只读集合中取出一个范围，让此集合表现得就像那个范围内的一个子集合一样。
+    /// </summary>
+    /// <param name="sourceList">原集合。</param>
+    /// <param name="range">范围。</param>
+    /// <typeparam name="T">集合的元素类型。</typeparam>
+    public ReadOnlyListRange(IReadOnlyList<T> sourceList, Range range)
+    {
+        _sourceList = sourceList;
+        _range = range;
+    }
+
+    public int Count => _range.GetOffsetAndLength(_sourceList?.Count ?? 0).Length;
+
+    public T this[int index] => _sourceList is null
+        ? throw new ArgumentOutOfRangeException(nameof(index))
+        : _sourceList[_range.GetOffsetAndLength(_sourceList.Count).Offset + index];
 
     public IEnumerator<T> GetEnumerator()
     {
-        var (offset, length) = range.GetOffsetAndLength(sourceList.Count);
+        if (_sourceList is null)
+        {
+            yield break;
+        }
+
+        var (offset, length) = _range.GetOffsetAndLength(_sourceList.Count);
         for (var i = offset; i < offset + length; i++)
         {
-            yield return sourceList[i];
+            yield return _sourceList[i];
         }
     }
 

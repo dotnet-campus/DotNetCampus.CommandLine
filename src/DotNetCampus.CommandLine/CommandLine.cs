@@ -7,7 +7,7 @@ namespace DotNetCampus.Cli;
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。
 /// </summary>
-public record CommandLine : ICoreCommandRunnerBuilder
+public class CommandLine : ICoreCommandRunnerBuilder
 {
     /// <summary>
     /// 获取此命令行解析类型所关联的命令行参数。
@@ -77,8 +77,8 @@ public record CommandLine : ICoreCommandRunnerBuilder
 
     private CommandLine()
     {
-        var options = new OptionDictionary(true);
-        var arguments = new ReadOnlyListRange<string>([], Range.All);
+        var options = OptionDictionary.Empty;
+        var arguments = new ReadOnlyListRange<string>();
         DefaultCaseSensitive = true;
         CommandLineArguments = arguments;
         GuessedVerbName = null;

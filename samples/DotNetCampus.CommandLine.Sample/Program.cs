@@ -11,7 +11,7 @@ class Program
         const int testCount = 100000;
         CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
 
-        Console.WriteLine($"# Test Count: {testCount}");
+        Console.WriteLine($"Run {testCount} times for: {string.Join(" ", args)}");
 
         Console.WriteLine("| Version | Parse   | As(Parser) | As(Runtime) |");
         Console.WriteLine("| ------- | ------- | ---------- | ----------- |");
