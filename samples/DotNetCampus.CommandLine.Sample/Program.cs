@@ -8,8 +8,16 @@ class Program
 {
     static void Main(string[] args)
     {
-        const int testCount = 100000;
+        const int testCount = 1000000;
         CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
+
+        for (var i = 0; i < testCount; i++)
+        {
+            dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
+            dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
+            _ = CommandLine.Parse(args, parsingOptions).As<Options>();
+        }
+
         var stopwatch = new Stopwatch();
 
         Console.WriteLine($"Run {testCount} times for: {string.Join(" ", args)}");
