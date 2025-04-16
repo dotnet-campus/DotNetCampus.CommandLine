@@ -31,7 +31,7 @@ public class VerbCreatorGenerator : IIncrementalGenerator
         (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
     {
         var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
-        commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetVerbCreatorTypeName())];
+        commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetBuilderTypeName())];
 
         var moduleInitializerCode = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
         context.AddSource("CommandLine.Metadata/_ModuleInitializer.g.cs", moduleInitializerCode);
@@ -69,10 +69,11 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 辅助 <see cref="{{model.OptionsType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
 /// </summary>
-internal sealed class {{model.GetVerbCreatorTypeName()}}
+internal sealed class {{model.GetBuilderTypeName()}}
 {
     public static {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
+        var caseSensitive = commandLine.DefaultCaseSensitive;
         var result = new {{model.OptionsType.ToGlobalDisplayString()}}
         {
 {{(initOptionProperties.Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
@@ -108,7 +109,7 @@ internal sealed class {{model.GetVerbCreatorTypeName()}}
                 : "null!";
         var caseSensitiveNotDeterminedNames = property.GetNormalizedLongNames();
         var runtimeName = caseSensitiveNotDeterminedNames.Length is 2
-            ? $"commandLine.DefaultCaseSensitive ? \"{caseSensitiveNotDeterminedNames[0]}\" : \"{caseSensitiveNotDeterminedNames[1]}\""
+            ? $"caseSensitive ? \"{caseSensitiveNotDeterminedNames[0]}\" : \"{caseSensitiveNotDeterminedNames[1]}\""
             : caseSensitiveNotDeterminedNames[0];
         if (property.IsRequired || property.IsInitOnly)
         {
@@ -214,7 +215,7 @@ internal static class CommandLineModuleInitializer
         // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
             {{verbCode}},
-            cl => global::{{model.Namespace}}.{{model.GetVerbCreatorTypeName()}}.CreateInstance(cl));
+            cl => global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance(cl));
 """;
     }
 
@@ -248,7 +249,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             if (model.IsHandler)
             {
                 return $"""
-        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => global::{model.Namespace}.{model.GetVerbCreatorTypeName()}.CreateInstance(cl),
+        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl),
 """;
             }
             else

@@ -139,16 +139,17 @@ internal record CommandOptionsGeneratingModel
 
     public required ImmutableArray<ValuePropertyGeneratingModel> ValueProperties { get; init; }
 
-    public string GetVerbCreatorTypeName()
+    public string GetBuilderTypeName()
     {
         if (VerbName is { } verbName)
         {
-            return $"{NamingHelper.MakePascalCase(verbName)}VerbCreator";
+            return $"{NamingHelper.MakePascalCase(verbName)}Builder";
         }
 
         foreach (var postfix in SupportedPostfixes.Where(postfix => OptionsType.Name.EndsWith(postfix, StringComparison.Ordinal)))
         {
-            return $"{OptionsType.Name.Substring(0, OptionsType.Name.Length - postfix.Length)}VerbCreator";
+            var namePrefix = OptionsType.Name.Substring(0, OptionsType.Name.Length - postfix.Length);
+            return string.IsNullOrEmpty(namePrefix) ? $"{OptionsType.Name}Builder" : $"{namePrefix}Builder";
         }
 
         // 由于集合中最后有一个空字符串，所以此返回将永远不会进来。
