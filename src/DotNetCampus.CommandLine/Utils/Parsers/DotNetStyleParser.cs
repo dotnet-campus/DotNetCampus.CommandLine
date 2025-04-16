@@ -16,8 +16,9 @@ internal sealed class DotNetStyleParser : ICommandLineParser
         OptionName? lastOption = null;
         var lastType = DotNetParsedType.Start;
 
-        foreach (var commandLineArgument in commandLineArguments)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
+            var commandLineArgument = commandLineArguments[i];
             var result = DotNetArgument.Parse(lastType, commandLineArgument);
             var tempLastType = lastType;
             lastType = result.Type;

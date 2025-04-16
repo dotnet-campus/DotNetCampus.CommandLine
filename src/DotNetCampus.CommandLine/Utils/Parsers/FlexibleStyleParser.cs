@@ -16,8 +16,9 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         OptionName? lastOption = null;
         var lastType = FlexibleParsedType.Start;
 
-        foreach (var commandLineArgument in commandLineArguments)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
+            var commandLineArgument = commandLineArguments[i];
             var result = FlexibleArgument.Parse(lastType, commandLineArgument);
             var tempLastType = lastType;
             lastType = result.Type;

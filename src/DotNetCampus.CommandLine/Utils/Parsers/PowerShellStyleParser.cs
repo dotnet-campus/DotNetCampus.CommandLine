@@ -14,8 +14,9 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         OptionName? lastOption = null;
         var lastType = PowerShellParsedType.Start;
 
-        foreach (var commandLineArgument in commandLineArguments)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
+            var commandLineArgument = commandLineArguments[i];
             var result = PowerShellArgument.Parse(lastType, commandLineArgument);
             var tempLastType = lastType;
             lastType = result.Type;
@@ -53,10 +54,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                     if (valueSpan.Contains(','))
                     {
                         var arrayValues = result.Value.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var value in arrayValues)
-                        {
-                            longOptions.AddValue(option, value.Trim());
-                        }
+                        longOptions.AddValues(option, arrayValues);
                     }
                     else
                     {

@@ -15,8 +15,9 @@ internal sealed class PosixStyleParser : ICommandLineParser
         OptionName? lastOption = null;
         var lastType = PosixParsedType.Start;
 
-        foreach (var commandLineArgument in commandLineArguments)
+        for (var i = 0; i < commandLineArguments.Count; i++)
         {
+            var commandLineArgument = commandLineArguments[i];
             var result = PosixArgument.Parse(lastType, commandLineArgument);
             var tempLastType = lastType;
             lastType = result.Type;

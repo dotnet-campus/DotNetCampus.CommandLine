@@ -111,6 +111,19 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
         }
     }
 
+    public void AddValues(OptionName optionName, IReadOnlyList<string> values)
+    {
+        var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));
+        if (index >= 0)
+        {
+            _optionValues[index] = new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, _optionValues[index].Value.AddRange(values));
+        }
+        else
+        {
+            _optionValues.Add(new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, new SingleOptimizedList<string>().AddRange(values)));
+        }
+    }
+
     public void UpdateValue(OptionName optionName, string value)
     {
         var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));

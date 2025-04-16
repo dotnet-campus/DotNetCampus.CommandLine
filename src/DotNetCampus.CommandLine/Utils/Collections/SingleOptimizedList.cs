@@ -86,6 +86,36 @@ internal readonly struct SingleOptimizedList<T> : IReadOnlyList<T>
         return new SingleOptimizedList<T>(_firstValue, _restValues);
     }
 
+    public SingleOptimizedList<T> AddRange(IReadOnlyList<T> values)
+    {
+        if (values.Count is 0)
+        {
+            return this;
+        }
+
+        if (values.Count is 1)
+        {
+            return Add(values[0]);
+        }
+
+        if (!HasValue)
+        {
+            // 空集合，添加第一个值。
+            return new SingleOptimizedList<T>(values[0], values.Skip(1).ToList());
+        }
+
+        if (_restValues is null)
+        {
+            // 只有一个值，添加第二个值。
+            return new SingleOptimizedList<T>(_firstValue, values.ToList());
+        }
+
+        // 已经有多个值，添加到现有的列表中。
+        // 注意！此行为与其他任何集合都不同，会导致新旧对象共享同一个列表的引用，同时被修改！所以日常不要使用此集合。
+        _restValues.AddRange(values);
+        return new SingleOptimizedList<T>(_firstValue, _restValues);
+    }
+
     public IEnumerator<T> GetEnumerator()
     {
         if (!HasValue)
@@ -100,8 +130,9 @@ internal readonly struct SingleOptimizedList<T> : IReadOnlyList<T>
             yield break;
         }
 
-        foreach (var value in restValues)
+        for (var i = 0; i < restValues.Count; i++)
         {
+            var value = restValues[i];
             yield return value;
         }
     }
