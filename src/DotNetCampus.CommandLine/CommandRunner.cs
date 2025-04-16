@@ -33,7 +33,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <param name="creator">命令处理器的创建方法。</param>
     /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void Register<T>(string? verbName, Func<CommandLine, T> creator)
+    public static void Register<T>(string? verbName, Func<CommandLine, object> creator)
         where T : class
     {
         VerbCreationInfos[typeof(T)] = new VerbCreationInfo(verbName, creator);

@@ -71,7 +71,7 @@ namespace {{model.Namespace}};
 /// </summary>
 internal sealed class {{model.GetBuilderTypeName()}}
 {
-    public static {{model.OptionsType.ToGlobalDisplayString()}} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
         var caseSensitive = commandLine.DefaultCaseSensitive;
         var result = new {{model.OptionsType.ToGlobalDisplayString()}}
@@ -215,7 +215,7 @@ internal static class CommandLineModuleInitializer
         // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
             {{verbCode}},
-            cl => global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance(cl));
+            global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
 """;
     }
 
@@ -249,7 +249,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             if (model.IsHandler)
             {
                 return $"""
-        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl),
+        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl),
 """;
             }
             else
