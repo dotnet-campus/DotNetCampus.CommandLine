@@ -90,8 +90,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
 
     private string GenerateOptionPropertyAssignment(OptionPropertyGeneratingModel property, int modelIndex)
     {
-        var methodName = property.IsValueType ? "GetOptionValue" : "GetOption";
-        var generic = property.Type.ToNotNullGlobalDisplayString();
+        var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
         var caseSensitive = property.CaseSensitive switch
         {
             true => ", true",
@@ -116,14 +115,14 @@ internal sealed class {{model.GetBuilderTypeName()}}
             if (property.Aliases.Length is 0)
             {
                 return $"""
-            {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)}) ?? {exception},
+            {property.PropertyName} = commandLine.GetOption({ArgumentsCreator(runtimeName)}){toMethod} ?? {exception},
 """;
             }
             else
             {
                 return $"""
-            {property.PropertyName} = commandLine.{methodName}<{generic}>({ArgumentsCreator(runtimeName)})
-{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}
+            {property.PropertyName} = commandLine.GetOption({ArgumentsCreator(runtimeName)}){toMethod}
+{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.GetOption({ArgumentsCreator(x)}){toMethod}"))}
                 ?? {exception},
 """;
             }
@@ -133,7 +132,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
             if (property.Aliases.Length is 0)
             {
                 return $$"""
-        if (commandLine.{{methodName}}<{{generic}}>({{ArgumentsCreator(runtimeName)}}) is { } o{{modelIndex}})
+        if (commandLine.GetOption({{ArgumentsCreator(runtimeName)}}){{toMethod}} is { } o{{modelIndex}})
         {
             result.{{property.PropertyName}} = o{{modelIndex}};
         }
@@ -142,8 +141,8 @@ internal sealed class {{model.GetBuilderTypeName()}}
             else
             {
                 return $$"""
-        if (commandLine.{{methodName}}<{{generic}}>({{ArgumentsCreator(runtimeName)}})
-{{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.{methodName}<{generic}>({ArgumentsCreator(x)})"))}}
+        if (commandLine.GetOption({{ArgumentsCreator(runtimeName)}}){{toMethod}}
+{{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.GetOption({ArgumentsCreator(x)}){toMethod}"))}}
             is { } o{{modelIndex}})
         {
             result.{{property.PropertyName}} = o{{modelIndex}};
@@ -155,8 +154,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
 
     private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)
     {
-        var methodName = property.IsValueType ? "GetPositionalArgumentValue" : "GetPositionalArgument";
-        var generic = property.Type.ToNotNullGlobalDisplayString();
+        var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
         var indexLengthCode = (property.Index, property.Length) switch
         {
             (null, null) => null,
@@ -173,18 +171,53 @@ internal sealed class {{model.GetBuilderTypeName()}}
         if (property.IsRequired || property.IsInitOnly)
         {
             return $"""
-            {property.PropertyName} = commandLine.{methodName}<{generic}>({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}) ?? {exception},
+            {property.PropertyName} = commandLine.GetPositionalArgument({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}){toMethod} ?? {exception},
 """;
         }
         else
         {
             return $$"""
-        if (commandLine.{{methodName}}<{{generic}}>({{(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}}) is { } p{{modelIndex}})
+        if (commandLine.GetPositionalArgument({{(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}}){{toMethod}} is { } p{{modelIndex}})
         {
             result.{{property.PropertyName}} = p{{modelIndex}};
         }
 """;
         }
+    }
+
+    /// <summary>
+    /// 获取一个方法名，调用该方法可使“命令行属性值”转换为“目标类型”。
+    /// </summary>
+    /// <param name="targetType">目标类型。</param>
+    /// <returns>方法名。</returns>
+    private string? GetCommandLinePropertyValueToMethodName(ITypeSymbol targetType)
+    {
+        // 特殊处理接口，因为接口不支持隐式转换，所以要调用专门的转换方法。
+        if (targetType.TypeKind is TypeKind.Interface)
+        {
+            return targetType.Name switch
+            {
+                "IEnumerable" or "IReadOnlyList" => "AsReadOnlyList",
+                "IList" or "ICollection" => "ToList",
+                "IReadOnlyDictionary" or "IDictionary" => "ToDictionary",
+                // 专门生成不存在的方法名和全名注释，编译不通过，同时还能辅助报告错误原因。
+                _ => $"To{targetType.Name}/* {targetType.ToDisplayString()} */",
+            };
+        }
+
+        // 特殊处理枚举和可空枚举，因为枚举类型不可穷举，所以要调用专门的转换方法。
+        if (targetType.ToDisplayString().EndsWith("?") && targetType.TypeKind is TypeKind.Struct)
+        {
+            // 拿到可空类型内部的类型，如 int? -> int。
+            targetType = ((INamedTypeSymbol)targetType).TypeArguments[0];
+        }
+        if (targetType.TypeKind is TypeKind.Enum)
+        {
+            return $"ToEnum<{targetType.ToNotNullGlobalDisplayString()}>";
+        }
+
+        // 其他类型使用隐式转换。
+        return null;
     }
 
     private string GenerateModuleInitializerCode(ImmutableArray<CommandOptionsGeneratingModel> models)

@@ -145,17 +145,16 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="optionName">选项的名称。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public T? GetOption<T>(string optionName, bool? caseSensitive = null) where T : class
+    public CommandLinePropertyValue? GetOption(string optionName, bool? caseSensitive = null)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
         var optionValues = (caseSensitive ?? DefaultCaseSensitive)
             ? LongOptionValuesCaseSensitive
             : LongOptionValuesIgnoreCase;
         return optionValues.TryGetValue(optionName, out var defaultValues)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
+            ? new CommandLinePropertyValue(defaultValues, context)
             : null;
     }
 
@@ -164,17 +163,16 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="shortOption">短名称选项。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public T? GetOption<T>(char shortOption, bool? caseSensitive = null) where T : class
+    public CommandLinePropertyValue? GetOption(char shortOption, bool? caseSensitive = null)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
         var optionValues = (caseSensitive ?? DefaultCaseSensitive)
             ? ShortOptionValuesCaseSensitive
             : ShortOptionValuesIgnoreCase;
         return optionValues.TryGetValue(shortOption, out var defaultValues)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
+            ? new CommandLinePropertyValue(defaultValues, context)
             : null;
     }
 
@@ -184,83 +182,28 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <param name="shortName">短名称选项。</param>
     /// <param name="longName">选项的名称。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public T? GetOption<T>(char shortName, string longName, bool? caseSensitive = null) where T : class =>
+    public CommandLinePropertyValue? GetOption(char shortName, string longName, bool? caseSensitive = null) =>
         // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
-        GetOption<T>(shortName, caseSensitive)
+        GetOption(shortName, caseSensitive)
         // 其次使用长名称。
-        ?? GetOption<T>(longName, caseSensitive);
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
-    /// <param name="optionName">选项的名称。</param>
-    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public T? GetOptionValue<T>(string optionName, bool? caseSensitive = null) where T : struct
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
-            ? LongOptionValuesCaseSensitive
-            : LongOptionValuesIgnoreCase;
-        return optionValues.TryGetValue(optionName, out var defaultValues)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定短名称的选项的值。
-    /// </summary>
-    /// <param name="shortOption">短名称选项。</param>
-    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public T? GetOptionValue<T>(char shortOption, bool? caseSensitive = null) where T : struct
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
-            ? ShortOptionValuesCaseSensitive
-            : ShortOptionValuesIgnoreCase;
-        return optionValues.TryGetValue(shortOption, out var defaultValues)
-            ? CommandLineValueConverter.ArgumentStringsToValue<T>(defaultValues, context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
-    /// <param name="shortName">短名称选项。</param>
-    /// <param name="longName">选项的名称。</param>
-    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public T? GetOptionValue<T>(char shortName, string longName, bool? caseSensitive = null) where T : struct =>
-        // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
-        GetOptionValue<T>(shortName, caseSensitive)
-        // 其次使用长名称。
-        ?? GetOptionValue<T>(longName, caseSensitive);
+        ?? GetOption(longName, caseSensitive);
 
     /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
     [Pure]
-    public T? GetPositionalArgument<T>(string? verbName = null) where T : class
+    public CommandLinePropertyValue? GetPositionalArgument(string? verbName = null)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Count <= 0
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
+            : new CommandLinePropertyValue(PositionalArguments.Slice(verbOffset, 1), context);
     }
 
     /// <summary>
@@ -269,55 +212,16 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <param name="index">获取指定索引处的参数值。</param>
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
     /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
     /// <returns>位置参数的值。</returns>
     [Pure]
-    public T? GetPositionalArgument<T>(int index, int length, string? verbName = null) where T : class
+    public CommandLinePropertyValue? GetPositionalArgument(int index, int length, string? verbName = null)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Count
             ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(
-                PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), context);
-    }
-
-    /// <summary>
-    /// 获取命令行参数中位置参数的值。
-    /// </summary>
-    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>位置参数的值。</returns>
-    [Pure]
-    public T? GetPositionalArgumentValue<T>(string? verbName = null) where T : struct
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
-        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        var verbOffset = shouldSkipVerb ? 1 : 0;
-        return PositionalArguments.Count <= 0
-            ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(PositionalArguments.Slice(verbOffset, 1), context);
-    }
-
-    /// <summary>
-    /// 获取命令行参数中位置参数的值。
-    /// </summary>
-    /// <param name="index">获取指定索引处的参数值。</param>
-    /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
-    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
-    /// <typeparam name="T">选项的值的类型。</typeparam>
-    /// <returns>位置参数的值。</returns>
-    [Pure]
-    public T? GetPositionalArgumentValue<T>(int index, int length, string? verbName = null) where T : struct
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
-        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        var verbOffset = shouldSkipVerb ? 1 : 0;
-        return index < 0 || index >= PositionalArguments.Count
-            ? null
-            : CommandLineValueConverter.ArgumentStringsToValue<T>(
+            : new CommandLinePropertyValue(
                 PositionalArguments.Slice(index + verbOffset,
                     Math.Min(length, PositionalArguments.Count - index - verbOffset)), context);
     }
