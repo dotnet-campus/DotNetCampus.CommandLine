@@ -10,7 +10,7 @@ namespace DotNetCampus.Cli;
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private static ConcurrentDictionary<Type, VerbCreationInfo> VerbCreationInfos { get; } = [];
+    private static ConcurrentDictionary<Type, VerbCreationInfo> VerbCreationInfos { get; } = new(ReferenceEqualityComparer.Instance);
 
     private readonly CommandLine _commandLine;
     private readonly DictionaryCommandHandlerCollection _dictionaryVerbHandlers = new();
