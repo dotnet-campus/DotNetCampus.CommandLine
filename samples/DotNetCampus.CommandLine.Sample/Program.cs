@@ -10,28 +10,12 @@ class Program
     {
         const int testCount = 100000;
         CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
+        var stopwatch = new Stopwatch();
 
         Console.WriteLine($"Run {testCount} times for: {string.Join(" ", args)}");
 
         Console.WriteLine("| Version | Parse   | As(Parser) | As(Runtime) |");
         Console.WriteLine("| ------- | ------- | ---------- | ----------- |");
-        Console.Write("| 4.x     | ");
-        var stopwatch = Stopwatch.StartNew();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = CommandLine.Parse(args, parsingOptions);
-        }
-        stopwatch.Stop();
-        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-        var newCommandLine = CommandLine.Parse(args, parsingOptions);
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = newCommandLine.As<Options>();
-        }
-        stopwatch.Stop();
-        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | {stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
-
 
         Console.Write("| 3.x     | ");
         stopwatch.Restart();
@@ -56,6 +40,23 @@ class Program
         }
         stopwatch.Stop();
         Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
+
+        Console.Write("| 4.x     | ");
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = CommandLine.Parse(args, parsingOptions);
+        }
+        stopwatch.Stop();
+        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
+        var newCommandLine = CommandLine.Parse(args, parsingOptions);
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
+            _ = newCommandLine.As<Options>();
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | {stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
     }
 
     private static int Run(Options options)
