@@ -79,7 +79,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
     {
         var options = OptionDictionary.Empty;
         var arguments = new ReadOnlyListRange<string>();
-        DefaultCaseSensitive = true;
+        DefaultCaseSensitive = false;
         CommandLineArguments = arguments;
         GuessedVerbName = null;
         LongOptionValuesCaseSensitive = options;
