@@ -7,7 +7,7 @@ namespace DotNetCampus.Cli.Utils;
 internal static class CommandLineValueConverter
 {
     [return: NotNullIfNotNull(nameof(arguments))]
-    internal static T? ArgumentStringsToValue<T>(IReadOnlyList<string>? arguments, ConvertingContext context)
+    internal static T? ArgumentStringsToValue<T>(IReadOnlyList<string>? arguments, in ConvertingContext context)
     {
         var type = typeof(T);
         if (type == typeof(bool))
@@ -37,7 +37,7 @@ internal static class CommandLineValueConverter
             type == typeof(ulong) ? (T)(object)ArgumentStringsToUInt64(arguments) :
             type == typeof(short) ? (T)(object)ArgumentStringsToInt16(arguments) :
             type == typeof(ushort) ? (T)(object)ArgumentStringsToUInt16(arguments) :
-            type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments, context) :
+            type == typeof(string) ? (T)(object)ArgumentStringsToString(arguments, in context) :
             type == typeof(string[]) ? (T)(object)ArgumentStringsToStringArray(arguments) :
             type == typeof(ImmutableArray<string>) ? (T)(object)ArgumentStringsToStringImmutableArray(arguments) :
             type == typeof(ImmutableHashSet<string>) ? (T)(object)ArgumentStringsToStringImmutableHashSet(arguments) :
@@ -217,7 +217,7 @@ internal static class CommandLineValueConverter
     };
 
     [return: NotNullIfNotNull(nameof(arguments))]
-    private static string? ArgumentStringsToString(IReadOnlyList<string>? arguments, ConvertingContext context) => arguments switch
+    private static string? ArgumentStringsToString(IReadOnlyList<string>? arguments, in ConvertingContext context) => arguments switch
     {
         null => null,
         { Count: 0 } => "",
