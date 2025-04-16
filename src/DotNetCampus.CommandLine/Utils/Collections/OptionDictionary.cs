@@ -23,8 +23,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 if (pair.Key.Equals(key, caseSensitive))
                 {
                     return pair.Value;
@@ -39,8 +40,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 yield return pair.Key;
             }
         }
@@ -50,8 +52,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 yield return pair.Value;
             }
         }
@@ -59,8 +62,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
 
     public bool ContainsKey(OptionName key)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (pair.Key.Equals(key, caseSensitive))
             {
                 return true;
@@ -71,8 +75,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
 
     public bool TryGetValue(OptionName key, [MaybeNullWhen(false)] out IReadOnlyList<string> value)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (pair.Key.Equals(key, caseSensitive))
             {
                 value = pair.Value;
@@ -136,8 +141,9 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
 
     public IEnumerator<KeyValuePair<OptionName, IReadOnlyList<string>>> GetEnumerator()
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             yield return new KeyValuePair<OptionName, IReadOnlyList<string>>(pair.Key, pair.Value);
         }
     }
@@ -305,8 +311,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 if (Match(pair.Key, key))
                 {
                     return pair.Value;
@@ -321,8 +328,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 yield return pair.Key;
             }
         }
@@ -332,8 +340,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
     {
         get
         {
-            foreach (var pair in _optionValues)
+            for (var i = 0; i < _optionValues.Count; i++)
             {
+                var pair = _optionValues[i];
                 yield return pair.Value;
             }
         }
@@ -382,8 +391,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     public bool ContainsKey(char optionName)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (Match(pair.Key, optionName))
             {
                 return true;
@@ -394,8 +404,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     public bool ContainsKey(string optionName)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (Match(pair.Key, optionName))
             {
                 return true;
@@ -406,8 +417,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     public bool TryGetValue(char shortOptionName, [MaybeNullWhen(false)] out IReadOnlyList<string> value)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (Match(pair.Key, shortOptionName))
             {
                 value = pair.Value;
@@ -421,8 +433,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     public bool TryGetValue(string optionName, [MaybeNullWhen(false)] out IReadOnlyList<string> value)
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             if (Match(pair.Key, optionName))
             {
                 value = pair.Value;
@@ -632,8 +645,9 @@ internal class OptionDictionary1(CommandLineStyle namingStyle, bool caseSensitiv
 
     public IEnumerator<KeyValuePair<string, IReadOnlyList<string>>> GetEnumerator()
     {
-        foreach (var pair in _optionValues)
+        for (var i = 0; i < _optionValues.Count; i++)
         {
+            var pair = _optionValues[i];
             yield return new KeyValuePair<string, IReadOnlyList<string>>(pair.Key, pair.Value);
         }
     }
