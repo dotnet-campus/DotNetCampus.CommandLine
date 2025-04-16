@@ -25,6 +25,10 @@
     </PackageReference>
     <PackageReference Condition="'$(TargetFramework)' == 'net6.0'" Include="System.Collections.Immutable" Version="8.0.0" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotNetCampus.CommandLine.PrivateAnalyzer\DotNetCampus.CommandLine.PrivateAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 
   <Target Name="_IncludeAllDependencies" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
