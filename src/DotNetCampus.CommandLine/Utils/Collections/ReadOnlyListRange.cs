@@ -16,7 +16,6 @@ internal readonly struct ReadOnlyListRange<T> : IReadOnlyList<T>
     /// </summary>
     /// <param name="sourceList">原集合。</param>
     /// <param name="range">范围。</param>
-    /// <typeparam name="T">集合的元素类型。</typeparam>
     public ReadOnlyListRange(IReadOnlyList<T> sourceList, Range range)
     {
         _sourceList = sourceList;

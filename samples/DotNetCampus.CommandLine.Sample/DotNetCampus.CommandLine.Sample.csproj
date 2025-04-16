@@ -15,6 +15,7 @@
   <ItemGroup>
     <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\Options.cs" Link="Fakes\Options.cs" />
     <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\OptionsParser.cs" Link="Fakes\OptionsParser.cs" />
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\VerbOptions.cs" Link="Fakes\VerbOptions.cs" />
   </ItemGroup>
 
   <ItemGroup>

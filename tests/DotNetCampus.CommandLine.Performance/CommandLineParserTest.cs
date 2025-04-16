@@ -159,6 +159,16 @@ public class CommandLineParserTest
             .Run();
     }
 
+    [Benchmark(Description = "handle [Edit,Print] -v=3.x -p=parser")]
+    public void Handle_Verbs_Parser()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(EditVerbArgs);
+        commandLine
+            .AddHandler(options => 0, new SelfWrittenEditOptionsParser())
+            .AddHandler(options => 0, new SelfWrittenPrintOptionsParser())
+            .Run();
+    }
+
     [Benchmark(Description = "handle [Edit,Print] -v=3.x -p=runtime")]
     public void Handle_Verbs_Runtime()
     {
