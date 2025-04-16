@@ -73,10 +73,10 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [PS1] --powershell")]
+    [Benchmark(Description = "parse  [PS1] --dotnet")]
     public void Parse_PowerShell_PowerShell()
     {
-        var commandLine = CommandLine.Parse(WindowsStyleArgs, PowerShell);
+        var commandLine = CommandLine.Parse(WindowsStyleArgs, DotNet);
         commandLine.As<Options>();
     }
 
@@ -101,10 +101,10 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [CMD] --powershell")]
+    [Benchmark(Description = "parse  [CMD] --dotnet")]
     public void Parse_Cmd_PowerShell()
     {
-        var commandLine = CommandLine.Parse(CmdStyleArgs, PowerShell);
+        var commandLine = CommandLine.Parse(CmdStyleArgs, DotNet);
         commandLine.As<Options>();
     }
 
