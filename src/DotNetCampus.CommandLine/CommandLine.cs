@@ -114,7 +114,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
         ArgumentNullException.ThrowIfNull(args);
         return args.Count is 0
             ? new CommandLine()
-            : new CommandLine([..args], parsingOptions);
+            : new CommandLine(args, parsingOptions);
     }
 
     /// <summary>
