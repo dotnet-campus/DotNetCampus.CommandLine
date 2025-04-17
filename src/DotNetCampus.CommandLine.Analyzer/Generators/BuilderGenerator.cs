@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace DotNetCampus.CommandLine.Generators;
 
@@ -9,6 +11,7 @@ public class BuilderGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var commandOptionsProvider = context.SelectCommandObjects();
         var assemblyCommandsProvider = context.SelectAssemblyCommands();
 
@@ -17,7 +20,7 @@ public class BuilderGenerator : IIncrementalGenerator
             Execute);
 
         context.RegisterSourceOutput(
-            assemblyCommandsProvider.Collect().Combine(commandOptionsProvider.Collect()),
+            assemblyCommandsProvider.Collect().Combine(commandOptionsProvider.Collect()).Combine(analyzerConfigOptionsProvider),
             Execute);
     }
 
@@ -27,16 +30,17 @@ public class BuilderGenerator : IIncrementalGenerator
         context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.cs", code);
     }
 
-    private void Execute(SourceProductionContext context,
-        (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandObjectGeneratingModel> Right) generatingModels)
+    private void Execute(SourceProductionContext context, ((ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandObjectGeneratingModel> Right) Left, AnalyzerConfigOptionsProvider Right) args)
     {
-        return;
-
-        var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
+        var ((assemblyCommandsGeneratingModels, commandOptionsGeneratingModels), analyzerConfigOptions) = args;
         commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetBuilderTypeName())];
 
-        var moduleInitializerCode = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
-        context.AddSource("CommandLine.Metadata/_ModuleInitializer.g.cs", moduleInitializerCode);
+        if (analyzerConfigOptions.GlobalOptions.TryGetValue<bool>("DotNetCampusCommandLineUseInterceptor", out var useInterceptor)
+            && !useInterceptor)
+        {
+            var moduleInitializerCode = GenerateModuleInitializerCode(commandOptionsGeneratingModels);
+            context.AddSource("CommandLine.Metadata/_ModuleInitializer.g.cs", moduleInitializerCode);
+        }
 
         foreach (var assemblyCommandsGeneratingModel in assemblyCommandsGeneratingModels)
         {

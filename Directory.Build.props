@@ -9,7 +9,6 @@
     <Deterministic>true</Deterministic>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -33,5 +32,7 @@
     <RepositoryUrl>https://github.com/dotnet-campus/DotNetCampus.CommandLine.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)src\DotNetCampus.CommandLine\Package\build\Package.props" />
 
 </Project>

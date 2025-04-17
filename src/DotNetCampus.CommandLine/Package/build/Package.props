@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
+    <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">false</DotNetCampusCommandLineUseInterceptor>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="DotNetCampusCommandLineUseInterceptor" />
+  </ItemGroup>
 
 </Project>

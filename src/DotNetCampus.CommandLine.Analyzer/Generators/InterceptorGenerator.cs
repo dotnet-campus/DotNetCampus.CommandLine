@@ -1,9 +1,11 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Collections.Immutable;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace DotNetCampus.CommandLine.Generators;
 
@@ -12,6 +14,7 @@ public class InterceptorGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var asProvider = context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
                 // 检查 commandLine.As<T>() 方法调用。
@@ -46,11 +49,18 @@ public class InterceptorGenerator : IIncrementalGenerator
             .Where(model => model is not null)
             .Select((model, ct) => model!);
 
-        context.RegisterSourceOutput(asProvider.Collect(), Execute);
+        context.RegisterSourceOutput(asProvider.Collect().Combine(analyzerConfigOptionsProvider), Execute);
     }
 
-    private void Execute(SourceProductionContext context, ImmutableArray<InterceptorGeneratingModel> models)
+    private void Execute(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
     {
+        var (models, analyzerConfigOptions) = args;
+        if (analyzerConfigOptions.GlobalOptions.TryGetValue<bool>("DotNetCampusCommandLineUseInterceptor", out var useInterceptor)
+            && !useInterceptor)
+        {
+            return;
+        }
+
         var modelGroups = models
             .GroupBy(x => x.CommandObjectType, SymbolEqualityComparer.Default)
             .ToDictionary(
