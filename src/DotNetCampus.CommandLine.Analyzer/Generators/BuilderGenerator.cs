@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 namespace DotNetCampus.CommandLine.Generators;
 
 [Generator(LanguageNames.CSharp)]
-public class CommandObjectCreatorGenerator : IIncrementalGenerator
+public class BuilderGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
