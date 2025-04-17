@@ -11,12 +11,12 @@ namespace DotNetCampus.Cli;
 public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
 {
     private readonly IReadOnlyList<string> _values;
-    private readonly ConvertingContext _context;
+    private readonly MultiValueHandling _multiValueHandling;
 
-    internal CommandLinePropertyValue(IReadOnlyList<string> values, ConvertingContext context)
+    internal CommandLinePropertyValue(IReadOnlyList<string> values, MultiValueHandling multiValueHandling)
     {
         _values = values;
-        _context = context;
+        _multiValueHandling = multiValueHandling;
     }
 
     IEnumerator<string> IEnumerable<string>.GetEnumerator() => _values.GetEnumerator();
@@ -233,7 +233,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public static implicit operator string(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
         { Count: 0 } => "",
-        { } values => propertyValue._context.MultiValueHandling switch
+        { } values => propertyValue._multiValueHandling switch
         {
             MultiValueHandling.First => values[0],
             MultiValueHandling.Last => values[^1],
@@ -342,4 +342,27 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
             .GroupBy(x => x.Key)
             .ToDictionary(x => x.Key, x => x.Last().Value),
     };
+}
+
+internal enum MultiValueHandling
+{
+    /// <summary>
+    /// 仅返回第一个值。
+    /// </summary>
+    First,
+
+    /// <summary>
+    /// 返回最后一个值。
+    /// </summary>
+    Last,
+
+    /// <summary>
+    /// 用空格连接返回所有值。
+    /// </summary>
+    SpaceAll,
+
+    /// <summary>
+    /// 用斜杠 '/' 连接返回所有值。
+    /// </summary>
+    SlashAll,
 }

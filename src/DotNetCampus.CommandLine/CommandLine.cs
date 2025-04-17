@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Contracts;
+using System.Globalization;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.Cli.Utils.Collections;
 
@@ -38,6 +39,16 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// 如果此命令行是从 Web 请求的 URL 中解析出来的，则此属性保存 URL 的 Scheme 部分。
     /// </summary>
     private string? MatchedUrlScheme { get; }
+
+    /// <summary>
+    /// 适用于选项的多值处理方式。
+    /// </summary>
+    private MultiValueHandling OptionMultiValueHandling { get; }
+
+    /// <summary>
+    /// 适用于位置参数的多值处理方式。
+    /// </summary>
+    private MultiValueHandling PositionalArgumentsMultiValueHandling { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
@@ -89,9 +100,12 @@ public class CommandLine : ICoreCommandRunnerBuilder
     {
         var options = OptionDictionary.Empty;
         var arguments = new ReadOnlyListRange<string>();
-        DefaultCaseSensitive = false;
         CommandLineArguments = arguments;
+        DefaultCaseSensitive = false;
         GuessedVerbName = null;
+        MatchedUrlScheme = null;
+        OptionMultiValueHandling = MultiValueHandling.First;
+        PositionalArgumentsMultiValueHandling = MultiValueHandling.First;
         LongOptionValuesCaseSensitive = options;
         LongOptionValuesIgnoreCase = options;
         LongOptionValuesDefault = options;
@@ -103,10 +117,12 @@ public class CommandLine : ICoreCommandRunnerBuilder
 
     private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
-        DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         CommandLineArguments = arguments;
+        DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
         GuessedVerbName = result.GuessedVerbName;
+        OptionMultiValueHandling = MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last;
+        PositionalArgumentsMultiValueHandling = MatchedUrlScheme is null ? MultiValueHandling.SpaceAll : MultiValueHandling.SlashAll;
         LongOptionValuesCaseSensitive = result.LongOptions.ToOptionLookup(true);
         LongOptionValuesIgnoreCase = result.LongOptions.ToOptionLookup(false);
         LongOptionValuesDefault = DefaultCaseSensitive ? LongOptionValuesCaseSensitive : LongOptionValuesIgnoreCase;
@@ -155,6 +171,27 @@ public class CommandLine : ICoreCommandRunnerBuilder
     public T As<T>() where T : class => CommandRunner.CreateInstance<T>(this);
 
     /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(char shortOption) => GetShortOption(shortOption.ToString(CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetShortOption(string shortOption)
+    {
+        return ShortOptionValuesDefault.TryGetValue(shortOption, out var defaultValues)
+            ? new CommandLinePropertyValue(defaultValues, OptionMultiValueHandling)
+            : null;
+    }
+
+    /// <summary>
     /// 获取命令行参数中指定名称的选项的值。
     /// </summary>
     /// <param name="optionName">选项的名称。</param>
@@ -162,59 +199,8 @@ public class CommandLine : ICoreCommandRunnerBuilder
     [Pure]
     public CommandLinePropertyValue? GetOption(string optionName)
     {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
         return LongOptionValuesDefault.TryGetValue(optionName, out var defaultValues)
-            ? new CommandLinePropertyValue(defaultValues, context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定名称的选项的值。
-    /// </summary>
-    /// <param name="optionName">选项的名称。</param>
-    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public CommandLinePropertyValue? GetOption(string optionName, bool caseSensitive)
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = caseSensitive
-            ? LongOptionValuesCaseSensitive
-            : LongOptionValuesIgnoreCase;
-        return optionValues.TryGetValue(optionName, out var defaultValues)
-            ? new CommandLinePropertyValue(defaultValues, context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定短名称的选项的值。
-    /// </summary>
-    /// <param name="shortOption">短名称选项。</param>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public CommandLinePropertyValue? GetOption(char shortOption)
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        return ShortOptionValuesDefault.TryGetValue(shortOption, out var defaultValues)
-            ? new CommandLinePropertyValue(defaultValues, context)
-            : null;
-    }
-
-    /// <summary>
-    /// 获取命令行参数中指定短名称的选项的值。
-    /// </summary>
-    /// <param name="shortOption">短名称选项。</param>
-    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
-    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
-    [Pure]
-    public CommandLinePropertyValue? GetOption(char shortOption, bool caseSensitive)
-    {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = caseSensitive
-            ? ShortOptionValuesCaseSensitive
-            : ShortOptionValuesIgnoreCase;
-        return optionValues.TryGetValue(shortOption, out var defaultValues)
-            ? new CommandLinePropertyValue(defaultValues, context)
+            ? new CommandLinePropertyValue(defaultValues, OptionMultiValueHandling)
             : null;
     }
 
@@ -230,6 +216,50 @@ public class CommandLine : ICoreCommandRunnerBuilder
         GetOption(shortName)
         // 其次使用长名称。
         ?? GetOption(longName);
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
+    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(char optionName, bool caseSensitive) =>
+        GetShortOption(optionName.ToString(CultureInfo.InvariantCulture), caseSensitive);
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
+    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetShortOption(string shortOption, bool caseSensitive)
+    {
+        var optionValues = caseSensitive
+            ? ShortOptionValuesCaseSensitive
+            : ShortOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(shortOption, out var defaultValues)
+            ? new CommandLinePropertyValue(defaultValues, OptionMultiValueHandling)
+            : null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
+    /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(string optionName, bool caseSensitive)
+    {
+        var optionValues = caseSensitive
+            ? LongOptionValuesCaseSensitive
+            : LongOptionValuesIgnoreCase;
+        return optionValues.TryGetValue(optionName, out var defaultValues)
+            ? new CommandLinePropertyValue(defaultValues, OptionMultiValueHandling)
+            : null;
+    }
 
     /// <summary>
     /// 获取命令行参数中指定名称的选项的值。
@@ -253,12 +283,11 @@ public class CommandLine : ICoreCommandRunnerBuilder
     [Pure]
     public CommandLinePropertyValue? GetPositionalArgument(string? verbName = null)
     {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return PositionalArguments.Count <= 0
             ? null
-            : new CommandLinePropertyValue(PositionalArguments.Slice(verbOffset, 1), context);
+            : new CommandLinePropertyValue(PositionalArguments.Slice(verbOffset, 1), PositionalArgumentsMultiValueHandling);
     }
 
     /// <summary>
@@ -271,14 +300,13 @@ public class CommandLine : ICoreCommandRunnerBuilder
     [Pure]
     public CommandLinePropertyValue? GetPositionalArgument(int index, int length, string? verbName = null)
     {
-        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.SlashAll);
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
         return index < 0 || index >= PositionalArguments.Count
             ? null
             : new CommandLinePropertyValue(
                 PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), context);
+                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), PositionalArgumentsMultiValueHandling);
     }
 
     /// <summary>
@@ -304,29 +332,4 @@ public class CommandLine : ICoreCommandRunnerBuilder
             ? $"{scheme}://{string.Join("/", PositionalArguments)}?{string.Join("&", LongOptionValuesCaseSensitive.Select(x => $"{x.Key}={string.Join("&", x.Value)}"))}"
             : string.Join(" ", CommandLineArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
-}
-
-internal readonly record struct ConvertingContext(MultiValueHandling MultiValueHandling);
-
-internal enum MultiValueHandling
-{
-    /// <summary>
-    /// 仅返回第一个值。
-    /// </summary>
-    First,
-
-    /// <summary>
-    /// 返回最后一个值。
-    /// </summary>
-    Last,
-
-    /// <summary>
-    /// 用空格连接返回所有值。
-    /// </summary>
-    SpaceAll,
-
-    /// <summary>
-    /// 用斜杠 '/' 连接返回所有值。
-    /// </summary>
-    SlashAll,
 }

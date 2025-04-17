@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Globalization;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
@@ -226,6 +227,40 @@ internal record OptionPropertyGeneratingModel
         }
 
         return $"--{NamingHelper.MakeKebabCase(PropertyName, !caseSensitive, !caseSensitive)}";
+    }
+
+    public IReadOnlyList<string> GenerateAllNames(
+        Func<string, string> shortNameCreator,
+        Func<string, string> longNameCreator,
+        Func<string, string, string> caseLongNameCreator,
+        Func<string, string> aliasCreator)
+    {
+        var list = new List<string>();
+
+        if (ShortName is { } shortName)
+        {
+            list.Add(shortNameCreator(shortName.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        var longNames = GetNormalizedLongNames();
+        if (longNames.Length is 1)
+        {
+            list.Add(longNameCreator(longNames[0]));
+        }
+        else if (longNames.Length is 2)
+        {
+            list.Add(caseLongNameCreator(longNames[0], longNames[1]));
+        }
+
+        if (Aliases is { Length: > 0 } aliases)
+        {
+            foreach (var alias in aliases)
+            {
+                list.Add(aliasCreator(alias));
+            }
+        }
+
+        return list;
     }
 
     public static OptionPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)

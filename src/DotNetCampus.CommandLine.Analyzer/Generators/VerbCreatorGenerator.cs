@@ -90,6 +90,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
 
     private string GenerateOptionPropertyAssignment(OptionPropertyGeneratingModel property, int modelIndex)
     {
+        var isInitProperty = property.IsRequired || property.IsInitOnly;
         var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
         var caseSensitive = property.CaseSensitive switch
         {
@@ -97,59 +98,49 @@ internal sealed class {{model.GetBuilderTypeName()}}
             false => ", false",
             null => "",
         };
-
-        string ArgumentsCreator(string name) =>
-            $"{(property.ShortName is { } shortName ? $"'{shortName}', " : "")}{(name.Contains(' ') ? name : $"\"{name}\"")}{caseSensitive}";
-
         var exception = property.IsRequired
             ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : property.IsValueType
                 ? "default"
                 : "null!";
-        var caseSensitiveNotDeterminedNames = property.GetNormalizedLongNames();
-        var runtimeName = caseSensitiveNotDeterminedNames.Length is 2
-            ? $"caseSensitive ? \"{caseSensitiveNotDeterminedNames[0]}\" : \"{caseSensitiveNotDeterminedNames[1]}\""
-            : caseSensitiveNotDeterminedNames[0];
-        if (property.IsRequired || property.IsInitOnly)
+
+        var getters = property.GenerateAllNames(
+            shortOption => $"""commandLine.GetShortOption("{shortOption}"{caseSensitive})""",
+            longOption => $"""commandLine.GetOption("{longOption}"{caseSensitive})""",
+            (caseSensitiveLongOption, ignoreCaseLongName) => $"""commandLine.GetOption(caseSensitive ? "{caseSensitiveLongOption}" : "{ignoreCaseLongName}"{caseSensitive})""",
+            aliasOption => $"""commandLine.GetOption("{aliasOption}")"""
+        );
+
+        return (isInitProperty, getters) switch
         {
-            if (property.Aliases.Length is 0)
-            {
-                return $"""
-            {property.PropertyName} = commandLine.GetOption({ArgumentsCreator(runtimeName)}){toMethod} ?? {exception},
-""";
-            }
-            else
-            {
-                return $"""
-            {property.PropertyName} = commandLine.GetOption({ArgumentsCreator(runtimeName)}){toMethod}
-{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.GetOption({ArgumentsCreator(x)}){toMethod}"))}
+            // [Option("OptionName")]
+            // public required string PropertyName { get; init; }
+            (true, { Count: 1 }) => $"""
+            {property.PropertyName} = {getters[0]}{toMethod} ?? {exception},
+""",
+            // [Option('o', "OptionName")]
+            // public required string PropertyName { get; init; }
+            (true, _) => $"""
+            {property.PropertyName} = ({string.Join("\n                ?? ", getters)}){toMethod}
                 ?? {exception},
-""";
-            }
-        }
-        else
-        {
-            if (property.Aliases.Length is 0)
-            {
-                return $$"""
-        if (commandLine.GetOption({{ArgumentsCreator(runtimeName)}}){{toMethod}} is { } o{{modelIndex}})
+""",
+            // [Option("OptionName")]
+            // public string PropertyName { get; set; }
+            (false, { Count: 1 }) => $$"""
+        if ({{getters[0]}}{{toMethod}} is { } o{{modelIndex}})
         {
             result.{{property.PropertyName}} = o{{modelIndex}};
         }
-""";
-            }
-            else
-            {
-                return $$"""
-        if (commandLine.GetOption({{ArgumentsCreator(runtimeName)}}){{toMethod}}
-{{string.Join("\n", property.Aliases.Select(x => $"            ?? commandLine.GetOption({ArgumentsCreator(x)}){toMethod}"))}}
-            is { } o{{modelIndex}})
+""",
+            // [Option('o', "OptionName")]
+            // public string PropertyName { get; set; }
+            (false, _) => $$"""
+        if (({{string.Join("\n            ?? ", getters)}}){{toMethod}} is { } o{{modelIndex}})
         {
             result.{{property.PropertyName}} = o{{modelIndex}};
         }
-""";
-            }
-        }
+""",
+        };
     }
 
     private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)

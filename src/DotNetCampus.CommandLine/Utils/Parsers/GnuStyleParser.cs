@@ -15,7 +15,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
 
         OptionName? lastOption = null;
         var lastType = GnuParsedType.Start;
-        var shortLowPriorityOptions = new Dictionary<OptionName, string>();
+        var shortLowPriorityOptions = new Dictionary<string, string>();
 
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
@@ -85,7 +85,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 {
                     shortOptions.AddOption(shortOption);
                 }
-                shortLowPriorityOptions[result.Option[0]] = result.Value.ToString();
+                shortLowPriorityOptions[result.Option.ToString()] = result.Value.ToString();
                 continue;
             }
 

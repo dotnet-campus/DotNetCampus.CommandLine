@@ -6,27 +6,31 @@ namespace DotNetCampus.Cli.Utils.Collections;
 /// <summary>
 /// 为命令行选项特别优化的字典。优化了无值/单值的内存占用和拷贝，优化了多种不同的选项命名风格，优化了大小写敏感性。
 /// </summary>
-internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<OptionName, IReadOnlyList<string>>
+internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string, IReadOnlyList<string>>
 {
     public static OptionDictionary Empty { get; } = new OptionDictionary(true);
 
-    private readonly List<KeyValuePair<OptionName, SingleOptimizedList<string>>> _optionValues = [];
+    private readonly List<KeyValuePair<string, SingleOptimizedList<string>>> _optionValues = [];
 
-    private OptionDictionary(bool caseSensitive, List<KeyValuePair<OptionName, SingleOptimizedList<string>>> optionValues) : this(caseSensitive)
+    private readonly StringComparison _stringComparer = caseSensitive
+        ? StringComparison.Ordinal
+        : StringComparison.OrdinalIgnoreCase;
+
+    private OptionDictionary(bool caseSensitive, List<KeyValuePair<string, SingleOptimizedList<string>>> optionValues) : this(caseSensitive)
     {
         _optionValues = optionValues;
     }
 
     public int Count => _optionValues.Count;
 
-    public IReadOnlyList<string> this[OptionName key]
+    public IReadOnlyList<string> this[string key]
     {
         get
         {
             for (var i = 0; i < _optionValues.Count; i++)
             {
                 var pair = _optionValues[i];
-                if (pair.Key.Equals(key, caseSensitive))
+                if (string.Equals(pair.Key, key, _stringComparer))
                 {
                     return pair.Value;
                 }
@@ -36,7 +40,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
         }
     }
 
-    public IEnumerable<OptionName> Keys
+    public IEnumerable<string> Keys
     {
         get
         {
@@ -60,12 +64,12 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
         }
     }
 
-    public bool ContainsKey(OptionName key)
+    public bool ContainsKey(string key)
     {
         for (var i = 0; i < _optionValues.Count; i++)
         {
             var pair = _optionValues[i];
-            if (pair.Key.Equals(key, caseSensitive))
+            if (string.Equals(pair.Key, key, _stringComparer))
             {
                 return true;
             }
@@ -73,12 +77,12 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
         return false;
     }
 
-    public bool TryGetValue(OptionName key, [MaybeNullWhen(false)] out IReadOnlyList<string> value)
+    public bool TryGetValue(string key, [MaybeNullWhen(false)] out IReadOnlyList<string> value)
     {
         for (var i = 0; i < _optionValues.Count; i++)
         {
             var pair = _optionValues[i];
-            if (pair.Key.Equals(key, caseSensitive))
+            if (string.Equals(pair.Key, key, _stringComparer))
             {
                 value = pair.Value;
                 return true;
@@ -91,49 +95,53 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
 
     public void AddOption(OptionName optionName)
     {
-        var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));
+        var optionNameText = optionName.ToString();
+        var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
         if (index < 0)
         {
-            _optionValues.Add(new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, []));
+            _optionValues.Add(new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, []));
         }
     }
 
     public void AddValue(OptionName optionName, string value)
     {
-        var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));
+        var optionNameText = optionName.ToString();
+        var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
         if (index >= 0)
         {
-            _optionValues[index] = new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, _optionValues[index].Value.Add(value));
+            _optionValues[index] = new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, _optionValues[index].Value.Add(value));
         }
         else
         {
-            _optionValues.Add(new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, new SingleOptimizedList<string>(value)));
+            _optionValues.Add(new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, new SingleOptimizedList<string>(value)));
         }
     }
 
     public void AddValues(OptionName optionName, IReadOnlyList<string> values)
     {
-        var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));
+        var optionNameText = optionName.ToString();
+        var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
         if (index >= 0)
         {
-            _optionValues[index] = new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, _optionValues[index].Value.AddRange(values));
+            _optionValues[index] = new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, _optionValues[index].Value.AddRange(values));
         }
         else
         {
-            _optionValues.Add(new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, new SingleOptimizedList<string>().AddRange(values)));
+            _optionValues.Add(new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, new SingleOptimizedList<string>().AddRange(values)));
         }
     }
 
     public void UpdateValue(OptionName optionName, string value)
     {
-        var index = _optionValues.FindIndex(p => p.Key.Equals(optionName, caseSensitive));
+        var optionNameText = optionName.ToString();
+        var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
         if (index >= 0)
         {
-            _optionValues[index] = new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, new SingleOptimizedList<string>(value));
+            _optionValues[index] = new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, new SingleOptimizedList<string>(value));
         }
         else
         {
-            _optionValues.Add(new KeyValuePair<OptionName, SingleOptimizedList<string>>(optionName, new SingleOptimizedList<string>(value)));
+            _optionValues.Add(new KeyValuePair<string, SingleOptimizedList<string>>(optionNameText, new SingleOptimizedList<string>(value)));
         }
     }
 
@@ -152,12 +160,12 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<Option
         return new OptionDictionary(newCaseSensitive, _optionValues);
     }
 
-    public IEnumerator<KeyValuePair<OptionName, IReadOnlyList<string>>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, IReadOnlyList<string>>> GetEnumerator()
     {
         for (var i = 0; i < _optionValues.Count; i++)
         {
             var pair = _optionValues[i];
-            yield return new KeyValuePair<OptionName, IReadOnlyList<string>>(pair.Key, pair.Value);
+            yield return new KeyValuePair<string, IReadOnlyList<string>>(pair.Key, pair.Value);
         }
     }
 

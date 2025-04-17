@@ -23,9 +23,9 @@ internal sealed class UrlStyleParser : ICommandLineParser
 
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        if (commandLineArguments.Count != 1)
+        if (commandLineArguments.Count is not 1)
         {
-            throw new CommandLineParseException("URL style parser expects exactly one argument.");
+            throw new CommandLineParseException($"URL style parser expects exactly one argument, but got {commandLineArguments.Count}.");
         }
 
         var url = commandLineArguments[0];
