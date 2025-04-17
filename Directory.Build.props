@@ -9,6 +9,7 @@
     <Deterministic>true</Deterministic>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
   </PropertyGroup>
 
   <PropertyGroup>

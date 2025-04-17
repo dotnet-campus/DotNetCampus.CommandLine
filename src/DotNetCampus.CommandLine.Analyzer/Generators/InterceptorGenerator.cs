@@ -66,7 +66,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         return $$"""
 #nullable enable
 
-namespace {{GeneratorInfo.RootNamespace}}
+namespace {{GeneratorInfo.RootNamespace}}.Compiler
 {
     file static class CommandObjectCreatorInterceptors
     {

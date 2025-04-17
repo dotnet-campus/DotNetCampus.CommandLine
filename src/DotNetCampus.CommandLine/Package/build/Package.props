@@ -1,0 +1,7 @@
+<Project>
+
+  <PropertyGroup>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
+  </PropertyGroup>
+
+</Project>
