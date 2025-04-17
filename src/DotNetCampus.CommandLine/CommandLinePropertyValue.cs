@@ -306,7 +306,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// <summary>
     /// 将从命令行解析出来的属性值转换为枚举值。
     /// </summary>
-    public T ToEnum<T>() where T : unmanaged => _values switch
+    public T ToEnum<T>() where T : unmanaged, Enum => _values switch
     {
         { Count: 0 } => default,
         { } values => Enum.TryParse(typeof(T), values[0], true, out var result) ? (T)result : default!,
