@@ -19,7 +19,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
-            var result = DotNetArgument.Parse(lastType, commandLineArgument);
+            var result = DotNetArgument.Parse(commandLineArgument, lastType);
             var tempLastType = lastType;
             lastType = result.Type;
 
@@ -102,7 +102,7 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
     public OptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
-    public static DotNetArgument Parse(DotNetParsedType lastType, string argument)
+    public static DotNetArgument Parse(string argument, DotNetParsedType lastType)
     {
         var isPostPositionalArgument = lastType is DotNetParsedType.PositionalArgumentSeparator or DotNetParsedType.PostPositionalArgument;
 

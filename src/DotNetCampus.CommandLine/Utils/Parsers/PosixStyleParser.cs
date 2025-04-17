@@ -18,7 +18,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
-            var result = PosixArgument.Parse(lastType, commandLineArgument);
+            var result = PosixArgument.Parse(commandLineArgument, lastType);
             var tempLastType = lastType;
             lastType = result.Type;
 
@@ -90,7 +90,7 @@ internal readonly ref struct PosixArgument(PosixParsedType type)
     public OptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
-    public static PosixArgument Parse(PosixParsedType lastType, string argument)
+    public static PosixArgument Parse(string argument, PosixParsedType lastType)
     {
         var isPostPositionalArgument = lastType is PosixParsedType.PositionalArgumentSeparator or PosixParsedType.PostPositionalArgument;
 

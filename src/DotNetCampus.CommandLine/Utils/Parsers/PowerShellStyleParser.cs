@@ -17,7 +17,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
-            var result = PowerShellArgument.Parse(lastType, commandLineArgument);
+            var result = PowerShellArgument.Parse(commandLineArgument, lastType);
             var tempLastType = lastType;
             lastType = result.Type;
 
@@ -86,7 +86,7 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
     public OptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
-    public static PowerShellArgument Parse(PowerShellParsedType lastType, string argument)
+    public static PowerShellArgument Parse(string argument, PowerShellParsedType lastType)
     {
         var isPostPositionalArgument = lastType is PowerShellParsedType.PositionalArgumentSeparator or PowerShellParsedType.PostPositionalArgument;
 

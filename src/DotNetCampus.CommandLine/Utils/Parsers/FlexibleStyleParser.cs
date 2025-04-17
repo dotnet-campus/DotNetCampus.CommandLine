@@ -19,7 +19,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
-            var result = FlexibleArgument.Parse(lastType, commandLineArgument);
+            var result = FlexibleArgument.Parse(commandLineArgument, lastType);
             var tempLastType = lastType;
             lastType = result.Type;
 
@@ -102,7 +102,7 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
     public OptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
-    public static FlexibleArgument Parse(FlexibleParsedType lastType, string argument)
+    public static FlexibleArgument Parse(string argument, FlexibleParsedType lastType)
     {
         var isPostPositionalArgument = lastType is FlexibleParsedType.PositionalArgumentSeparator or FlexibleParsedType.PostPositionalArgument;
 

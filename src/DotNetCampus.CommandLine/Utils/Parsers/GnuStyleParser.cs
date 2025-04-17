@@ -20,7 +20,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
         for (var i = 0; i < commandLineArguments.Count; i++)
         {
             var commandLineArgument = commandLineArguments[i];
-            var result = GnuArgument.Parse(lastType, commandLineArgument);
+            var result = GnuArgument.Parse(commandLineArgument, lastType);
             var tempLastType = lastType;
             lastType = result.Type;
 
@@ -133,7 +133,7 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
     public OptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
-    public static GnuArgument Parse(GnuParsedType lastType, string argument)
+    public static GnuArgument Parse(string argument, GnuParsedType lastType)
     {
         var isPostPositionalArgument = lastType is GnuParsedType.PositionalArgumentSeparator or GnuParsedType.PostPositionalArgument;
 
