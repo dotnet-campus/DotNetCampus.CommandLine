@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Contracts;
+﻿using System.ComponentModel;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
@@ -174,9 +175,10 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 尝试将命令行参数转换为指定类型的实例。
     /// </summary>
+    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">要转换的类型。</typeparam>
     /// <returns>转换后的实例。</returns>
-    [Pure]
+    [Pure, EditorBrowsable(EditorBrowsableState.Never)]
     public T As<T>(CommandObjectCreator creator) where T : class => CommandRunner.CreateInstance<T>(this, creator);
 
     /// <summary>

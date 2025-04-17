@@ -129,6 +129,9 @@ class Program
     private static void Run4xInterceptor(string[] args)
     {
         _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
+        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet)
+            .AddHandler<SampleCommandHandler>()
+            .RunAsync();
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -176,19 +179,19 @@ class Program
 // [CollectCommandHandlersFromThisAssembly]
 // internal partial class AssemblyCommandHandler;
 
-// [Verb("sample")]
-// internal class SampleCommandHandler : ICommandHandler
-// {
-//     [Option("SampleProperty")]
-//     public required string Option { get; init; }
-//
-//     [Value(Length = int.MaxValue)]
-//     public string? Argument { get; init; }
-//
-//     public Task<int> RunAsync()
-//     {
-//         Console.WriteLine($"Option: {Option}");
-//         Console.WriteLine($"Argument: {Argument}");
-//         return Task.FromResult(0);
-//     }
-// }
+[Verb("sample")]
+internal class SampleCommandHandler : ICommandHandler
+{
+    [Option("SampleProperty")]
+    public required string Option { get; init; }
+
+    [Value(Length = int.MaxValue)]
+    public string? Argument { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        Console.WriteLine($"Option: {Option}");
+        Console.WriteLine($"Argument: {Argument}");
+        return Task.FromResult(0);
+    }
+}

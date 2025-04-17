@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli;
@@ -18,6 +19,22 @@ public static class CommandRunnerBuilderExtensions
     {
         return builder.GetOrCreateRunner()
             .AddHandler<T>();
+    }
+
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, string? verbName, CommandObjectCreator creator)
+        where T : class, ICommandHandler
+    {
+        return builder.GetOrCreateRunner()
+            .AddHandler<T>(verbName, creator);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />

@@ -3,8 +3,6 @@ using System.Collections.Immutable;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace DotNetCampus.CommandLine.Generators;
@@ -15,72 +13,46 @@ public class InterceptorGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
-        var asProvider = context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
-            {
-                // 检查 commandLine.As<T>() 方法调用。
-                return node is InvocationExpressionSyntax
-                {
-                    Expression: MemberAccessExpressionSyntax
-                    {
-                        Name: GenericNameSyntax
-                        {
-                            Identifier.Text: "As",
-                            TypeArgumentList.Arguments.Count: 1,
-                        },
-                    },
-                };
-            }, (c, ct) =>
-            {
-                var node = (InvocationExpressionSyntax)c.Node;
-                // 确保此方法是 DotNetCampus.Cli.CommandLine.As<T>() 方法（类也要匹配）。
-                var methodSymbol = c.SemanticModel.GetSymbolInfo(node, ct).Symbol as IMethodSymbol;
-                if (methodSymbol is null || methodSymbol.ContainingType.ToDisplayString() != "DotNetCampus.Cli.CommandLine")
-                {
-                    return null;
-                }
-                // 获取 commandLine.As<T>() 中的 T。
-                var genericTypeNode = ((GenericNameSyntax)((MemberAccessExpressionSyntax)node.Expression).Name).TypeArgumentList.Arguments[0];
-                var symbol = c.SemanticModel.GetSymbolInfo(genericTypeNode, ct).Symbol as INamedTypeSymbol;
-                var interceptableLocation = c.SemanticModel.GetInterceptableLocation(node, ct);
-                return interceptableLocation is not null && symbol is not null
-                    ? new InterceptorGeneratingModel(interceptableLocation, symbol)
-                    : null;
-            })
-            .Where(model => model is not null)
-            .Select((model, ct) => model!);
+        var commandLineAsProvider = context.SelectCommandLineAsProvider();
+        var commandRunnerAddHandlerProvider = context.SelectCommandBuilderAddHandlerProvider();
 
-        context.RegisterSourceOutput(asProvider.Collect().Combine(analyzerConfigOptionsProvider), Execute);
+        context.RegisterSourceOutput(commandLineAsProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
+        context.RegisterSourceOutput(commandRunnerAddHandlerProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandRunnerAddHandler);
     }
 
-    private void Execute(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
+    private void CommandLineAs(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
     {
-        var (models, analyzerConfigOptions) = args;
-        if (analyzerConfigOptions.GlobalOptions.TryGetValue<bool>("DotNetCampusCommandLineUseInterceptor", out var useInterceptor)
-            && !useInterceptor)
+        if (context.ToDictionary(args) is not { } modelGroups)
         {
             return;
         }
 
-        var modelGroups = models
-            .GroupBy(x => x.CommandObjectType, SymbolEqualityComparer.Default)
-            .ToDictionary(
-                x => x.Key!,
-                x => x.ToImmutableArray(),
-                SymbolEqualityComparer.Default);
-        var code = GenerateInterceptorCode(modelGroups);
-        context.AddSource("CommandLine.Interceptors.g.cs", code);
+        var code = GenerateCode(modelGroups, GenerateCommandLineAsCode);
+        context.AddSource("CommandLine.Interceptors/CommandLine.As.g.cs", code);
     }
 
-    private string GenerateInterceptorCode(Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>> models)
+    private void CommandRunnerAddHandler(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, GenerateCommandBuilderAddHandlerCode);
+        context.AddSource("CommandLine.Interceptors/CommandBuilder.AddHandler.g.cs", code);
+    }
+
+    private string GenerateCode(Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>> models,
+        Func<ImmutableArray<InterceptorGeneratingModel>, string> methodCreator)
     {
         return $$"""
 #nullable enable
 
 namespace {{GeneratorInfo.RootNamespace}}.Compiler
 {
-    file static class CommandObjectCreatorInterceptors
+    file static class Interceptors
     {
-{{string.Join("\n\n", models.Select(x=>GenerateInterceptorCode(x.Value)))}}
+{{string.Join("\n\n", models.Select(x => methodCreator(x.Value)))}}
     }
 }
 
@@ -100,14 +72,21 @@ namespace System.Runtime.CompilerServices
 """;
     }
 
-    private string GenerateInterceptorCode(ImmutableArray<InterceptorGeneratingModel> models)
+    private string GenerateInterceptsLocationCode(InterceptorGeneratingModel model)
+    {
+        return $"""
+        [global::System.Runtime.CompilerServices.InterceptsLocation({model.InterceptableLocation.Version}, "{model.InterceptableLocation.Data}")]
+""";
+    }
+
+    private string GenerateCommandLineAsCode(ImmutableArray<InterceptorGeneratingModel> models)
     {
         var model = models[0];
         return $$"""
         /// <summary>
         /// <see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
-{{string.Join("\n", models.Select(GenerateInterceptorCode))}}
+{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
         public static T CommandLineAs{{model.CommandObjectType.Name}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine) where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
             return (T)global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance(commandLine);
@@ -115,38 +94,42 @@ namespace System.Runtime.CompilerServices
 """;
     }
 
-    private string GenerateInterceptorCode(InterceptorGeneratingModel model)
+    private string GenerateCommandBuilderAddHandlerCode(ImmutableArray<InterceptorGeneratingModel> models)
     {
-        return $"""
-        [global::System.Runtime.CompilerServices.InterceptsLocation({model.InterceptableLocation.Version}, "{model.InterceptableLocation.Data}")]
+        var model = models[0];
+        return $$"""
+        /// <summary>
+        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
+        /// </summary>
+{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
+        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilderAddHandler{{model.CommandObjectType.Name}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder) where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
+        {
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null,
+                global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+        }
 """;
     }
 }
 
-internal record InterceptorGeneratingModel(
-    InterceptableLocation InterceptableLocation,
-    INamedTypeSymbol CommandObjectType
-)
+file static class Extensions
 {
-    public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
-
-    internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =
-        new PrivateTypeSymbolEqualityComparer();
-
-    private sealed class PrivateTypeSymbolEqualityComparer : IEqualityComparer<InterceptorGeneratingModel>
+    public static Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>>? ToDictionary(
+        this SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
     {
-        public bool Equals(InterceptorGeneratingModel? x, InterceptorGeneratingModel? y)
+        var (models, analyzerConfigOptions) = args;
+        if (analyzerConfigOptions.GlobalOptions.TryGetValue<bool>("DotNetCampusCommandLineUseInterceptor", out var useInterceptor)
+            && !useInterceptor)
         {
-            if (ReferenceEquals(x, y)) return true;
-            if (x is null) return false;
-            if (y is null) return false;
-            if (x.GetType() != y.GetType()) return false;
-            return SymbolEqualityComparer.Default.Equals(x.CommandObjectType, y.CommandObjectType);
+            return null;
         }
 
-        public int GetHashCode(InterceptorGeneratingModel obj)
-        {
-            return SymbolEqualityComparer.Default.GetHashCode(obj.CommandObjectType);
-        }
+        var modelGroups = models
+            .GroupBy(x => x.CommandObjectType, SymbolEqualityComparer.Default)
+            .ToDictionary(
+                x => x.Key!,
+                x => x.ToImmutableArray(),
+                SymbolEqualityComparer.Default);
+        return modelGroups;
     }
 }

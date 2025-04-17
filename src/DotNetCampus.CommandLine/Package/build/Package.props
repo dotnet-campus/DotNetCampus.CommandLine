@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
-    <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">false</DotNetCampusCommandLineUseInterceptor>
+    <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">true</DotNetCampusCommandLineUseInterceptor>
   </PropertyGroup>
 
   <ItemGroup>
