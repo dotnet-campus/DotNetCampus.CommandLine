@@ -10,7 +10,7 @@ namespace DotNetCampus.Cli;
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private static ConcurrentDictionary<Type, VerbCreationInfo> VerbCreationInfos { get; } = new(ReferenceEqualityComparer.Instance);
+    private static ConcurrentDictionary<Type, CommandObjectCreationInfo> CommandObjectCreationInfos { get; } = new(ReferenceEqualityComparer.Instance);
 
     private readonly CommandLine _commandLine;
     private readonly DictionaryCommandHandlerCollection _dictionaryVerbHandlers = new();
@@ -33,10 +33,10 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <param name="creator">命令处理器的创建方法。</param>
     /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void Register<T>(string? verbName, Func<CommandLine, object> creator)
+    public static void Register<T>(string? verbName, CommandObjectCreator creator)
         where T : class
     {
-        VerbCreationInfos[typeof(T)] = new VerbCreationInfo(verbName, creator);
+        CommandObjectCreationInfos[typeof(T)] = new CommandObjectCreationInfo(verbName, creator);
     }
 
     /// <summary>
@@ -47,12 +47,24 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <returns>命令处理器实例。</returns>
     internal static T CreateInstance<T>(CommandLine commandLine)
     {
-        if (!VerbCreationInfos.TryGetValue(typeof(T), out var info))
+        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
         {
             throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
         }
 
         return (T)info.Creator(commandLine);
+    }
+
+    /// <summary>
+    /// 创建一个命令处理器实例。
+    /// </summary>
+    /// <param name="commandLine">已解析的命令行参数。</param>
+    /// <param name="creator">命令处理器的创建方法。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令处理器实例。</returns>
+    internal static T CreateInstance<T>(CommandLine commandLine, CommandObjectCreator creator)
+    {
+        return (T)creator(commandLine);
     }
 
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
@@ -65,7 +77,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     internal CommandRunner AddHandler<T>()
         where T : class, ICommandHandler
     {
-        if (!VerbCreationInfos.TryGetValue(typeof(T), out var info))
+        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
         {
             throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
         }
@@ -83,7 +95,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     internal CommandRunner AddHandler<T>(Func<T, Task<int>> handler)
         where T : class
     {
-        if (!VerbCreationInfos.TryGetValue(typeof(T), out var info))
+        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
         {
             throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
         }
@@ -158,5 +170,5 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return handler.RunAsync();
     }
 
-    private readonly record struct VerbCreationInfo(string? VerbName, Func<CommandLine, object> Creator);
+    private readonly record struct CommandObjectCreationInfo(string? VerbName, CommandObjectCreator Creator);
 }

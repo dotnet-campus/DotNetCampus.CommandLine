@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 namespace DotNetCampus.CommandLine.Generators;
 
 [Generator(LanguageNames.CSharp)]
-public class VerbCreatorGenerator : IIncrementalGenerator
+public class CommandObjectCreatorGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -23,13 +23,15 @@ public class VerbCreatorGenerator : IIncrementalGenerator
 
     private void Execute(SourceProductionContext context, CommandOptionsGeneratingModel model)
     {
-        var code = GenerateVerbCreatorCode(model);
+        var code = GenerateCommandObjectCreatorCode(model);
         context.AddSource($"CommandLine.Models/{model.Namespace}.{model.OptionsType.Name}.cs", code);
     }
 
     private void Execute(SourceProductionContext context,
         (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
     {
+        return;
+
         var (assemblyCommandsGeneratingModels, commandOptionsGeneratingModels) = generatingModels;
         commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetBuilderTypeName())];
 
@@ -45,7 +47,7 @@ public class VerbCreatorGenerator : IIncrementalGenerator
         }
     }
 
-    private string GenerateVerbCreatorCode(CommandOptionsGeneratingModel model)
+    private string GenerateCommandObjectCreatorCode(CommandOptionsGeneratingModel model)
     {
         // | required | nullable | cli | 行为       |
         // | -------- | -------- | --- | ---------- |

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.Contracts;
 using System.Globalization;
+using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.Cli.Utils.Collections;
 
@@ -169,6 +170,14 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <returns>转换后的实例。</returns>
     [Pure]
     public T As<T>() where T : class => CommandRunner.CreateInstance<T>(this);
+
+    /// <summary>
+    /// 尝试将命令行参数转换为指定类型的实例。
+    /// </summary>
+    /// <typeparam name="T">要转换的类型。</typeparam>
+    /// <returns>转换后的实例。</returns>
+    [Pure]
+    public T As<T>(CommandObjectCreator creator) where T : class => CommandRunner.CreateInstance<T>(this, creator);
 
     /// <summary>
     /// 获取命令行参数中指定短名称的选项的值。

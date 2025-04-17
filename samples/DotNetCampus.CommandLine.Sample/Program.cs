@@ -1,6 +1,7 @@
-﻿#define Benchmark_NOT
+﻿#define Benchmark
 using System.Data.Common;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Tests.Fakes;
 
@@ -11,22 +12,13 @@ class Program
     static void Main(string[] args)
     {
 #if Benchmark
+        // 第一次运行，排除类型初始化的影响，只测试代码执行性能。
+        // 注释掉这句话，可以：
+        // 1. 测试带类型初始化的性能
+        // 2. 测试 AOT 性能 dotnet publish --self-contained -r win-x64 -c release -tl:off .\src\DotNetCampus.CommandLine.Sample\DotNetCampus.CommandLine.Sample.csproj
+        Run(args);
         var stopwatch = Stopwatch.StartNew();
-        if (args.Length is 0)
-        {
-        }
-        else if (args[0] == "3.x-parser")
-        {
-            Run3xParser(args);
-        }
-        else if (args[0] == "3.x-runtime")
-        {
-            Run3xRuntime(args);
-        }
-        else if (args[0] == "4.x")
-        {
-            Run4x(args);
-        }
+        Run(args);
         stopwatch.Stop();
         Console.WriteLine($"[# Elapsed: {stopwatch.Elapsed.TotalMicroseconds} us #]");
 #else
@@ -83,26 +75,101 @@ class Program
         stopwatch.Restart();
         for (var i = 0; i < testCount; i++)
         {
+            _ = newCommandLine.As<Options>(OptionsBuilder.CreateInstance);
+        }
+        stopwatch.Stop();
+        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
+        stopwatch.Restart();
+        for (var i = 0; i < testCount; i++)
+        {
             _ = newCommandLine.As<Options>();
         }
         stopwatch.Stop();
-        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | {stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
+        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
 #endif
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void Run(string[] args)
+    {
+        if (args.Length is 0)
+        {
+        }
+        else if (args[0] == "3.x-parser")
+        {
+            Run3xParser(args);
+        }
+        else if (args[0] == "3.x-runtime")
+        {
+            Run3xRuntime(args);
+        }
+        else if (args[0] == "4.x-interceptor")
+        {
+            Run4xInterceptor(args);
+        }
+        else if (args[0] == "4.x-module")
+        {
+            Run4xModule(args);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Run3xParser(string[] args)
     {
         _ = dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Run3xRuntime(string[] args)
     {
         _ = dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
     }
 
-    private static void Run4x(string[] args)
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void Run4xInterceptor(string[] args)
     {
+        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>(OptionsBuilder.CreateInstance);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void Run4xModule(string[] args)
+    {
+        Initialize();
         _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    internal static void Initialize()
+    {
+        // DefaultOptions { VerbName = null }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
+            null,
+            global::DotNetCampus.Cli.DefaultBuilder.CreateInstance);
+
+        // EditOptions { VerbName = "Edit" }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
+            "Edit",
+            global::DotNetCampus.Cli.Tests.Fakes.EditBuilder.CreateInstance);
+
+        // Options { VerbName = null }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
+            null,
+            global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
+
+        // PrintOptions { VerbName = "Print" }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
+            "Print",
+            global::DotNetCampus.Cli.Tests.Fakes.PrintBuilder.CreateInstance);
+
+        // SampleOptions { VerbName = "sample-options" }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
+            "sample-options",
+            global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
+
+        // ShareOptions { VerbName = "Share" }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
+            "Share",
+            global::DotNetCampus.Cli.Tests.Fakes.ShareBuilder.CreateInstance);
     }
 }
 
