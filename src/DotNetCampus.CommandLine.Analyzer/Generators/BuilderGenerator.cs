@@ -9,7 +9,7 @@ public class BuilderGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var commandOptionsProvider = context.SelectCommandOptions();
+        var commandOptionsProvider = context.SelectCommandObjects();
         var assemblyCommandsProvider = context.SelectAssemblyCommands();
 
         context.RegisterSourceOutput(
@@ -21,14 +21,14 @@ public class BuilderGenerator : IIncrementalGenerator
             Execute);
     }
 
-    private void Execute(SourceProductionContext context, CommandOptionsGeneratingModel model)
+    private void Execute(SourceProductionContext context, CommandObjectGeneratingModel model)
     {
         var code = GenerateCommandObjectCreatorCode(model);
-        context.AddSource($"CommandLine.Models/{model.Namespace}.{model.OptionsType.Name}.cs", code);
+        context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.cs", code);
     }
 
     private void Execute(SourceProductionContext context,
-        (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandOptionsGeneratingModel> Right) generatingModels)
+        (ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandObjectGeneratingModel> Right) generatingModels)
     {
         return;
 
@@ -47,7 +47,7 @@ public class BuilderGenerator : IIncrementalGenerator
         }
     }
 
-    private string GenerateCommandObjectCreatorCode(CommandOptionsGeneratingModel model)
+    private string GenerateCommandObjectCreatorCode(CommandObjectGeneratingModel model)
     {
         // | required | nullable | cli | 行为       |
         // | -------- | -------- | --- | ---------- |
@@ -69,14 +69,14 @@ public class BuilderGenerator : IIncrementalGenerator
 namespace {{model.Namespace}};
 
 /// <summary>
-/// 辅助 <see cref="{{model.OptionsType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
+/// 辅助 <see cref="{{model.CommandObjectType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
 /// </summary>
 internal sealed class {{model.GetBuilderTypeName()}}
 {
     public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
         var caseSensitive = commandLine.DefaultCaseSensitive;
-        var result = new {{model.OptionsType.ToGlobalDisplayString()}}
+        var result = new {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
 {{(initOptionProperties.Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
 {{(initValueProperties.Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
@@ -145,7 +145,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
         };
     }
 
-    private string GenerateValuePropertyAssignment(CommandOptionsGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)
+    private string GenerateValuePropertyAssignment(CommandObjectGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)
     {
         var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
         var indexLengthCode = (property.Index, property.Length) switch
@@ -213,7 +213,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
         return null;
     }
 
-    private string GenerateModuleInitializerCode(ImmutableArray<CommandOptionsGeneratingModel> models)
+    private string GenerateModuleInitializerCode(ImmutableArray<CommandObjectGeneratingModel> models)
     {
         return $$"""
 #nullable enable
@@ -234,18 +234,18 @@ internal static class CommandLineModuleInitializer
 """;
     }
 
-    private string GenerateCommandRunnerRegisterCode(CommandOptionsGeneratingModel model)
+    private string GenerateCommandRunnerRegisterCode(CommandObjectGeneratingModel model)
     {
         var verbCode = model.VerbName is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
-        // {{model.OptionsType.Name}} { VerbName = {{verbCode}} }
-        global::DotNetCampus.Cli.CommandRunner.Register<{{model.OptionsType.ToGlobalDisplayString()}}>(
+        // {{model.CommandObjectType.Name}} { VerbName = {{verbCode}} }
+        global::DotNetCampus.Cli.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
             {{verbCode}},
             global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
 """;
     }
 
-    private string GenerateAssemblyCommandHandlerCode(AssemblyCommandsGeneratingModel model, ImmutableArray<CommandOptionsGeneratingModel> models)
+    private string GenerateAssemblyCommandHandlerCode(AssemblyCommandsGeneratingModel model, ImmutableArray<CommandObjectGeneratingModel> models)
     {
         return $$"""
 #nullable enable
@@ -266,7 +266,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
 """;
     }
 
-    private string GenerateAssemblyCommandHandlerMatchCode(IGrouping<string?, CommandOptionsGeneratingModel> group)
+    private string GenerateAssemblyCommandHandlerMatchCode(IGrouping<string?, CommandObjectGeneratingModel> group)
     {
         var models = group.ToList();
         if (models.Count is 1)
@@ -281,7 +281,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             else
             {
                 return $"""
-        // 类型 {model.OptionsType.Name} 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
+        // 类型 {model.CommandObjectType.Name} 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
 """;
             }
         }
@@ -289,7 +289,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
         {
             var verbCode = group.Key is { } vn ? $"\"{vn}\"" : "null";
             return $"""
-        {verbCode} => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.OptionsType.Name))}.", {verbCode}),
+        {verbCode} => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {verbCode}),
 """;
         }
     }

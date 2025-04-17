@@ -10,7 +10,7 @@ namespace DotNetCampus.CommandLine.Generators.ModelProviding;
 
 internal static class CommandModelProvider
 {
-    public static IncrementalValuesProvider<CommandOptionsGeneratingModel> SelectCommandOptions(this IncrementalGeneratorInitializationContext context)
+    public static IncrementalValuesProvider<CommandObjectGeneratingModel> SelectCommandObjects(this IncrementalGeneratorInitializationContext context)
     {
         return context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
@@ -82,10 +82,10 @@ internal static class CommandModelProvider
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
                 var verbName = attribute?.ConstructorArguments[0].Value?.ToString();
 
-                return new CommandOptionsGeneratingModel
+                return new CommandObjectGeneratingModel
                 {
                     Namespace = @namespace,
-                    OptionsType = typeSymbol,
+                    CommandObjectType = typeSymbol,
                     VerbName = verbName,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
@@ -124,13 +124,13 @@ internal static class CommandModelProvider
     }
 }
 
-internal record CommandOptionsGeneratingModel
+internal record CommandObjectGeneratingModel
 {
     private static readonly ImmutableArray<string> SupportedPostfixes = ["Options", "CommandOptions", "Handler", "CommandHandler", ""];
 
     public required string Namespace { get; init; }
 
-    public required INamedTypeSymbol OptionsType { get; init; }
+    public required INamedTypeSymbol CommandObjectType { get; init; }
 
     public required string? VerbName { get; init; }
 
@@ -140,17 +140,14 @@ internal record CommandOptionsGeneratingModel
 
     public required ImmutableArray<ValuePropertyGeneratingModel> ValueProperties { get; init; }
 
-    public string GetBuilderTypeName()
-    {
-        if (VerbName is { } verbName)
-        {
-            return $"{NamingHelper.MakePascalCase(verbName)}Builder";
-        }
+    public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
 
-        foreach (var postfix in SupportedPostfixes.Where(postfix => OptionsType.Name.EndsWith(postfix, StringComparison.Ordinal)))
+    public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
+    {
+        foreach (var postfix in SupportedPostfixes.Where(postfix => commandObjectType.Name.EndsWith(postfix, StringComparison.Ordinal)))
         {
-            var namePrefix = OptionsType.Name.Substring(0, OptionsType.Name.Length - postfix.Length);
-            return string.IsNullOrEmpty(namePrefix) ? $"{OptionsType.Name}Builder" : $"{namePrefix}Builder";
+            var namePrefix = commandObjectType.Name.Substring(0, commandObjectType.Name.Length - postfix.Length);
+            return string.IsNullOrEmpty(namePrefix) ? $"{commandObjectType.Name}Builder" : $"{namePrefix}Builder";
         }
 
         // 由于集合中最后有一个空字符串，所以此返回将永远不会进来。

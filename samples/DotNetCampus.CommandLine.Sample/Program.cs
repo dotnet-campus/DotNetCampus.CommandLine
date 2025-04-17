@@ -128,49 +128,49 @@ class Program
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Run4xInterceptor(string[] args)
     {
-        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>(OptionsBuilder.CreateInstance);
+        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void Run4xModule(string[] args)
     {
-        Initialize();
+        //Initialize();
         _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void Initialize()
-    {
-        // DefaultOptions { VerbName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
-            null,
-            global::DotNetCampus.Cli.DefaultBuilder.CreateInstance);
-
-        // EditOptions { VerbName = "Edit" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
-            "Edit",
-            global::DotNetCampus.Cli.Tests.Fakes.EditBuilder.CreateInstance);
-
-        // Options { VerbName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
-            null,
-            global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
-
-        // PrintOptions { VerbName = "Print" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
-            "Print",
-            global::DotNetCampus.Cli.Tests.Fakes.PrintBuilder.CreateInstance);
-
-        // SampleOptions { VerbName = "sample-options" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
-            "sample-options",
-            global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
-
-        // ShareOptions { VerbName = "Share" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
-            "Share",
-            global::DotNetCampus.Cli.Tests.Fakes.ShareBuilder.CreateInstance);
-    }
+    // [MethodImpl(MethodImplOptions.NoInlining)]
+    // internal static void Initialize()
+    // {
+    //     // DefaultOptions { VerbName = null }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
+    //         null,
+    //         global::DotNetCampus.Cli.DefaultBuilder.CreateInstance);
+    //
+    //     // EditOptions { VerbName = "Edit" }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
+    //         "Edit",
+    //         global::DotNetCampus.Cli.Tests.Fakes.EditBuilder.CreateInstance);
+    //
+    //     // Options { VerbName = null }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
+    //         null,
+    //         global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
+    //
+    //     // PrintOptions { VerbName = "Print" }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
+    //         "Print",
+    //         global::DotNetCampus.Cli.Tests.Fakes.PrintBuilder.CreateInstance);
+    //
+    //     // SampleOptions { VerbName = "sample-options" }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
+    //         "sample-options",
+    //         global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
+    //
+    //     // ShareOptions { VerbName = "Share" }
+    //     global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
+    //         "Share",
+    //         global::DotNetCampus.Cli.Tests.Fakes.ShareBuilder.CreateInstance);
+    // }
 }
 
 // [CollectCommandHandlersFromThisAssembly]
