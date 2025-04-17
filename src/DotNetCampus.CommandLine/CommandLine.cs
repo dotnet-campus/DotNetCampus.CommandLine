@@ -42,12 +42,22 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写敏感。
     /// </summary>
+    private OptionDictionary LongOptionValuesDefault { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的长名称选项。始终大小写敏感。
+    /// </summary>
     private OptionDictionary LongOptionValuesCaseSensitive { get; }
 
     /// <summary>
     /// 从命令行中解析出来的长名称选项。始终大小写不敏感。
     /// </summary>
     private OptionDictionary LongOptionValuesIgnoreCase { get; }
+
+    /// <summary>
+    /// 从命令行中解析出来的短名称选项。始终大小写敏感。
+    /// </summary>
+    private OptionDictionary ShortOptionValuesDefault { get; }
 
     /// <summary>
     /// 从命令行中解析出来的短名称选项。始终大小写敏感。
@@ -84,8 +94,10 @@ public class CommandLine : ICoreCommandRunnerBuilder
         GuessedVerbName = null;
         LongOptionValuesCaseSensitive = options;
         LongOptionValuesIgnoreCase = options;
+        LongOptionValuesDefault = options;
         ShortOptionValuesCaseSensitive = options;
         ShortOptionValuesIgnoreCase = options;
+        ShortOptionValuesDefault = options;
         PositionalArguments = arguments;
     }
 
@@ -97,8 +109,10 @@ public class CommandLine : ICoreCommandRunnerBuilder
         GuessedVerbName = result.GuessedVerbName;
         LongOptionValuesCaseSensitive = result.LongOptions.ToOptionLookup(true);
         LongOptionValuesIgnoreCase = result.LongOptions.ToOptionLookup(false);
+        LongOptionValuesDefault = DefaultCaseSensitive ? LongOptionValuesCaseSensitive : LongOptionValuesIgnoreCase;
         ShortOptionValuesCaseSensitive = result.ShortOptions.ToOptionLookup(true);
         ShortOptionValuesIgnoreCase = result.ShortOptions.ToOptionLookup(false);
+        ShortOptionValuesDefault = DefaultCaseSensitive ? ShortOptionValuesCaseSensitive : ShortOptionValuesIgnoreCase;
         PositionalArguments = result.Arguments;
     }
 
@@ -144,13 +158,27 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// 获取命令行参数中指定名称的选项的值。
     /// </summary>
     /// <param name="optionName">选项的名称。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(string optionName)
+    {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+        return LongOptionValuesDefault.TryGetValue(optionName, out var defaultValues)
+            ? new CommandLinePropertyValue(defaultValues, context)
+            : null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="optionName">选项的名称。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public CommandLinePropertyValue? GetOption(string optionName, bool? caseSensitive = null)
+    public CommandLinePropertyValue? GetOption(string optionName, bool caseSensitive)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+        var optionValues = caseSensitive
             ? LongOptionValuesCaseSensitive
             : LongOptionValuesIgnoreCase;
         return optionValues.TryGetValue(optionName, out var defaultValues)
@@ -162,13 +190,27 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// 获取命令行参数中指定短名称的选项的值。
     /// </summary>
     /// <param name="shortOption">短名称选项。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(char shortOption)
+    {
+        var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
+        return ShortOptionValuesDefault.TryGetValue(shortOption, out var defaultValues)
+            ? new CommandLinePropertyValue(defaultValues, context)
+            : null;
+    }
+
+    /// <summary>
+    /// 获取命令行参数中指定短名称的选项的值。
+    /// </summary>
+    /// <param name="shortOption">短名称选项。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public CommandLinePropertyValue? GetOption(char shortOption, bool? caseSensitive = null)
+    public CommandLinePropertyValue? GetOption(char shortOption, bool caseSensitive)
     {
         var context = new ConvertingContext(MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last);
-        var optionValues = (caseSensitive ?? DefaultCaseSensitive)
+        var optionValues = caseSensitive
             ? ShortOptionValuesCaseSensitive
             : ShortOptionValuesIgnoreCase;
         return optionValues.TryGetValue(shortOption, out var defaultValues)
@@ -181,10 +223,23 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// </summary>
     /// <param name="shortName">短名称选项。</param>
     /// <param name="longName">选项的名称。</param>
+    /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
+    [Pure]
+    public CommandLinePropertyValue? GetOption(char shortName, string longName) =>
+        // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
+        GetOption(shortName)
+        // 其次使用长名称。
+        ?? GetOption(longName);
+
+    /// <summary>
+    /// 获取命令行参数中指定名称的选项的值。
+    /// </summary>
+    /// <param name="shortName">短名称选项。</param>
+    /// <param name="longName">选项的名称。</param>
     /// <param name="caseSensitive">单独为此选项设置的大小写敏感性。</param>
     /// <returns>返回选项的值。当命令行未传入此参数时返回 <see langword="null" />。</returns>
     [Pure]
-    public CommandLinePropertyValue? GetOption(char shortName, string longName, bool? caseSensitive = null) =>
+    public CommandLinePropertyValue? GetOption(char shortName, string longName, bool caseSensitive) =>
         // 优先使用短名称（因为长名称可能是根据属性名猜出来的）。
         GetOption(shortName, caseSensitive)
         // 其次使用长名称。
