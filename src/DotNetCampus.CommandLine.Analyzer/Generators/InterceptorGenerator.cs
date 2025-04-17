@@ -29,10 +29,16 @@ public class InterceptorGenerator : IIncrementalGenerator
             }, (c, ct) =>
             {
                 var node = (InvocationExpressionSyntax)c.Node;
-                var interceptableLocation = c.SemanticModel.GetInterceptableLocation(node, ct);
+                // 确保此方法是 DotNetCampus.Cli.CommandLine.As<T>() 方法（类也要匹配）。
+                var methodSymbol = c.SemanticModel.GetSymbolInfo(node, ct).Symbol as IMethodSymbol;
+                if (methodSymbol is null || methodSymbol.ContainingType.ToDisplayString() != "DotNetCampus.Cli.CommandLine")
+                {
+                    return null;
+                }
                 // 获取 commandLine.As<T>() 中的 T。
                 var genericTypeNode = ((GenericNameSyntax)((MemberAccessExpressionSyntax)node.Expression).Name).TypeArgumentList.Arguments[0];
                 var symbol = c.SemanticModel.GetSymbolInfo(genericTypeNode, ct).Symbol as INamedTypeSymbol;
+                var interceptableLocation = c.SemanticModel.GetInterceptableLocation(node, ct);
                 return interceptableLocation is not null && symbol is not null
                     ? new InterceptorGeneratingModel(interceptableLocation, symbol)
                     : null;
@@ -80,6 +86,7 @@ namespace System.Runtime.CompilerServices
         }
     }
 }
+
 """;
     }
 
