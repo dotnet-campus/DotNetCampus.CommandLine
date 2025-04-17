@@ -1,4 +1,4 @@
-﻿#define Benchmark
+﻿#define Benchmark_NOT
 using System.Data.Common;
 using System.Diagnostics;
 using DotNetCampus.Cli.Compiler;
