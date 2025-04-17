@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿#define Benchmark
+using System.Data.Common;
+using System.Diagnostics;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Tests.Fakes;
 
@@ -8,6 +10,26 @@ class Program
 {
     static void Main(string[] args)
     {
+#if Benchmark
+        var stopwatch = Stopwatch.StartNew();
+        if (args.Length is 0)
+        {
+        }
+        else if (args[0] == "3.x-parser")
+        {
+            Run3xParser(args);
+        }
+        else if (args[0] == "3.x-runtime")
+        {
+            Run3xRuntime(args);
+        }
+        else if (args[0] == "4.x")
+        {
+            Run4x(args);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"[# Elapsed: {stopwatch.Elapsed.TotalMicroseconds} us #]");
+#else
         const int testCount = 1000000;
         CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
 
@@ -65,30 +87,41 @@ class Program
         }
         stopwatch.Stop();
         Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | {stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
+#endif
     }
 
-    private static int Run(Options options)
+    private static void Run3xParser(string[] args)
     {
-        return 0;
+        _ = dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
+    }
+
+    private static void Run3xRuntime(string[] args)
+    {
+        _ = dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
+    }
+
+    private static void Run4x(string[] args)
+    {
+        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
     }
 }
 
-[CollectCommandHandlersFromThisAssembly]
-internal partial class AssemblyCommandHandler;
+// [CollectCommandHandlersFromThisAssembly]
+// internal partial class AssemblyCommandHandler;
 
-[Verb("sample")]
-internal class SampleCommandHandler : ICommandHandler
-{
-    [Option("SampleProperty")]
-    public required string Option { get; init; }
-
-    [Value(Length = int.MaxValue)]
-    public string? Argument { get; init; }
-
-    public Task<int> RunAsync()
-    {
-        Console.WriteLine($"Option: {Option}");
-        Console.WriteLine($"Argument: {Argument}");
-        return Task.FromResult(0);
-    }
-}
+// [Verb("sample")]
+// internal class SampleCommandHandler : ICommandHandler
+// {
+//     [Option("SampleProperty")]
+//     public required string Option { get; init; }
+//
+//     [Value(Length = int.MaxValue)]
+//     public string? Argument { get; init; }
+//
+//     public Task<int> RunAsync()
+//     {
+//         Console.WriteLine($"Option: {Option}");
+//         Console.WriteLine($"Argument: {Argument}");
+//         return Task.FromResult(0);
+//     }
+// }

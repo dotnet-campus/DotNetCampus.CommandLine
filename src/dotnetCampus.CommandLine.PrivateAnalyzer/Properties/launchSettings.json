@@ -1,9 +1,0 @@
-﻿{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "profiles": {
-    "调试源生成器": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "../DotNetCampus.CommandLine/DotNetCampus.CommandLine.csproj"
-    }
-  }
-}
