@@ -102,7 +102,13 @@ internal static class InterceptorModelProvider
                     .ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } verbArgument
                     ? verbArgument.Value?.ToString()
                     : null;
-                return new InterceptorGeneratingModel(interceptableLocation, symbol, verbName);
+                // 获取调用代码所在的类和方法。
+                var methodDeclaration = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
+                var classDeclaration = methodDeclaration?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
+                var invocationFileName = Path.GetFileName(node.SyntaxTree.FilePath);
+                var invocationInfo = $"{classDeclaration?.Identifier.ToString()}.{methodDeclaration?.Identifier.ToString()} @{invocationFileName}";
+
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, verbName, invocationInfo);
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -112,7 +118,8 @@ internal static class InterceptorModelProvider
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
     INamedTypeSymbol CommandObjectType,
-    string? VerbName
+    string? VerbName,
+    string InvocationInfo
 )
 {
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);

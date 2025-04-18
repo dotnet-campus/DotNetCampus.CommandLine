@@ -130,7 +130,7 @@ namespace System.Runtime.CompilerServices
     private string GenerateInterceptsLocationCode(InterceptorGeneratingModel model)
     {
         return $"""
-        [global::System.Runtime.CompilerServices.InterceptsLocation({model.InterceptableLocation.Version}, "{model.InterceptableLocation.Data}")]
+        [global::System.Runtime.CompilerServices.InterceptsLocation({model.InterceptableLocation.Version}, /* {model.InvocationInfo} */ "{model.InterceptableLocation.Data}")]
 """;
     }
 
