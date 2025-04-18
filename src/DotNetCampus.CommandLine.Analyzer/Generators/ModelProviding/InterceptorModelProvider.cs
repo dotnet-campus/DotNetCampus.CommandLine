@@ -1,5 +1,7 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Text.RegularExpressions;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,9 +92,17 @@ internal static class InterceptorModelProvider
                 var genericTypeNode = ((GenericNameSyntax)((MemberAccessExpressionSyntax)node.Expression).Name).TypeArgumentList.Arguments[0];
                 var symbol = ModelExtensions.GetSymbolInfo(c.SemanticModel, genericTypeNode, ct).Symbol as INamedTypeSymbol;
                 var interceptableLocation = c.SemanticModel.GetInterceptableLocation(node, ct);
-                return interceptableLocation is not null && symbol is not null
-                    ? new InterceptorGeneratingModel(interceptableLocation, symbol)
+                if (interceptableLocation is null || symbol is null)
+                {
+                    return null;
+                }
+                // 获取 [Verb("xxx")] 特性中的 xxx。
+                var verbName = symbol.GetAttributes()
+                    .FirstOrDefault(attribute => attribute.AttributeClass?.IsAttributeOf<VerbAttribute>() is true)?
+                    .ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } verbArgument
+                    ? verbArgument.Value?.ToString()
                     : null;
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, verbName);
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -101,7 +111,8 @@ internal static class InterceptorModelProvider
 
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
-    INamedTypeSymbol CommandObjectType
+    INamedTypeSymbol CommandObjectType,
+    string? VerbName
 )
 {
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);

@@ -161,7 +161,7 @@ namespace System.Runtime.CompilerServices
         public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
             where T : {{model.CommandObjectType.ToGlobalDisplayString()}}, global::DotNetCampus.Cli.ICommandHandler
         {
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.VerbName is { } verb ? $"\"{verb}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
         }
 """;
     }
@@ -178,7 +178,7 @@ namespace System.Runtime.CompilerServices
             global::{{parameterTypeFullName}} handler)
             where T : class
         {
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.VerbName is { } verb ? $"\"{verb}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
         }
 """;
     }
