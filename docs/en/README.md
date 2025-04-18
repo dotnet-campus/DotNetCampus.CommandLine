@@ -84,8 +84,8 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 Supported styles include:
 
 - `CommandLineStyle.Flexible` (default): Intelligently recognizes multiple styles
-- `CommandLineStyle.GNU`: GNU standard compliant style
-- `CommandLineStyle.POSIX`: POSIX standard compliant style
+- `CommandLineStyle.Gnu`: GNU standard compliant style
+- `CommandLineStyle.Posix`: POSIX standard compliant style
 - `CommandLineStyle.DotNet`: .NET CLI style
 - `CommandLineStyle.PowerShell`: PowerShell style
 

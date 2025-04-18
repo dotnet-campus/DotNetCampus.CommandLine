@@ -84,8 +84,8 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 支持的风格包括：
 
 - `CommandLineStyle.Flexible`（默认）：智能识别多种风格
-- `CommandLineStyle.GNU`：符合 GNU 规范的风格
-- `CommandLineStyle.POSIX`：符合 POSIX 规范的风格
+- `CommandLineStyle.Gnu`：符合 GNU 规范的风格
+- `CommandLineStyle.Posix`：符合 POSIX 规范的风格
 - `CommandLineStyle.DotNet`：.NET CLI 风格
 - `CommandLineStyle.PowerShell`：PowerShell 风格
 
