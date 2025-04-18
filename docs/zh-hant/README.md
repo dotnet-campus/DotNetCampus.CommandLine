@@ -1,3 +1,4 @@
+<!-- filepath: d:\Codes\GitHub\dotnetCampus\DotNetCampus.CommandLine\docs\zh-hant\README.md -->
 # 命令行解析
 
 | [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
@@ -83,11 +84,16 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 支持的風格包括：
 
-- `CommandLineStyle.Flexible`（默認）：智能識別多種風格
-- `CommandLineStyle.Gnu`：符合 GNU 規範的風格
-- `CommandLineStyle.Posix`：符合 POSIX 規範的風格
-- `CommandLineStyle.DotNet`：.NET CLI 風格
-- `CommandLineStyle.PowerShell`：PowerShell 風格
+- `CommandLineStyle.Flexible`（默認）：智能識別多種風格，默認大小寫不敏感，是 DotNet/GNU/PowerShell 風格的有效組合
+  - 支持前面示例中所有風格的命令行參數，可正確解析
+  - 完整支持 DotNet 風格的所有命令行功能（包括列表和字典）
+  - 支持 GNU 風格中除短名稱接參數（如 `-o1.txt`）和短名稱縮寫（如 `-abc` 表示 `-a -b -c`）外的所有功能
+  - 由於 Posix 規則限制嚴格，Flexible 風格自然兼容 Posix 風格
+  - DotNet 風格本身兼容 PowerShell 命令行風格，因此 Flexible 風格也支持 PowerShell 風格
+- `CommandLineStyle.Gnu`：符合 GNU 規範的風格，默認大小寫敏感
+- `CommandLineStyle.Posix`：符合 POSIX 規範的風格，默認大小寫敏感
+- `CommandLineStyle.DotNet`：.NET CLI 風格，默認大小寫不敏感
+- `CommandLineStyle.PowerShell`：PowerShell 風格，默認大小寫不敏感
 
 ## 數據類型支持
 
@@ -423,26 +429,126 @@ public string OutputFile { get; init; }
 2. 解決數字從屬問題（如"Version2Info"是"Version2-Info"還是"Version-2-Info"）
 3. 與多種命令行風格更好地兼容
 
+## 源生成器、攔截器與性能優化
+
+DotNetCampus.CommandLine 使用源代碼生成器技術大幅提升了命令行解析的性能。其中的攔截器（[Interceptor](https://github.com/dotnet/roslyn/blob/main/docs/features/interceptors.md)）讓性能提升發揮得更淋漓盡致。
+
+### 攔截器的工作原理
+
+當你調用 `CommandLine.As<T>()` 或 `CommandLine.AddHandler<T>()` 等方法時，源生成器會自動生成攔截代碼，將調用重定向到編譯時生成的高性能代碼路徑。這使得命令行參數解析和對象創建的性能得到了大幅提升。
+
+例如，當你編寫以下代碼時：
+
+```csharp
+var options = CommandLine.Parse(args).As<Options>();
+```
+
+源生成器會攔截這個調用，自動生成類似以下的代碼來替代默認通過字典查找創建器的方式實現（舊版本曾使用過反射）：
+
+```csharp
+/// <summary>
+/// <see cref="global::DotNetCampus.Cli.CommandLine.As{Options}()"/> 方法的攔截器。攔截以提高性能。
+/// </summary>
+[global::System.Runtime.CompilerServices.InterceptsLocation(1, /* Program.Run4xInterceptor @Program.cs */ "G4GJAK7udHFnPkRUqV6VzzgRAABQcm9ncmFtLmNz")]
+public static T CommandLine_As_DotNetCampusCliTestsFakesOptions<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
+    where T : global::DotNetCampus.Cli.Tests.Fakes.Options
+{
+    return (T)global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance(commandLine);
+}
+```
+
+### 源生成器生成的代碼示例
+
+下面是一個簡單的命令行選項類型及其對應生成的源代碼示例：
+
+```csharp
+// 用戶代碼中的類型
+internal record DotNet03_MixedOptions
+{
+    [Option]
+    public int Number { get; init; }
+
+    [Option]
+    public required string Text { get; init; }
+
+    [Option]
+    public bool Flag { get; init; }
+}
+```
+
+對應生成的源：
+
+```csharp
+#nullable enable
+namespace DotNetCampus.Cli.Tests;
+
+/// <summary>
+/// 輔助 <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/> 生成命令行選項、謂詞或處理函數的創建。
+/// </summary>
+internal sealed class DotNet03_MixedOptionsBuilder
+{
+    public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    {
+        var caseSensitive = commandLine.DefaultCaseSensitive;
+        var result = new global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions
+        {
+            Number = commandLine.GetOption("number") ?? default,
+            Text = commandLine.GetOption("text") ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option '--text'. Command line: {commandLine}", "Text"),
+            Flag = commandLine.GetOption("flag") ?? default,
+            // There is no positional argument to be initialized.
+        };
+        // There is no option to be assigned.
+        // There is no positional argument to be assigned.
+        return result;
+    }
+}
+```
+
 ## 性能數據
 
-源代碼生成器實現使得命令行解析的性能得到大幅提升：
+源代碼生成器實現提供了極高的命令行解析性能：
 
-| Method                           |           Mean |        Error |       StdDev |   Gen0 |   Gen1 | Allocated |
-| -------------------------------- | -------------: | -----------: | -----------: | -----: | -----: | --------: |
-| 'parse  [] --flexible'           |       512.5 ns |      9.35 ns |      8.75 ns | 0.0792 |      - |    1328 B |
-| 'parse  [] --gnu'                |       301.1 ns |      2.05 ns |      1.91 ns | 0.0434 |      - |     728 B |
-| 'parse  [] --posix'              |       214.2 ns |      1.61 ns |      1.51 ns | 0.0291 |      - |     488 B |
-| 'parse  [] --dotnet'             |       513.4 ns |      3.00 ns |      2.66 ns | 0.0792 |      - |    1328 B |
-| 'parse  [] --powershell'         |       434.5 ns |      1.37 ns |      1.14 ns | 0.0648 |      - |    1088 B |
-| 'parse  [PS1] --flexible'        |    10,478.6 ns |     86.91 ns |     81.29 ns | 0.4883 |      - |    8336 B |
-| 'parse  [PS1] --powershell'      |     5,976.5 ns |     64.78 ns |     54.10 ns | 0.2594 |      - |    4440 B |
-| 'parse  [CMD] --flexible'        |     6,098.2 ns |     35.36 ns |     33.08 ns | 0.2747 |      - |    4680 B |
-| 'parse  [CMD] --powershell'      |     3,224.6 ns |     26.28 ns |     24.58 ns | 0.0954 |      - |    1624 B |
-| 'parse  [GNU] --flexible'        |     6,550.1 ns |     64.40 ns |     60.24 ns | 0.2747 |      - |    4704 B |
-| 'parse  [GNU] --gnu'             |     4,484.6 ns |     30.10 ns |     26.69 ns | 0.1373 |      - |    2416 B |
-| 'handle [Edit,Print] --flexible' |     1,316.8 ns |      9.75 ns |      8.64 ns | 0.1373 |      - |    2304 B |
-| 'parse  [URL]'                   |     4,795.2 ns |     38.33 ns |     33.98 ns | 0.5951 | 0.0076 |    9976 B |
-| 'NuGet: CommandLineParser'       |   199,959.6 ns |  3,956.40 ns | 10,141.78 ns | 5.3711 |      - |   90696 B |
-| 'NuGet: System.CommandLine'      | 1,728,238.4 ns | 13,403.14 ns | 11,881.54 ns | 3.9063 |      - |   84138 B |
+| Method                                  | Mean            | Error         | StdDev        | Median          | Gen0   | Gen1   | Allocated |
+|---------------------------------------- |----------------:|--------------:|--------------:|----------------:|-------:|-------:|----------:|
+| 'parse  [] --flexible'                  |        39.16 ns |      0.402 ns |      0.357 ns |        39.15 ns | 0.0124 |      - |     208 B |
+| 'parse  [] --gnu'                       |        38.22 ns |      0.518 ns |      0.459 ns |        38.30 ns | 0.0124 |      - |     208 B |
+| 'parse  [] --posix'                     |        38.45 ns |      0.792 ns |      0.741 ns |        38.45 ns | 0.0124 |      - |     208 B |
+| 'parse  [] --dotnet'                    |        42.14 ns |      0.878 ns |      2.588 ns |        42.06 ns | 0.0124 |      - |     208 B |
+| 'parse  [] --powershell'                |        38.67 ns |      0.772 ns |      1.451 ns |        38.42 ns | 0.0124 |      - |     208 B |
+| 'parse  [] -v=3.x -p=parser'            |        44.07 ns |      0.665 ns |      0.841 ns |        44.08 ns | 0.0220 |      - |     368 B |
+| 'parse  [] -v=3.x -p=runtime'           |       365.36 ns |      7.186 ns |     13.319 ns |       361.47 ns | 0.0367 |      - |     616 B |
+| 'parse  [PS1] --flexible'               |       907.15 ns |     17.887 ns |     38.504 ns |       899.46 ns | 0.1612 |      - |    2704 B |
+| 'parse  [PS1] --dotnet'                 |       969.51 ns |     18.977 ns |     31.179 ns |       964.56 ns | 0.1612 |      - |    2704 B |
+| 'parse  [PS1] -v=3.x -p=parser'         |       448.38 ns |      8.883 ns |     13.830 ns |       445.91 ns | 0.0715 |      - |    1200 B |
+| 'parse  [PS1] -v=3.x -p=runtime'        |       835.83 ns |     16.055 ns |     38.774 ns |       830.59 ns | 0.0858 |      - |    1448 B |
+| 'parse  [CMD] --flexible'               |       932.31 ns |     18.636 ns |     40.907 ns |       936.14 ns | 0.1612 |      - |    2704 B |
+| 'parse  [CMD] --dotnet'                 |       877.96 ns |      8.846 ns |      9.832 ns |       877.67 ns | 0.1612 |      - |    2704 B |
+| 'parse  [CMD] -v=3.x -p=parser'         |       438.09 ns |      8.591 ns |     11.469 ns |       433.77 ns | 0.0715 |      - |    1200 B |
+| 'parse  [CMD] -v=3.x -p=runtime'        |       822.05 ns |     16.417 ns |     25.560 ns |       811.08 ns | 0.0858 |      - |    1448 B |
+| 'parse  [GNU] --flexible'               |       880.14 ns |     17.627 ns |     36.794 ns |       878.35 ns | 0.1574 |      - |    2648 B |
+| 'parse  [GNU] --gnu'                    |       811.59 ns |     13.691 ns |     20.492 ns |       805.61 ns | 0.1554 |      - |    2608 B |
+| 'parse  [GNU] -v=3.x -p=parser'         |       492.48 ns |      9.757 ns |     11.615 ns |       491.95 ns | 0.0896 |      - |    1512 B |
+| 'parse  [GNU] -v=3.x -p=runtime'        |       873.40 ns |     15.873 ns |     24.713 ns |       865.86 ns | 0.1049 |      - |    1760 B |
+| 'handle [Edit,Print] --flexible'        |       693.30 ns |     13.894 ns |     28.066 ns |       681.77 ns | 0.2375 | 0.0019 |    3984 B |
+| 'handle [Edit,Print] -v=3.x -p=parser'  |       949.15 ns |     18.959 ns |     25.952 ns |       939.97 ns | 0.2775 | 0.0038 |    4648 B |
+| 'handle [Edit,Print] -v=3.x -p=runtime' |     6,232.90 ns |    122.601 ns |    217.924 ns |     6,190.80 ns | 0.2594 |      - |    4592 B |
+| 'parse  [URL]'                          |     2,942.05 ns |     54.322 ns |     76.152 ns |     2,926.04 ns | 0.4578 |      - |    7704 B |
+| 'parse  [URL] -v=3.x -p=parser'         |       121.43 ns |      2.457 ns |      5.496 ns |       121.10 ns | 0.0440 |      - |     736 B |
+| 'parse  [URL] -v=3.x -p=runtime'        |       462.92 ns |      9.017 ns |     10.023 ns |       464.26 ns | 0.0587 |      - |     984 B |
+| 'NuGet: CommandLineParser'              |   212,745.53 ns |  4,237.822 ns | 11,384.635 ns |   211,418.82 ns | 5.3711 |      - |   90696 B |
+| 'NuGet: System.CommandLine'             | 1,751,023.59 ns | 34,134.634 ns | 50,034.108 ns | 1,727,339.45 ns | 3.9063 |      - |   84138 B |
 
-得益於源代碼生成器的使用，完成一次解析只需要約 5000ns（約 0.005ms），大幅優於運行時反射解析方式。
+其中：
+1. `parse` 表示調用的是 `CommandLine.Parse` 方法
+2. `handle` 表示調用的是 `CommandLine.AddHandler` 方法
+3. 中括號 `[Xxx]` 表示傳入的命令行參數的風格
+4. `--flexible` `--gnu` 等表示解析傳入命令行時所使用的解析器風格（相匹配時效率最高）
+5. `-v=3.x -p=parser` 表示舊版本手工編寫解析器並傳入時的性能（性能最好，不過舊版本支持的命令行規範較少，很多合法的命令寫法並不支持）
+6. `-v=3.x -p=runtime` 表示舊版本使用默認的反射解析器時的性能
+7. `NuGet: CommandLineParser` 和 `NuGet: System.CommandLine` 表示使用對應名稱的 NuGet 包解析命令行參數時的性能
+8. `parse [URL]` 表示解析 URL 協議字符串時的性能
+
+新版本得益於源生成器和攔截器：
+1. 完成一次解析大約在 0.8μs（微秒）左右（Benchmark）
+2. 在應用程序啟動期間，完成一次解析只需要大約 34μs
+3. 在應用程序啟動期間，包含dll加載、類型初始化在內的解析一次大約8ms（使用 AOT 編譯能重新降至 34μs）。
