@@ -144,14 +144,7 @@ internal record CommandObjectGeneratingModel
 
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
-        foreach (var postfix in SupportedPostfixes.Where(postfix => commandObjectType.Name.EndsWith(postfix, StringComparison.Ordinal)))
-        {
-            var namePrefix = commandObjectType.Name.Substring(0, commandObjectType.Name.Length - postfix.Length);
-            return string.IsNullOrEmpty(namePrefix) ? $"{commandObjectType.Name}Builder" : $"{namePrefix}Builder";
-        }
-
-        // 由于集合中最后有一个空字符串，所以此返回将永远不会进来。
-        throw new ArgumentException("Member Error.", nameof(SupportedPostfixes));
+        return $"{commandObjectType.Name}Builder";
     }
 }
 
