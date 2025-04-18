@@ -144,12 +144,12 @@ class Program
         // DefaultOptions { VerbName = null }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
             null,
-            global::DotNetCampus.Cli.DefaultBuilder.CreateInstance);
+            global::DotNetCampus.Cli.DefaultOptionsBuilder.CreateInstance);
 
         // EditOptions { VerbName = "Edit" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
             "Edit",
-            global::DotNetCampus.Cli.Tests.Fakes.EditBuilder.CreateInstance);
+            global::DotNetCampus.Cli.Tests.Fakes.EditOptionsBuilder.CreateInstance);
 
         // Options { VerbName = null }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
@@ -159,22 +159,22 @@ class Program
         // PrintOptions { VerbName = "Print" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
             "Print",
-            global::DotNetCampus.Cli.Tests.Fakes.PrintBuilder.CreateInstance);
-
-        // SampleOptions { VerbName = "sample-options" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
-            "sample-options",
-            global::DotNetCampus.Cli.SampleBuilder.CreateInstance);
+            global::DotNetCampus.Cli.Tests.Fakes.PrintOptionsBuilder.CreateInstance);
 
         // SampleCommandHandler { VerbName = "sample" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleCommandHandler>(
             "sample",
-            global::DotNetCampus.Cli.SampleCommandBuilder.CreateInstance);
+            global::DotNetCampus.Cli.SampleCommandHandlerBuilder.CreateInstance);
+
+        // SampleOptions { VerbName = "sample-options" }
+        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
+            "sample-options",
+            global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
 
         // ShareOptions { VerbName = "Share" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
             "Share",
-            global::DotNetCampus.Cli.Tests.Fakes.ShareBuilder.CreateInstance);
+            global::DotNetCampus.Cli.Tests.Fakes.ShareOptionsBuilder.CreateInstance);
     }
 }
 
