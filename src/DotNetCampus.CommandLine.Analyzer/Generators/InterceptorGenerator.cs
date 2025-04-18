@@ -16,21 +16,41 @@ public class InterceptorGenerator : IIncrementalGenerator
         var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var commandLineAsProvider = context.SelectCommandLineAsProvider();
         var commandRunnerAddHandlerProvider = context.SelectCommandBuilderAddHandlerProvider();
-        var commandRunnerAddHandlerActionTProvider = context.SelectCommandBuilderAddHandlerProvider("System.Action<T>");
-        var commandRunnerAddHandlerFuncTTaskProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, System.Threading.Tasks.Task>");
-        var commandRunnerAddHandlerFuncTIntProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, int>");
-        var commandRunnerAddHandlerFuncTTaskIntProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, System.Threading.Tasks.Task<int>>");
+        var commandRunnerAddHandlerCoreActionProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Action<T>");
+        var commandRunnerAddHandlerAsyncActionProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "System.Action<T>");
+        var commandRunnerAddHandlerCoreFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, int>");
+        var commandRunnerAddHandlerAsyncFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "System.Func<T, int>");
+        var commandRunnerAddHandlerCoreFuncTaskProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task>");
+        var commandRunnerAddHandlerCoreFuncTaskIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task<int>>");
 
         context.RegisterSourceOutput(commandLineAsProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
         context.RegisterSourceOutput(commandRunnerAddHandlerProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandRunnerAddHandler);
-        context.RegisterSourceOutput(commandRunnerAddHandlerActionTProvider.Collect().Combine(analyzerConfigOptionsProvider),
-            (c, args) => CommandRunnerAddHandlerAction(c, args, "1", "System.Action<T>"));
-        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTTaskProvider.Collect().Combine(analyzerConfigOptionsProvider),
-        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "2", "System.Func<T, System.Threading.Tasks.Task>"));
-        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTIntProvider.Collect().Combine(analyzerConfigOptionsProvider),
-        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "3", "System.Func<T, int>"));
-        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTTaskIntProvider.Collect().Combine(analyzerConfigOptionsProvider),
-        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "4", "System.Func<T, System.Threading.Tasks.Task<int>>"));
+
+        // ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerCoreActionProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "ICoreCommandRunnerBuilder.AddHandler(Action{T})", "ICoreCommandRunnerBuilder", "System.Action<T>", "ICommandRunnerBuilder"));
+
+        // IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerAsyncActionProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder.AddHandler(Action{T})", "IAsyncCommandRunnerBuilder", "System.Action<T>", "IAsyncCommandRunnerBuilder"));
+
+        // ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerCoreFuncIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "ICoreCommandRunnerBuilder.AddHandler(Func{T,int})", "ICoreCommandRunnerBuilder", "System.Func<T, int>", "ICommandRunnerBuilder"));
+
+        // IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerAsyncFuncIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder.AddHandler(Func{T,int})", "IAsyncCommandRunnerBuilder", "System.Func<T, int>", "IAsyncCommandRunnerBuilder"));
+
+        // IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerCoreFuncTaskProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "ICoreCommandRunnerBuilder.AddHandler(Func{T,Task})", "ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task>",
+                "IAsyncCommandRunnerBuilder"));
+
+        // IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler)
+        context.RegisterSourceOutput(commandRunnerAddHandlerCoreFuncTaskIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "ICoreCommandRunnerBuilder.AddHandler(Func{T,Task{int}})", "ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task<int>>",
+                "IAsyncCommandRunnerBuilder"));
     }
 
     /// <summary>
@@ -58,7 +78,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         }
 
         var code = GenerateCode(modelGroups, GenerateCommandBuilderAddHandlerCode);
-        context.AddSource("CommandLine.Interceptors/CommandBuilder.AddHandler.0.g.cs", code);
+        context.AddSource("CommandLine.Interceptors/CommandBuilder.AddHandler.g.cs", code);
     }
 
     /// <summary>
@@ -66,15 +86,15 @@ public class InterceptorGenerator : IIncrementalGenerator
     /// </summary>
     private void CommandRunnerAddHandlerAction(SourceProductionContext context,
         (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
-        string fileName, string parameterTypeFullName)
+        string fileName, string parameterThisName, string parameterTypeFullName, string returnName)
     {
         if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
         {
             return;
         }
 
-        var code = GenerateCode(modelGroups, x => GenerateCommandBuilderAddHandlerActionCode(parameterTypeFullName, x));
-        context.AddSource($"CommandLine.Interceptors/CommandBuilder.AddHandler.{fileName}.g.cs", code);
+        var code = GenerateCode(modelGroups, x => GenerateCommandBuilderAddHandlerActionCode(x, parameterThisName, parameterTypeFullName, returnName));
+        context.AddSource($"CommandLine.Interceptors/{fileName}.g.cs", code);
     }
 
     private string GenerateCode(Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>> models,
@@ -146,7 +166,7 @@ namespace System.Runtime.CompilerServices
 """;
     }
 
-    private string GenerateCommandBuilderAddHandlerActionCode(string parameterTypeFullName, ImmutableArray<InterceptorGeneratingModel> models)
+    private string GenerateCommandBuilderAddHandlerActionCode(ImmutableArray<InterceptorGeneratingModel> models, string parameterThisName, string parameterTypeFullName, string returnName)
     {
         var model = models[0];
         return $$"""
@@ -154,7 +174,7 @@ namespace System.Runtime.CompilerServices
         /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.ICommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder,
+        public static global::DotNetCampus.Cli.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.{{parameterThisName}} builder,
             global::{{parameterTypeFullName}} handler)
             where T : class
         {

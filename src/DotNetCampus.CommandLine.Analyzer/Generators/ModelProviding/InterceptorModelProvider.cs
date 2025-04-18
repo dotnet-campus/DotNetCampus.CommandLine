@@ -15,14 +15,17 @@ internal static class InterceptorModelProvider
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context, string? parameterTypeFullName = null)
+        this IncrementalGeneratorInitializationContext context)
     {
-        return parameterTypeFullName is null
-            ? SelectMethodInvocationProvider(context,
-                "DotNetCampus.Cli.CommandRunnerBuilderExtensions", "AddHandler")
-            : SelectMethodInvocationProvider(context,
-                "DotNetCampus.Cli.CommandRunnerBuilderExtensions", "AddHandler",
-                parameterTypeFullName.Replace("<T>", @"<[\w_\.]+>").Replace("T,", @"[\w_\.]+,"));
+        return SelectMethodInvocationProvider(context, "DotNetCampus.Cli.CommandRunnerBuilderExtensions", "AddHandler");
+    }
+
+    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
+        this IncrementalGeneratorInitializationContext context, string extensionMethodThisTypeName, string parameterTypeFullName)
+    {
+        return SelectMethodInvocationProvider(context,
+            $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler",
+            parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.]+>").Replace("T,", @"[\w_\.]+,"));
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectMethodInvocationProvider(this IncrementalGeneratorInitializationContext context,
@@ -57,9 +60,15 @@ internal static class InterceptorModelProvider
                 var node = (InvocationExpressionSyntax)c.Node;
                 // 确保此方法是 DotNetCampus.Cli.CommandLine.As<T>() 方法（类也要匹配）。
                 var methodSymbol = ModelExtensions.GetSymbolInfo(c.SemanticModel, node, ct).Symbol as IMethodSymbol;
-                if (methodSymbol is null || methodSymbol.ContainingType.ToDisplayString() != typeFullName)
+                if (methodSymbol is null)
                 {
-                    // 没有方法，或方法所在的类型不匹配。
+                    // 没有方法。
+                    return null;
+                }
+                if (methodSymbol.ContainingType.ToDisplayString() != typeFullName
+                    && methodSymbol.ReceiverType?.ToDisplayString() != typeFullName)
+                {
+                    // 方法所在的类型不匹配，且扩展方法的 this 参数类型不匹配。
                     return null;
                 }
                 if (methodSymbol.Parameters.Length != parameterTypeFullNameRegexes.Length)
@@ -70,10 +79,6 @@ internal static class InterceptorModelProvider
                 for (var i = 0; i < parameterTypeFullNameRegexes.Length; i++)
                 {
                     var parameterSymbol = methodSymbol.Parameters[i];
-                    if (parameterSymbol.Type.ToDisplayString().Contains("Action"))
-                    {
-                        throw new InvalidOperationException($"预期类型：{parameterTypeFullNameRegexes[i]}；实际类型：{parameterSymbol.Type.ToDisplayString()}。");
-                    }
                     if (!Regex.Match(parameterSymbol.Type.ToDisplayString(), parameterTypeFullNameRegexes[i]).Success)
                     {
                         // 参数类型不匹配。

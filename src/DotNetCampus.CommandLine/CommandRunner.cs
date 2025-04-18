@@ -121,6 +121,23 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return this;
     }
 
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>返回一个命令处理器构建器。</returns>
+    internal CommandRunner AddHandler<T>(string? verbName, CommandObjectCreator creator, Func<T, Task<int>> handler)
+        where T : class
+    {
+        _dictionaryVerbHandlers.AddHandler(verbName, cl => new TaskCommandHandler<T>(
+            () => (T)creator(cl),
+            handler));
+        return this;
+    }
+
     internal CommandRunner AddHandlers<T>()
         where T : ICommandHandlerCollection, new()
     {
