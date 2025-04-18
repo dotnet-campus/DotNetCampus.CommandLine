@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
 using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Utils.Handlers;
 
 namespace DotNetCampus.Cli;
@@ -195,8 +196,9 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
         if (handler is null)
         {
-            throw new InvalidOperationException(
-                $"No command handler found for verb '{_commandLine.GuessedVerbName}'. Please ensure that the command handler is registered correctly.");
+            throw new CommandVerbNotFoundException(
+                $"No command handler found for verb '{_commandLine.GuessedVerbName}'. Please ensure that the command handler is registered correctly.",
+                _commandLine.GuessedVerbName);
         }
 
         return handler.RunAsync();
