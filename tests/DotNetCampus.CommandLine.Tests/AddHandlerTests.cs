@@ -172,7 +172,9 @@ public class AddHandlerTests
         // Assert
         Assert.IsNull(capturedAddItem);
         Assert.AreEqual("item2", capturedRemoveItem);
-    }    [TestMethod("2.3. 未提供谓词时不匹配任何命令抛出CommandVerbNotFoundException")]
+    }
+
+    [TestMethod("2.3. 未提供谓词时不匹配任何命令抛出CommandVerbNotFoundException")]
     public void RegisterHandler_WithNoVerbProvided_ThrowsCommandVerbNotFoundException()
     {
         // Arrange
@@ -305,7 +307,9 @@ public class AddHandlerTests
         });
 
         Assert.AreEqual(expectedException.Message, exception.Message);
-    }    [TestMethod("4.2. 未找到匹配的处理器时抛出CommandVerbNotFoundException")]
+    }
+
+    [TestMethod("4.2. 未找到匹配的处理器时抛出CommandVerbNotFoundException")]
     public void NoMatchingHandler_ThrowsCommandVerbNotFoundException()
     {
         // Arrange
