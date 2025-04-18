@@ -1,5 +1,6 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Collections.Immutable;
+using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -15,14 +16,29 @@ public class InterceptorGenerator : IIncrementalGenerator
         var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var commandLineAsProvider = context.SelectCommandLineAsProvider();
         var commandRunnerAddHandlerProvider = context.SelectCommandBuilderAddHandlerProvider();
+        var commandRunnerAddHandlerActionTProvider = context.SelectCommandBuilderAddHandlerProvider("System.Action<T>");
+        var commandRunnerAddHandlerFuncTTaskProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, System.Threading.Tasks.Task>");
+        var commandRunnerAddHandlerFuncTIntProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, int>");
+        var commandRunnerAddHandlerFuncTTaskIntProvider = context.SelectCommandBuilderAddHandlerProvider("System.Func<T, System.Threading.Tasks.Task<int>>");
 
         context.RegisterSourceOutput(commandLineAsProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
         context.RegisterSourceOutput(commandRunnerAddHandlerProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandRunnerAddHandler);
+        context.RegisterSourceOutput(commandRunnerAddHandlerActionTProvider.Collect().Combine(analyzerConfigOptionsProvider),
+            (c, args) => CommandRunnerAddHandlerAction(c, args, "1", "System.Action<T>"));
+        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTTaskProvider.Collect().Combine(analyzerConfigOptionsProvider),
+        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "2", "System.Func<T, System.Threading.Tasks.Task>"));
+        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTIntProvider.Collect().Combine(analyzerConfigOptionsProvider),
+        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "3", "System.Func<T, int>"));
+        // context.RegisterSourceOutput(commandRunnerAddHandlerFuncTTaskIntProvider.Collect().Combine(analyzerConfigOptionsProvider),
+        //     (c, args) => CommandRunnerAddHandlerAction(c, args, "4", "System.Func<T, System.Threading.Tasks.Task<int>>"));
     }
 
+    /// <summary>
+    /// CommandLine.As
+    /// </summary>
     private void CommandLineAs(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
     {
-        if (context.ToDictionary(args) is not { } modelGroups)
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
         {
             return;
         }
@@ -31,15 +47,34 @@ public class InterceptorGenerator : IIncrementalGenerator
         context.AddSource("CommandLine.Interceptors/CommandLine.As.g.cs", code);
     }
 
+    /// <summary>
+    /// CommandRunner.AddHandler
+    /// </summary>
     private void CommandRunnerAddHandler(SourceProductionContext context, (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)
     {
-        if (context.ToDictionary(args) is not { } modelGroups)
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
         {
             return;
         }
 
         var code = GenerateCode(modelGroups, GenerateCommandBuilderAddHandlerCode);
-        context.AddSource("CommandLine.Interceptors/CommandBuilder.AddHandler.g.cs", code);
+        context.AddSource("CommandLine.Interceptors/CommandBuilder.AddHandler.0.g.cs", code);
+    }
+
+    /// <summary>
+    /// CommandRunner.AddHandler(Action)
+    /// </summary>
+    private void CommandRunnerAddHandlerAction(SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
+        string fileName, string parameterTypeFullName)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, x => GenerateCommandBuilderAddHandlerActionCode(parameterTypeFullName, x));
+        context.AddSource($"CommandLine.Interceptors/CommandBuilder.AddHandler.{fileName}.g.cs", code);
     }
 
     private string GenerateCode(Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>> models,
@@ -87,7 +122,8 @@ namespace System.Runtime.CompilerServices
         /// <see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static T CommandLineAs{{model.CommandObjectType.Name}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine) where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
+        public static T CommandLine_As_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
+            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
             return (T)global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance(commandLine);
         }
@@ -102,10 +138,27 @@ namespace System.Runtime.CompilerServices
         /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilderAddHandler{{model.CommandObjectType.Name}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder) where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
+        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
+            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}, global::DotNetCampus.Cli.ICommandHandler
         {
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null,
-                global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+        }
+""";
+    }
+
+    private string GenerateCommandBuilderAddHandlerActionCode(string parameterTypeFullName, ImmutableArray<InterceptorGeneratingModel> models)
+    {
+        var model = models[0];
+        return $$"""
+        /// <summary>
+        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
+        /// </summary>
+{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
+        public static global::DotNetCampus.Cli.ICommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder,
+            global::{{parameterTypeFullName}} handler)
+            where T : class
+        {
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, null, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
         }
 """;
     }
