@@ -296,7 +296,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
     {
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return PositionalArguments.Count <= 0
+        return PositionalArguments.Count <= verbOffset
             ? null
             : new CommandLinePropertyValue(PositionalArguments.Slice(verbOffset, 1), PositionalArgumentsMultiValueHandling);
     }
@@ -313,11 +313,12 @@ public class CommandLine : ICoreCommandRunnerBuilder
     {
         var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
         var verbOffset = shouldSkipVerb ? 1 : 0;
-        return index < 0 || index >= PositionalArguments.Count
+        var realIndex = index + verbOffset;
+        return realIndex < 0 || realIndex >= PositionalArguments.Count
             ? null
             : new CommandLinePropertyValue(
-                PositionalArguments.Slice(index + verbOffset,
-                    Math.Min(length, PositionalArguments.Count - index - verbOffset)), PositionalArgumentsMultiValueHandling);
+                PositionalArguments.Slice(realIndex,
+                    Math.Min(length, PositionalArguments.Count - realIndex)), PositionalArgumentsMultiValueHandling);
     }
 
     /// <summary>
