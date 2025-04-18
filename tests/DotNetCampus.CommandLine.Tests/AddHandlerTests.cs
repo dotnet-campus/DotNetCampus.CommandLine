@@ -172,23 +172,24 @@ public class AddHandlerTests
         // Assert
         Assert.IsNull(capturedAddItem);
         Assert.AreEqual("item2", capturedRemoveItem);
-    }
-
-    [TestMethod("2.3. 未提供谓词时不匹配任何命令")]
-    public void RegisterHandler_WithNoVerbProvided_NoCommandMatched()
+    }    [TestMethod("2.3. 未提供谓词时不匹配任何命令抛出CommandVerbNotFoundException")]
+    public void RegisterHandler_WithNoVerbProvided_ThrowsCommandVerbNotFoundException()
     {
         // Arrange
         string[] args = ["item3"];
         bool addHandlerCalled = false;
         bool removeHandlerCalled = false;
 
-        // Act
-        CommandLine.Parse(args, Flexible)
-            .AddHandler<AddOptions>(_ => addHandlerCalled = true)
-            .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
-            .Run();
+        // Act & Assert
+        var exception = Assert.ThrowsException<CommandVerbNotFoundException>(() => {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<AddOptions>(_ => addHandlerCalled = true)
+                .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
+                .Run();
+        });
 
-        // Assert
+        // 确认异常包含正确的谓词信息
+        Assert.IsTrue(exception.Message.Contains("item3"));
         Assert.IsFalse(addHandlerCalled);
         Assert.IsFalse(removeHandlerCalled);
     }
@@ -304,22 +305,22 @@ public class AddHandlerTests
         });
 
         Assert.AreEqual(expectedException.Message, exception.Message);
-    }
-
-    [TestMethod("4.2. 未找到匹配的处理器时返回非零退出代码")]
-    public void NoMatchingHandler_ReturnsNonZeroExitCode()
+    }    [TestMethod("4.2. 未找到匹配的处理器时抛出CommandVerbNotFoundException")]
+    public void NoMatchingHandler_ThrowsCommandVerbNotFoundException()
     {
         // Arrange
         string[] args = ["unknown-verb"];
 
-        // Act
-        int exitCode = CommandLine.Parse(args, Flexible)
-            .AddHandler<AddOptions>(_ => { })
-            .AddHandler<RemoveOptions>(_ => { })
-            .Run();
+        // Act & Assert
+        var exception = Assert.ThrowsException<CommandVerbNotFoundException>(() => {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<AddOptions>(_ => { })
+                .AddHandler<RemoveOptions>(_ => { })
+                .Run();
+        });
 
-        // Assert
-        Assert.AreNotEqual(0, exitCode);
+        // 确认异常包含正确的谓词信息
+        Assert.IsTrue(exception.Message.Contains("unknown-verb"));
     }
 
     [TestMethod("4.3. 必需属性未赋值时抛出异常")]
