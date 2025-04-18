@@ -1,8 +1,9 @@
 <Project>
 
   <PropertyGroup>
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
     <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">true</DotNetCampusCommandLineUseInterceptor>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsPreviewNamespaces>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
