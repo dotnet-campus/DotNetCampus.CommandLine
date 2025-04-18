@@ -2,8 +2,17 @@
 
   <PropertyGroup>
     <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">true</DotNetCampusCommandLineUseInterceptor>
-    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsPreviewNamespaces>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsNamespaces>
+
+    <!--
+      https://github.com/dotnet/roslyn/blob/main/docs/features/interceptors.md
+
+      For compatibility, the property <InterceptorsPreviewNamespaces> can be used as an alias for <InterceptorsNamespaces>.
+      If both properties have non-empty values, they will be concatenated together in the order $(InterceptorsNamespaces);$(InterceptorsPreviewNamespaces) when passed to the compiler.
+      为了兼容性，属性 <InterceptorsPreviewNamespaces> 可用作 <InterceptorsNamespaces> 的别名。
+      如果两个属性都具有非空值，则它们在传递给编译器时将按 $(InterceptorsNamespaces);$(InterceptorsPreviewNamespaces) 的顺序连接在一起。
+    -->
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);DotNetCampus.CommandLine.Compiler</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
