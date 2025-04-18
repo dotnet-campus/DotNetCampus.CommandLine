@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DotNetCampus.Cli</RootNamespace>
     <PublishAot>true</PublishAot>
+    <!-- <DotNetCampusCommandLineUseInterceptor>false</DotNetCampusCommandLineUseInterceptor>-->
   </PropertyGroup>
 
   <ItemGroup>
