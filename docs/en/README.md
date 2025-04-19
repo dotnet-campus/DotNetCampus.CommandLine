@@ -64,7 +64,7 @@ Then use different command styles in the command line to populate an instance of
 ### Linux/GNU Style
 
 ```bash
-$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A B C
+$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A --startup-sessions B --startup-sessions C
 ```
 
 ### .NET CLI Style

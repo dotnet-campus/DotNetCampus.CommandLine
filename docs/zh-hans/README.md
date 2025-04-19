@@ -64,7 +64,7 @@ class Options
 ### Linux/GNU 风格
 
 ```bash
-$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A B C
+$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A --startup-sessions B --startup-sessions C
 ```
 
 ### .NET CLI 风格
