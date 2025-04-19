@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Globalization;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
@@ -9,7 +10,7 @@ namespace DotNetCampus.CommandLine.Generators.ModelProviding;
 
 internal static class CommandModelProvider
 {
-    public static IncrementalValuesProvider<CommandOptionsGeneratingModel> SelectCommandOptions(this IncrementalGeneratorInitializationContext context)
+    public static IncrementalValuesProvider<CommandObjectGeneratingModel> SelectCommandObjects(this IncrementalGeneratorInitializationContext context)
     {
         return context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
@@ -81,10 +82,10 @@ internal static class CommandModelProvider
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
                 var verbName = attribute?.ConstructorArguments[0].Value?.ToString();
 
-                return new CommandOptionsGeneratingModel
+                return new CommandObjectGeneratingModel
                 {
                     Namespace = @namespace,
-                    OptionsType = typeSymbol,
+                    CommandObjectType = typeSymbol,
                     VerbName = verbName,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
@@ -123,13 +124,13 @@ internal static class CommandModelProvider
     }
 }
 
-internal record CommandOptionsGeneratingModel
+internal record CommandObjectGeneratingModel
 {
     private static readonly ImmutableArray<string> SupportedPostfixes = ["Options", "CommandOptions", "Handler", "CommandHandler", ""];
 
     public required string Namespace { get; init; }
 
-    public required INamedTypeSymbol OptionsType { get; init; }
+    public required INamedTypeSymbol CommandObjectType { get; init; }
 
     public required string? VerbName { get; init; }
 
@@ -139,20 +140,11 @@ internal record CommandOptionsGeneratingModel
 
     public required ImmutableArray<ValuePropertyGeneratingModel> ValueProperties { get; init; }
 
-    public string GetVerbCreatorTypeName()
+    public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
+
+    public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
-        if (VerbName is { } verbName)
-        {
-            return $"{NamingHelper.MakePascalCase(verbName)}VerbCreator";
-        }
-
-        foreach (var postfix in SupportedPostfixes.Where(postfix => OptionsType.Name.EndsWith(postfix, StringComparison.Ordinal)))
-        {
-            return $"{OptionsType.Name.Substring(0, OptionsType.Name.Length - postfix.Length)}VerbCreator";
-        }
-
-        // 由于集合中最后有一个空字符串，所以此返回将永远不会进来。
-        throw new ArgumentException("Member Error.", nameof(SupportedPostfixes));
+        return $"{commandObjectType.Name}Builder";
     }
 }
 
@@ -225,6 +217,40 @@ internal record OptionPropertyGeneratingModel
         }
 
         return $"--{NamingHelper.MakeKebabCase(PropertyName, !caseSensitive, !caseSensitive)}";
+    }
+
+    public IReadOnlyList<string> GenerateAllNames(
+        Func<string, string> shortNameCreator,
+        Func<string, string> longNameCreator,
+        Func<string, string, string> caseLongNameCreator,
+        Func<string, string> aliasCreator)
+    {
+        var list = new List<string>();
+
+        if (ShortName is { } shortName)
+        {
+            list.Add(shortNameCreator(shortName.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        var longNames = GetNormalizedLongNames();
+        if (longNames.Length is 1)
+        {
+            list.Add(longNameCreator(longNames[0]));
+        }
+        else if (longNames.Length is 2)
+        {
+            list.Add(caseLongNameCreator(longNames[0], longNames[1]));
+        }
+
+        if (Aliases is { Length: > 0 } aliases)
+        {
+            foreach (var alias in aliases)
+            {
+                list.Add(aliasCreator(alias));
+            }
+        }
+
+        return list;
     }
 
     public static OptionPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)

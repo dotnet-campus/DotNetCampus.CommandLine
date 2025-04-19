@@ -35,4 +35,10 @@
     <Compile Remove="CommandLineTests.ValueRange.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="dotnetCampus.CommandLine.Legacy">
+      <HintPath>..\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

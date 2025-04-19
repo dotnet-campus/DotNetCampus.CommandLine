@@ -4,5 +4,5 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal interface ICommandLineParser
 {
-    CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments);
+    CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments);
 }

@@ -1,6 +1,7 @@
-using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Web;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
@@ -10,6 +11,7 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// </summary>
 internal sealed class UrlStyleParser : ICommandLineParser
 {
+    private const string FragmentName = "fragment";
     private readonly string _scheme;
 
     /// <summary>
@@ -21,109 +23,270 @@ internal sealed class UrlStyleParser : ICommandLineParser
         _scheme = scheme;
     }
 
-    public CommandLineParsedResult Parse(ImmutableArray<string> commandLineArguments)
+    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
-        if (commandLineArguments.Length != 1)
+        if (commandLineArguments.Count is not 1)
         {
-            throw new CommandLineParseException("URL style parser expects exactly one argument.");
+            throw new CommandLineParseException($"URL style parser expects exactly one argument, but got {commandLineArguments.Count}.");
         }
 
         var url = commandLineArguments[0];
 
-        // 验证URL格式：scheme://[path][?query][#fragment]
-        if (!url.StartsWith($"{_scheme}://", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new CommandLineParseException($"URL must start with '{_scheme}://'");
-        }
-
-        Dictionary<string, List<string>> longOptions = [];
-        List<string> arguments = [];
+        var longOptions = new OptionDictionary(true);
+        var shortOptions = new OptionDictionary(true);
         string? guessedVerbName = null;
+        List<string> arguments = [];
 
-        // 移除scheme://前缀
-        string urlWithoutScheme = url.Substring(_scheme.Length + 3);
+        string? lastParameterName = null;
+        var lastType = UrlParsedType.Start;
 
-        // 分离fragment
-        string urlWithoutFragment = urlWithoutScheme;
-
-        int fragmentIndex = urlWithoutScheme.IndexOf('#');
-        if (fragmentIndex >= 0)
+        for (var i = 0; i < url.Length;)
         {
-            urlWithoutFragment = urlWithoutScheme.Substring(0, fragmentIndex);
-            var fragment = urlWithoutScheme.Substring(fragmentIndex + 1);
+            var result = UrlPart.ReadNext(url, ref i, lastType);
+            lastType = result.Type;
 
-            // 添加fragment作为选项
-            longOptions["fragment"] = [fragment];
-        }
-
-        // 分离查询参数和路径
-        string path = urlWithoutFragment;
-        int queryIndex = urlWithoutFragment.IndexOf('?');
-
-        if (queryIndex >= 0)
-        {
-            path = urlWithoutFragment.Substring(0, queryIndex);
-            string queryString = urlWithoutFragment.Substring(queryIndex + 1);
-
-            // 解析查询字符串参数
-            ParseQueryString(queryString, longOptions);
-        }
-
-        // 如果路径不为空，将其添加为位置参数
-        if (!string.IsNullOrEmpty(path))
-        {
-            // URL解码路径
-            string decodedPath = HttpUtility.UrlDecode(path);
-            string[] pathSegments = decodedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-            arguments.AddRange(pathSegments);
-
-            // 猜测动词名称
-            if (pathSegments.Length > 0)
+            if (result.Type is UrlParsedType.VerbOrPositionalArgument)
             {
-                guessedVerbName = pathSegments[0];
+                lastParameterName = null;
+                guessedVerbName = result.Value;
+                arguments.Add(guessedVerbName);
+                continue;
+            }
+
+            if (result.Type is UrlParsedType.PositionalArgument)
+            {
+                lastParameterName = null;
+                arguments.Add(result.Value);
+                continue;
+            }
+
+            if (result.Type is UrlParsedType.ParameterName)
+            {
+                lastParameterName = result.Name;
+                longOptions.AddOption(result.Name);
+                continue;
+            }
+
+            if (result.Type is UrlParsedType.ParameterValue)
+            {
+                if (lastParameterName is null)
+                {
+                    throw new CommandLineParseException($"Invalid URL format: {url}. Parameter value '{result.Value}' without a name.");
+                }
+
+                longOptions.AddValue(lastParameterName, result.Value);
+                lastParameterName = null;
+                continue;
+            }
+
+            if (result.Type is UrlParsedType.Fragment)
+            {
+                lastParameterName = null;
+                longOptions.AddValue(result.Name, result.Value);
+                continue;
             }
         }
 
         return new CommandLineParsedResult(guessedVerbName,
-            longOptions.ToImmutableDictionary(x => x.Key, x => x.Value.ToImmutableArray()),
-            ImmutableDictionary<char, ImmutableArray<string>>.Empty,
-            [..arguments]);
+            longOptions,
+            shortOptions,
+            arguments.ToReadOnlyList());
     }
 
-    private static void ParseQueryString(string queryString, Dictionary<string, List<string>> options)
+
+    internal readonly ref struct UrlPart(UrlParsedType type)
     {
-        if (string.IsNullOrEmpty(queryString))
-        {
-            return;
-        }
+        public UrlParsedType Type { get; } = type;
+        public string Name { get; private init; } = "";
+        public string Value { get; private init; } = "";
 
-        string[] queryParams = queryString.Split('&');
-
-        foreach (var param in queryParams)
+        public static UrlPart ReadNext(string url, ref int index, UrlParsedType lastType)
         {
-            // 处理无值参数 (如 ?debug)
-            if (!param.Contains('='))
+            if (lastType is UrlParsedType.Start)
             {
-                string decodedName1 = HttpUtility.UrlDecode(param);
-                decodedName1 = NamingHelper.MakeKebabCase(decodedName1);
-                options.TryAdd(decodedName1, []);
-                options[decodedName1].Add("true");
-                continue;
+                // 取出第一个位置参数（或谓词）
+                var startIndex = -1;
+                for (var i = index; i < url.Length - 3; i++)
+                {
+                    if (url[i] is ':' && url[i + 1] is '/' && url[i + 2] is '/')
+                    {
+                        startIndex = i + 3;
+                        break;
+                    }
+                }
+                if (startIndex < 0)
+                {
+                    throw new CommandLineParseException($"Invalid URL format: {url}. Missing '://'");
+                }
+                var endIndex = url.IndexOfAny(['/', '?', '#', '&'], startIndex);
+                if (endIndex < 0)
+                {
+                    endIndex = url.Length;
+                    index = endIndex + 1;
+                }
+                else
+                {
+                    index = endIndex;
+                }
+                var value = HttpUtility.UrlDecode(url.AsSpan(startIndex, endIndex - startIndex).ToString());
+                return new UrlPart(UrlParsedType.VerbOrPositionalArgument)
+                {
+                    Value = value,
+                };
             }
 
-            // 处理有值参数 (如 ?name=value)
-            int equalIndex = param.IndexOf('=');
-            string name = param.Substring(0, equalIndex);
-            string value = equalIndex + 1 < param.Length ? param.Substring(equalIndex + 1) : string.Empty;
+            if (lastType is UrlParsedType.VerbOrPositionalArgument or UrlParsedType.PositionalArgument)
+            {
+                return url[index] switch
+                {
+                    // 新的位置参数。
+                    '/' => ReadNextPositionalArgument(url, ref index),
+                    // 查询参数名。
+                    '?' => ReadNextParameterName(url, ref index),
+                    // 片段。
+                    '#' => ReadFragment(url, ref index),
+                    _ => throw new CommandLineParseException($"Invalid URL format: {url}. Expected '/', '?' or '#' after a positional argument."),
+                };
+            }
 
-            // URL解码参数名和值
-            string decodedName = HttpUtility.UrlDecode(name);
-            string decodedValue = HttpUtility.UrlDecode(value);
-            decodedName = NamingHelper.MakeKebabCase(decodedName);
+            if (lastType is UrlParsedType.ParameterName)
+            {
+                return url[index] switch
+                {
+                    // 查询参数值。
+                    '=' => ReadNextParameterValue(url, ref index),
+                    // 查询新的参数名。
+                    '&' => ReadNextParameterName(url, ref index),
+                    // 片段。
+                    '#' => ReadFragment(url, ref index),
+                    _ => throw new CommandLineParseException($"Invalid URL format: {url}. Expected '=', '&' or '#' after a parameter name."),
+                };
+            }
 
-            options.TryAdd(decodedName, []);
-            options[decodedName].Add(decodedValue);
+            if (lastType is UrlParsedType.ParameterValue)
+            {
+                return url[index] switch
+                {
+                    // 查询新的参数名。
+                    '&' => ReadNextParameterName(url, ref index),
+                    // 片段。
+                    '#' => ReadFragment(url, ref index),
+                    _ => throw new CommandLineParseException($"Invalid URL format: {url}. Expected '&' or '#' after a parameter value."),
+                };
+            }
+
+            throw new CommandLineParseException($"Invalid URL format: {url}");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UrlPart ReadNextPositionalArgument(string url, ref int index)
+        {
+            var startIndex = index;
+            var endIndex = url.IndexOfAny(['/', '?', '#', '&'], startIndex + 1);
+            if (endIndex < 0)
+            {
+                endIndex = url.Length;
+                index = endIndex + 1;
+            }
+            else
+            {
+                index = endIndex;
+            }
+            var value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1, endIndex - startIndex - 1).ToString());
+            index = endIndex;
+            return new UrlPart(UrlParsedType.PositionalArgument)
+            {
+                Value = value,
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UrlPart ReadNextParameterName(string url, ref int index)
+        {
+            var startIndex = index;
+            var endIndex = url.IndexOfAny(['=', '#', '&'], index + 1);
+            if (endIndex < 0)
+            {
+                endIndex = url.Length;
+                index = endIndex + 1;
+            }
+            else
+            {
+                index = endIndex;
+            }
+            var value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1, endIndex - startIndex - 1).ToString());
+            index = endIndex;
+            return new UrlPart(UrlParsedType.ParameterName)
+            {
+                Name = OptionName.MakeKebabCase(value),
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UrlPart ReadNextParameterValue(string url, ref int index)
+        {
+            var startIndex = index;
+            var endIndex = url.IndexOfAny(['&', '#'], index + 1);
+            if (endIndex < 0)
+            {
+                endIndex = url.Length;
+                index = endIndex + 1;
+            }
+            else
+            {
+                index = endIndex;
+            }
+            var value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1, endIndex - startIndex - 1).ToString());
+            index = endIndex;
+            return new UrlPart(UrlParsedType.ParameterValue)
+            {
+                Value = value,
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UrlPart ReadFragment(string url, ref int index)
+        {
+            var startIndex = index;
+            index =  url.Length + 1;
+            return new UrlPart(UrlParsedType.Fragment)
+            {
+                Name = FragmentName,
+                Value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1).ToString()),
+            };
         }
     }
+}
+
+internal enum UrlParsedType
+{
+    /// <summary>
+    /// 尚未开始解析。
+    /// </summary>
+    Start,
+
+    /// <summary>
+    /// 第一个位置参数，也可能是谓词。
+    /// </summary>
+    VerbOrPositionalArgument,
+
+    /// <summary>
+    /// 位置参数。
+    /// </summary>
+    PositionalArgument,
+
+    /// <summary>
+    /// 查询参数名。
+    /// </summary>
+    ParameterName,
+
+    /// <summary>
+    /// 查询参数值。
+    /// </summary>
+    ParameterValue,
+
+    /// <summary>
+    /// 片段参数名。
+    /// </summary>
+    Fragment,
 }

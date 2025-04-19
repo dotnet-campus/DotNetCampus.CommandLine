@@ -5,11 +5,25 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DotNetCampus.Cli</RootNamespace>
+    <PublishAot>true</PublishAot>
+    <!-- <DotNetCampusCommandLineUseInterceptor>false</DotNetCampusCommandLineUseInterceptor>-->
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine.Analyzer\DotNetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\Options.cs" Link="Fakes\Options.cs" />
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\OptionsParser.cs" Link="Fakes\OptionsParser.cs" />
+    <Compile Include="..\..\tests\DotNetCampus.CommandLine.Tests\Fakes\VerbOptions.cs" Link="Fakes\VerbOptions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="dotnetCampus.CommandLine.Legacy">
+      <HintPath>..\..\tests\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

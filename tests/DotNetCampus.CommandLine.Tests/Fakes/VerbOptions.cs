@@ -1,67 +1,69 @@
-﻿using DotNetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Tests.Fakes;
 
-namespace DotNetCampus.Cli.Tests.Fakes;
-
-[Verb("Edit")]
+[dotnetCampus.Cli.Verb("Edit")]
+[DotNetCampus.Cli.Compiler.Verb("Edit")]
 public class EditOptions
 {
-    [Value(0), Option('f', "File")]
+    [dotnetCampus.Cli.Value(0), dotnetCampus.Cli.Option('f', "File")]
+    [DotNetCampus.Cli.Compiler.Value(0), DotNetCampus.Cli.Compiler.Option('f', "File")]
     public string? FilePath { get; set; }
 }
 
-[Verb("Print")]
+[dotnetCampus.Cli.Verb("Print")]
+[DotNetCampus.Cli.Compiler.Verb("Print")]
 public class PrintOptions
 {
-    [Value(0), Option('f', "File")]
+    [DotNetCampus.Cli.Compiler.Value(0), Compiler.Option('f', "File")]
     public string? FilePath { get; set; }
 
-    [Option('p', "Printer")]
+    [DotNetCampus.Cli.Compiler.Option('p', "Printer")]
     public string? Printer { get; set; }
 }
 
-[Verb("Share")]
+[dotnetCampus.Cli.Verb("Share")]
+[DotNetCampus.Cli.Compiler.Verb("Share")]
 public class ShareOptions
 {
-    [Option('t', "Target")]
+    [DotNetCampus.Cli.Compiler.Option('t', "Target")]
     public string? Target { get; set; }
 }
 
-// public class SelfWrittenEditOptionsParser : CommandLineOptionParser<EditOptions>
-// {
-//     public SelfWrittenEditOptionsParser()
-//     {
-//         var options = new EditOptions();
-//         Verb = "Edit";
-//         AddMatch(0, value => options.FilePath = value);
-//         AddMatch('f', value => options.FilePath = value);
-//         AddMatch("File", value => options.FilePath = value);
-//         SetResult(() => options);
-//     }
-// }
-//
-// public class SelfWrittenPrintOptionsParser : CommandLineOptionParser<PrintOptions>
-// {
-//     public SelfWrittenPrintOptionsParser()
-//     {
-//         var options = new PrintOptions();
-//         Verb = "Print";
-//         AddMatch(0, value => options.FilePath = value);
-//         AddMatch('f', value => options.FilePath = value);
-//         AddMatch("File", value => options.FilePath = value);
-//         AddMatch('p', value => options.Printer = value);
-//         AddMatch("Printer", value => options.Printer = value);
-//         SetResult(() => options);
-//     }
-// }
-//
-// public class SelfWrittenShareOptionsParser : CommandLineOptionParser<ShareOptions>
-// {
-//     public SelfWrittenShareOptionsParser()
-//     {
-//         var options = new ShareOptions();
-//         Verb = "Share";
-//         AddMatch('t', value => options.Target = value);
-//         AddMatch("Target", value => options.Target = value);
-//         SetResult(() => options);
-//     }
-// }
+public class SelfWrittenEditOptionsParser : dotnetCampus.Cli.CommandLineOptionParser<EditOptions>
+{
+    public SelfWrittenEditOptionsParser()
+    {
+        var options = new EditOptions();
+        Verb = "Edit";
+        AddMatch(0, value => options.FilePath = value);
+        AddMatch('f', value => options.FilePath = value);
+        AddMatch("File", value => options.FilePath = value);
+        SetResult(() => options);
+    }
+}
+
+public class SelfWrittenPrintOptionsParser : dotnetCampus.Cli.CommandLineOptionParser<PrintOptions>
+{
+    public SelfWrittenPrintOptionsParser()
+    {
+        var options = new PrintOptions();
+        Verb = "Print";
+        AddMatch(0, value => options.FilePath = value);
+        AddMatch('f', value => options.FilePath = value);
+        AddMatch("File", value => options.FilePath = value);
+        AddMatch('p', value => options.Printer = value);
+        AddMatch("Printer", value => options.Printer = value);
+        SetResult(() => options);
+    }
+}
+
+public class SelfWrittenShareOptionsParser : dotnetCampus.Cli.CommandLineOptionParser<ShareOptions>
+{
+    public SelfWrittenShareOptionsParser()
+    {
+        var options = new ShareOptions();
+        Verb = "Share";
+        AddMatch('t', value => options.Target = value);
+        AddMatch("Target", value => options.Target = value);
+        SetResult(() => options);
+    }
+}

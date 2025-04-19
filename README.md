@@ -11,7 +11,7 @@
 
 DotNetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Thanks to the power of source code generators, it provides efficient parsing capabilities with a developer-friendly experience.
 
-Parsing a typical command line takes only about 5000ns (0.005ms), making it one of the fastest command line parsers available in .NET.
+Parsing a typical command line takes only about 0.8μs (microseconds), making it one of the fastest command line parsers available in .NET.
 
 ## Get Started
 

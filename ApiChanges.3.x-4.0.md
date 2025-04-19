@@ -16,8 +16,8 @@ DotNetCampus.CommandLine 4.0版本带来了全面的架构升级和功能增强�
 
 - 从原来支持 Linux/GNU、CMD、PowerShell 三种风格的有限子集，升级为全面支持五种完整命令行风格：
   - `CommandLineStyle.Flexible`（默认）：智能识别多种风格
-  - `CommandLineStyle.GNU`：符合 GNU 规范的风格
-  - `CommandLineStyle.POSIX`：符合 POSIX 规范的风格
+  - `CommandLineStyle.Gnu`：符合 GNU 规范的风格
+  - `CommandLineStyle.Posix`：符合 POSIX 规范的风格
   - `CommandLineStyle.DotNet`：.NET CLI 风格
   - `CommandLineStyle.PowerShell`：PowerShell 风格
 - 全面支持各种命令行选项格式：

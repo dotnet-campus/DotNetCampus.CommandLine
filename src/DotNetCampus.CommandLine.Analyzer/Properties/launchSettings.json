@@ -1,9 +1,17 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "调试源生成器": {
+    "DotNetCampus.CommandLine.Performance": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../tests/DotNetCampus.CommandLine.Performance/DotNetCampus.CommandLine.Performance.csproj"
+    },
+    "DotNetCampus.CommandLine.Sample": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "../../samples/DotNetCampus.CommandLine.Sample/DotNetCampus.CommandLine.Sample.csproj"
+    },
+    "DotNetCampus.CommandLine.Tests": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../tests/DotNetCampus.CommandLine.Tests/DotNetCampus.CommandLine.Tests.csproj"
     }
   }
 }
