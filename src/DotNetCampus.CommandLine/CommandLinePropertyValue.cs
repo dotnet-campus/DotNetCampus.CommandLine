@@ -248,8 +248,8 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator string[](CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => Array.Empty<string>(),
-        { } values => values.ToArray(),
+        { Count: 0 } => [],
+        { } values => [..SplitValues(values)],
     };
 
     /// <summary>
@@ -257,8 +257,8 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator ImmutableArray<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => ImmutableArray<string>.Empty,
-        { } values => values.ToImmutableArray(),
+        { Count: 0 } => [],
+        { } values => [..SplitValues(values)],
     };
 
     /// <summary>
@@ -266,8 +266,8 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator ImmutableHashSet<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => ImmutableHashSet<string>.Empty,
-        { } values => values.ToImmutableHashSet(),
+        { Count: 0 } => [],
+        { } values => [..SplitValues(values)],
     };
 
     /// <summary>
@@ -276,17 +276,13 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public static implicit operator Collection<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
         { Count: 0 } => [],
-        { } values => [..values],
+        { } values => [..SplitValues(values)],
     };
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为字符串列表。
     /// </summary>
-    public static implicit operator List<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
-    {
-        { Count: 0 } => [],
-        { } values => values.ToList(),
-    };
+    public static implicit operator List<string>(CommandLinePropertyValue propertyValue) => propertyValue.ToList();
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为字符串键值对。
@@ -297,11 +293,6 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// 将从命令行解析出来的属性值转换为字符串字典。
     /// </summary>
     public static implicit operator Dictionary<string, string>(CommandLinePropertyValue propertyValue) => propertyValue.ToDictionary();
-
-    /// <summary>
-    /// 将从命令行解析出来的属性值以只读列表的形式访问。
-    /// </summary>
-    public IReadOnlyList<string> AsReadOnlyList() => _values;
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为枚举值。
@@ -318,7 +309,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public List<string> ToList() => _values switch
     {
         { Count: 0 } => [],
-        { } values => values.ToList(),
+        { } values => [..SplitValues(values)],
     };
 
     /// <summary>
@@ -342,6 +333,232 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
             .GroupBy(x => x.Key)
             .ToDictionary(x => x.Key, x => x.Last().Value),
     };
+
+    private static IEnumerable<string> SplitValues(IReadOnlyList<string> commandLineValues)
+    {
+        for (var commandLineValueIndex = 0; commandLineValueIndex < commandLineValues.Count; commandLineValueIndex++)
+        {
+            var optionValue = commandLineValues[commandLineValueIndex];
+            var lastPart = ListValueParsingType.Start;
+            var thisPartStartIndex = 0;
+            for (var index = 0; index < optionValue.Length; index++)
+            {
+                var c = optionValue[index];
+
+                // 引号
+                if (c is '"')
+                {
+                    if (lastPart is ListValueParsingType.Start)
+                    {
+                        // 开始的引号
+                        lastPart = ListValueParsingType.QuoteStart;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuoteStart)
+                    {
+                        // 连续出现的引号
+                        yield return "";
+                        lastPart = ListValueParsingType.QuoteEnd;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuotedValue)
+                    {
+                        // 引号中值后的引号
+                        yield return optionValue[thisPartStartIndex..index];
+                        lastPart = ListValueParsingType.QuoteEnd;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuotedSeparator)
+                    {
+                        // 引号中分割符后的引号
+                        yield return "";
+                        lastPart = ListValueParsingType.QuotedValue;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuoteEnd)
+                    {
+                        // 引号结束后的引号
+                        lastPart = ListValueParsingType.QuoteStart;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.Value)
+                    {
+                        // 正常值后的引号
+                        throw new CommandLineParseValueException(
+                            $"Invalid value format at index [{index}]: {optionValue}");
+                    }
+                    if (lastPart is ListValueParsingType.Separator)
+                    {
+                        // 正常分隔符后的引号
+                        lastPart = ListValueParsingType.QuoteStart;
+                        continue;
+                    }
+                }
+
+                // 分割符
+                if (c is ';' or ',')
+                {
+                    if (lastPart is ListValueParsingType.Start)
+                    {
+                        // 开始的分割符
+                        yield return "";
+                        lastPart = ListValueParsingType.Separator;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuoteStart)
+                    {
+                        // 引号后紧跟着的分割符（等同于正常字符）
+                        lastPart = ListValueParsingType.QuotedValue;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuotedValue)
+                    {
+                        // 引号中值后的分割符（等同于正常字符）
+                        lastPart = ListValueParsingType.QuotedValue;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuotedSeparator)
+                    {
+                        // 引号中连续出现的分割符（等同于正常字符）
+                        lastPart = ListValueParsingType.QuotedValue;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.QuoteEnd)
+                    {
+                        // 引号结束后的分割符
+                        lastPart = ListValueParsingType.Separator;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.Value)
+                    {
+                        // 正常值后的分割符
+                        yield return optionValue[thisPartStartIndex..index];
+                        lastPart = ListValueParsingType.Separator;
+                        continue;
+                    }
+                    if (lastPart is ListValueParsingType.Separator)
+                    {
+                        // 连续出现的分割符
+                        yield return "";
+                        lastPart = ListValueParsingType.Separator;
+                        continue;
+                    }
+                }
+
+                // 其他字符
+                if (lastPart is ListValueParsingType.Start)
+                {
+                    // 开始的值
+                    thisPartStartIndex = index;
+                    lastPart = ListValueParsingType.Value;
+                    continue;
+                }
+                if (lastPart is ListValueParsingType.QuoteStart)
+                {
+                    // 引号后紧跟着的值
+                    thisPartStartIndex = index;
+                    lastPart = ListValueParsingType.QuotedValue;
+                    continue;
+                }
+                if (lastPart is ListValueParsingType.QuotedValue)
+                {
+                    // 引号中值后的值
+                    lastPart = ListValueParsingType.QuotedValue;
+                    continue;
+                }
+                if (lastPart is ListValueParsingType.QuotedSeparator)
+                {
+                    // 引号中分割符（实际上就是正常值）后的值
+                    lastPart = ListValueParsingType.QuotedValue;
+                    continue;
+                }
+                if (lastPart is ListValueParsingType.QuoteEnd)
+                {
+                    // 引号结束后的值
+                    throw new CommandLineParseValueException(
+                        $"Invalid value format at index [{index}]: {optionValue}");
+                }
+                if (lastPart is ListValueParsingType.Value)
+                {
+                    // 正常值后的值
+                    lastPart = ListValueParsingType.Value;
+                    continue;
+                }
+                if (lastPart is ListValueParsingType.Separator)
+                {
+                    // 正常分割符后的值
+                    thisPartStartIndex = index;
+                    lastPart = ListValueParsingType.Value;
+                    continue;
+                }
+            }
+
+            // 处理最后一个值
+            if (lastPart is ListValueParsingType.Start)
+            {
+                // 一开始就结束了（字符串里就没有值）
+                yield return "";
+            }
+            else if (lastPart is ListValueParsingType.QuoteStart or ListValueParsingType.QuotedValue or ListValueParsingType.QuotedSeparator)
+            {
+                // 引号还没结束，字符串就结束了
+                throw new CommandLineParseValueException(
+                    $"Missing quote end at index [{optionValue.Length}]: {optionValue}");
+            }
+            else if (lastPart is ListValueParsingType.QuoteEnd)
+            {
+                // 引号结束后字符串正常结束
+            }
+            else if (lastPart is ListValueParsingType.Value)
+            {
+                // 正常值结束的字符串
+                yield return optionValue[thisPartStartIndex..];
+            }
+            else if (lastPart is ListValueParsingType.Separator)
+            {
+                // 正常分割符后就结束了字符串
+                yield return "";
+            }
+        }
+    }
+}
+
+file enum ListValueParsingType
+{
+    /// <summary>
+    /// 尚未开始分割。
+    /// </summary>
+    Start,
+
+    /// <summary>
+    /// 引号开始。
+    /// </summary>
+    QuoteStart,
+
+    /// <summary>
+    /// 引号中的值。
+    /// </summary>
+    QuotedValue,
+
+    /// <summary>
+    /// 引号中的分割符。
+    /// </summary>
+    QuotedSeparator,
+
+    /// <summary>
+    /// 引号结束。
+    /// </summary>
+    QuoteEnd,
+
+    /// <summary>
+    /// 正常值。
+    /// </summary>
+    Value,
+
+    /// <summary>
+    /// 正常分割符。
+    /// </summary>
+    Separator,
 }
 
 internal enum MultiValueHandling

@@ -13,6 +13,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         string? guessedVerbName = null;
         List<string> arguments = [];
 
+        OptionDictionary? lastOptions = null;
         OptionName? lastOption = null;
         var lastType = FlexibleParsedType.Start;
 
@@ -25,6 +26,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 
             if (result.Type is FlexibleParsedType.VerbOrPositionalArgument)
             {
+                lastOptions = null;
                 lastOption = null;
                 guessedVerbName = result.Value.ToString();
                 arguments.Add(guessedVerbName);
@@ -34,6 +36,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             if (result.Type is FlexibleParsedType.PositionalArgument
                 or FlexibleParsedType.PostPositionalArgument)
             {
+                lastOptions = null;
                 lastOption = null;
                 arguments.Add(result.Value.ToString());
                 continue;
@@ -41,6 +44,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 
             if (result.Type is FlexibleParsedType.LongOption)
             {
+                lastOptions = longOptions;
                 lastOption = result.Option;
                 longOptions.AddOption(result.Option);
                 continue;
@@ -48,6 +52,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 
             if (result.Type is FlexibleParsedType.LongOptionWithValue)
             {
+                lastOptions = null;
                 lastOption = null;
                 longOptions.AddValue(result.Option, result.Value.ToString());
                 continue;
@@ -55,6 +60,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 
             if (result.Type is FlexibleParsedType.ShortOption)
             {
+                lastOptions = shortOptions;
                 lastOption = result.Option;
                 shortOptions.AddOption(result.Option);
                 continue;
@@ -62,6 +68,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
 
             if (result.Type is FlexibleParsedType.ShortOptionWithValue)
             {
+                lastOptions = null;
                 lastOption = null;
                 shortOptions.AddValue(result.Option, result.Value.ToString());
                 continue;
@@ -70,13 +77,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             if (result.Type is FlexibleParsedType.OptionValue)
             {
                 // 选项值，直接添加到参数列表中。
-                var options = tempLastType switch
-                {
-                    FlexibleParsedType.LongOption => longOptions,
-                    FlexibleParsedType.ShortOption => shortOptions,
-                    _ => throw new CommandLineParseException($"Argument value {result.Value.ToString()} does not belong to any option."),
-                };
-                if (lastOption is { } option)
+                if (lastOptions is { } options && lastOption is { } option)
                 {
                     options.AddValue(option, result.Value.ToString());
                 }
@@ -180,11 +181,16 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
             return new FlexibleArgument(FlexibleParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
-        if (lastType is FlexibleParsedType.OptionValue
-            or FlexibleParsedType.LongOptionWithValue
+        if (lastType is FlexibleParsedType.OptionValue)
+        {
+            // Flexible 允许选项后面的多个单独的选项值。
+            return new FlexibleArgument(FlexibleParsedType.OptionValue) { Value = argument.AsSpan() };
+        }
+
+        if (lastType is FlexibleParsedType.LongOptionWithValue
             or FlexibleParsedType.ShortOptionWithValue)
         {
-            // 如果前一个已经是选项值了，那么后一个是位置参数。
+            // 如果前一个已经是带有值的选项了，那么后一个是位置参数。
             return new FlexibleArgument(FlexibleParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 

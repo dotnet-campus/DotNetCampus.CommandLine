@@ -219,6 +219,82 @@ public class GnuCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "tag1", "tag2", "tag3" }, tags);
     }
 
+    [TestMethod("2.6. 使用等号分隔的列表选项，通过分号划分")]
+    public void SemicolonSeparatedList_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files=file1.txt;file2.txt;file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.7. 使用等号分隔的列表选项，通过逗号划分")]
+    public void CommaSeparatedList_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files=file1.txt,file2.txt,file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.8. 带引号的列表参数，赋值成功。")]
+    public void QuotedArrayOption_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files", "\"file with spaces.txt\"", "--files", "normal.txt", "--files", "\"another file.txt\""];
+        string[]? files = null;        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU14_QuotedArrayOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
+    }
+
+    [TestMethod("2.9. 等号方式带引号的列表参数，赋值成功。")]
+    public void QuotedArrayWithEquals_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--paths=\"path with spaces\",regular-path,\"another path\""];
+        string[]? paths = null;        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU14_QuotedArrayOptions>(o =>
+            {
+                paths = o.Paths;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(paths);
+        Assert.AreEqual(3, paths.Length);
+        CollectionAssert.AreEqual(new[] { "path with spaces", "regular-path", "another path" }, paths);
+    }
+
     #endregion
 
     #region 3. 边界情况处理
@@ -938,6 +1014,15 @@ internal record GNU27_NonRequiredNonNullableOption
 {
     [Option]
     public string Value { get; init; } = string.Empty;
+}
+
+internal record GNU14_QuotedArrayOptions
+{
+    [Option]
+    public string[] Files { get; init; } = [];
+
+    [Option]
+    public string[] Paths { get; init; } = [];
 }
 
 #endregion

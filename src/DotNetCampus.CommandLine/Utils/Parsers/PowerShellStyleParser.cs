@@ -49,19 +49,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
                 // 选项值
                 if (lastOption is { } option)
                 {
-                    // 如果有逗号分隔的数组值
-                    var valueSpan = result.Value;
-                    if (valueSpan.Contains(','))
-                    {
-                        var arrayValues = result.Value.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries);
-                        longOptions.AddValues(option, arrayValues);
-                    }
-                    else
-                    {
-                        longOptions.AddValue(option, result.Value.ToString());
-                    }
-
-                    lastOption = null; // 在 PowerShell 中处理完一个值后，即完成当前选项的解析
+                    longOptions.AddValue(option, result.Value.ToString());
                 }
                 continue;
             }
@@ -127,8 +115,8 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
 
         if (lastType is PowerShellParsedType.OptionValue)
         {
-            // 如果前一个已经是选项值，则当前是位置参数。
-            return new PowerShellArgument(PowerShellParsedType.PositionalArgument) { Value = argument.AsSpan() };
+            // PowerShell 允许选项后面的多个选项值。
+            return new PowerShellArgument(PowerShellParsedType.OptionValue) { Value = argument.AsSpan() };
         }
 
         if (lastType is PowerShellParsedType.PositionalArgumentSeparator or PowerShellParsedType.PostPositionalArgument)

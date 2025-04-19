@@ -291,6 +291,86 @@ public class DotNetCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
     }
 
+    [TestMethod("2.4.1. 字符串数组，使用分号分隔多个值，赋值成功。")]
+    public void StringArrayOption_SemicolonSeparated_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files:file1.txt;file2.txt;file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.4.2. 字符串数组，使用逗号分隔多个值，赋值成功。")]
+    public void StringArrayOption_CommaSeparated_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files:file1.txt,file2.txt,file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.4.3. 字符串数组，包含带引号的值，赋值成功。")]
+    public void StringArrayOption_QuotedValues_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files:\"file with spaces.txt\"", "--files:normal.txt", "--files:\"another file.txt\""];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet07_ArrayOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
+    }
+
+    [TestMethod("2.4.4. 字符串数组，使用分号分隔的带引号值，赋值成功。")]
+    public void StringArrayOption_SemicolonSeparatedQuoted_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files:\"file with spaces.txt\";normal.txt;\"another file.txt\""];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, DotNet)
+            .AddHandler<DotNet07_ArrayOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
+    }
+
     [TestMethod("2.5. 列表类型，赋值成功。")]
     public void ListOption_ValueAssigned()
     {

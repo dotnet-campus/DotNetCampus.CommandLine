@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
@@ -645,6 +647,239 @@ public class FlexibleCommandLineParserTests
     }
 
     #endregion
+
+    #region 11. 列表参数测试
+
+    [TestMethod("11.1. 支持空列表")]
+    public void EmptyList_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["--files"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(0, files.Length);
+    }
+
+    [TestMethod("11.2. 支持空格分隔的列表")]
+    public void SpaceSeparatedList_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["--files", "file1.txt", "file2.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(2, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt" }, files);
+    }
+
+    [TestMethod("11.3. 支持分号分隔的列表")]
+    public void SemicolonSeparatedList_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["--names:John;Jane;Doe"];
+        IEnumerable<string>? names = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                names = o.Names;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(names);
+        Assert.AreEqual(3, names.Count());
+        CollectionAssert.AreEqual(new[] { "John", "Jane", "Doe" }, names.ToArray());
+    }
+
+    [TestMethod("11.4. 支持混合分隔符的列表")]
+    public void MixedSeparatorList_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["--files:file1.txt,file2.txt;file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("11.5. 支持带引号的列表参数")]
+    public void QuotedListElements_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["--files:\"file with spaces.txt\",\"another file.txt\""];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(2, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "another file.txt" }, files);
+    }
+
+    [TestMethod("11.6. 带引号的列表参数，多次指定")]
+    public void QuotedListElements_MultipleOptions()
+    {
+        // Arrange
+        string[] args = ["--files", "\"file with spaces.txt\"", "--files", "normal.txt", "--files", "\"another file.txt\""];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
+    }
+
+    [TestMethod("11.7. 带引号的列表参数，通过分隔符")]
+    public void QuotedListElements_WithSeparators()
+    {
+        // Arrange
+        string[] args = ["--names:\"John Doe\";\"Jane Smith\";Anonymous"];
+        IEnumerable<string>? names = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                names = o.Names;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(names);
+        Assert.AreEqual(3, names.Count());
+        CollectionAssert.AreEqual(new[] { "John Doe", "Jane Smith", "Anonymous" }, names.ToArray());
+    }
+
+    [TestMethod("11.8. 单选项后接带引号的多个值")]
+    public void SingleOption_QuotedMultipleValues()
+    {
+        // Arrange
+        string[] args = ["--tags", "\"tag with spaces\"", "normal-tag", "\"another tag\""];
+        IReadOnlyList<string>? tags = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                tags = o.Tags;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(tags);
+        Assert.AreEqual(3, tags.Count);
+        CollectionAssert.AreEqual(new[] { "tag with spaces", "normal-tag", "another tag" }, tags.ToArray());
+    }
+
+    [TestMethod("11.9. 单选项后接带引号且引号内有逗号或分号的多个值")]
+    public void SingleOption_QuotedMultipleValuesWithColonOrSemicolon()
+    {
+        // Arrange
+        string[] args = ["--files", "\"tag1,with,colon\",\"tag2,with,colon\"", "--tags", "\"tag1;with;semicolon\";\"tag2;with;semicolon\""];
+        string[]? files = null;
+        IReadOnlyList<string>? tags = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                tags = o.Tags;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.IsNotNull(tags);
+        Assert.AreEqual(2, files.Length);
+        Assert.AreEqual(2, tags.Count);
+        CollectionAssert.AreEqual(new[] { "tag1,with,colon", "tag2,with,colon" }, files.ToArray());
+        CollectionAssert.AreEqual(new[] { "tag1;with;semicolon", "tag2;with;semicolon" }, tags.ToArray());
+    }
+
+    [TestMethod("11.10. 单选项后接带引号且引号内有逗号或分号的多个值，其中部分引号和分隔符含空字符串")]
+    public void SingleOption_QuotedMultipleValuesWithColonOrSemicolonAndEmpty()
+    {
+        // Arrange
+        string[] args = ["--files", "\"tag1,with,colon\",,\"tag2,with,colon\"", "--tags", "\"tag1;with;semicolon\";;;\"\";\"tag2;with;semicolon\""];
+        string[]? files = null;
+        IReadOnlyList<string>? tags = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<Flexible16_ListOptions>(o =>
+            {
+                files = o.Files;
+                tags = o.Tags;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.IsNotNull(tags);
+        Assert.AreEqual(3, files.Length);
+        Assert.AreEqual(5, tags.Count);
+        CollectionAssert.AreEqual(new[] { "tag1,with,colon", "", "tag2,with,colon" }, files.ToArray());
+        CollectionAssert.AreEqual(new[] { "tag1;with;semicolon", "", "", "", "tag2;with;semicolon" }, tags.ToArray());
+    }
+
+    #endregion
 }
 
 #region 测试用数据模型
@@ -772,10 +1007,29 @@ internal record Flexible15_TypedOptions
     public int Number { get; init; }
 }
 
+internal record Flexible16_ListOptions
+{
+    [Option]
+    public string[] Files { get; init; } = [];
+
+    [Option]
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
+    [Option]
+    public IEnumerable<string> Names { get; init; } = [];
+}
+
 internal record Flexible16_RequiredOptions
 {
     [Option]
     public required string RequiredValue { get; init; }
 }
+
+#endregion
+
+#region 代码清理
+
+// ReSharper restore UnusedAutoPropertyAccessor.Global
+// ReSharper restore InconsistentNaming
 
 #endregion

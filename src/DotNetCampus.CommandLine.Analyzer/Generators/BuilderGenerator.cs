@@ -194,8 +194,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
         {
             return targetType.Name switch
             {
-                "IEnumerable" or "IReadOnlyList" => "AsReadOnlyList",
-                "IList" or "ICollection" => "ToList",
+                "IEnumerable" or "IReadOnlyList" or "IList" or "ICollection" => "ToList",
                 "IReadOnlyDictionary" or "IDictionary" => "ToDictionary",
                 // 专门生成不存在的方法名和全名注释，编译不通过，同时还能辅助报告错误原因。
                 _ => $"To{targetType.Name}/* {targetType.ToDisplayString()} */",
