@@ -7,7 +7,7 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-DotNetCampus.CommandLine provides simple and high-performance command line parsing functionality. Thanks to the power of source code generators, it now offers more efficient parsing capabilities and a more developer-friendly experience. All functionalities are located under the DotNetCampus.Cli namespace.
+DotNetCampus.CommandLine provides a simple yet high-performance command line parsing functionality. Thanks to the power of source code generators, it now offers more efficient parsing capabilities and a more developer-friendly experience. All features are available under the DotNetCampus.Cli namespace.
 
 ## Quick Start
 
