@@ -68,9 +68,25 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("test", value);
     }
 
-    [Ignore("这样写可读性很差，感觉没有人会喜欢这样的风格。暂定不支持此规则。")]
-    [TestMethod("1.4. 短选项无空格，字符串类型，可正常赋值。")]
+    [TestMethod("1.4.1 短选项无空格，字符串类型，可正常赋值。")]
     public void ShortOptionNoSpace_StringType_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["-vtest.txt"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU02_ShortOptions>(o => value = o.Value)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("test.txt", value);
+    }
+
+    [Ignore("目前先 Parse 后 As 的两个步骤，会使得第 1 步的 Parse 无法区分这种短选项无空格的值。1.4.1 因为带了非字母的符号所以还能勉强区分。除非我们未来在 CommandLine 对象里对同一个短选项存两种值才可能。")]
+    [TestMethod("1.4.2 短选项无空格，但难以与缩写区分，字符串类型，可正常赋值。")]
+    public void ShortOptionNoSpace2_StringType_ValueAssigned()
     {
         // Arrange
         string[] args = ["-vtest"];
@@ -382,7 +398,6 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("value", value);
     }
 
-    [Ignore("单纯按匹配规则来说，大小写不敏感的确实会把不同大小写的选项匹配上，导致不知会选中哪个值；但处理好此问题需要额外的处理逻辑。个人认为没必要为了这个没人用的场景多写一些没必要的代码，所以暂定不支持此规则。")]
     [TestMethod("3.6. 单个选项设置大小写敏感，全局默认不敏感，识别正确。")]
     public void SingleOptionCaseSensitive_GlobalInsensitive_CorrectlyParsed()
     {

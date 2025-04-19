@@ -75,12 +75,11 @@ public class PosixCommandLineParserTests
         Assert.IsTrue(flag);
     }
 
-    [Ignore("POSIX风格不支持短选项无空格跟参数的语法")]
     [TestMethod("1.4. 短选项无空格跟参数 (不支持) 。")]
     public void ShortOptionNoSpace_NotSupported_ThrowsException()
     {
         // Arrange
-        string[] args = ["-vtest"];
+        string[] args = ["-vtest.txt"];
 
         // Act & Assert
         Assert.ThrowsException<CommandLineParseException>(() =>

@@ -85,7 +85,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
                 {
                     shortOptions.AddOption(shortOption);
                 }
-                shortLowPriorityOptions[result.Option.ToString()] = result.Value.ToString();
+                shortLowPriorityOptions[result.Option[0].ToString()] = result.Value.ToString();
                 continue;
             }
 
@@ -190,12 +190,12 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                 {
                     // 带值的短选项。
                     return new GnuArgument(GnuParsedType.ShortOptionWithValue)
-                        { Option = new OptionName(argument, new Range(1, i + 1)), Value = spans[(i + 1)..] };
+                        { Option = new OptionName(argument, new Range(1, 2)), Value = spans[2..] };
                 }
                 if (!char.IsLetterOrDigit(spans[i]))
                 {
                     // 包含非字母或数字，说明必定是带值的短选项。-o1.txt
-                    return new GnuArgument(GnuParsedType.ShortOptionWithValue) { Option = new OptionName(argument, new Range(1, i + 1)), Value = spans[i..] };
+                    return new GnuArgument(GnuParsedType.ShortOptionWithValue) { Option = new OptionName(argument, new Range(1, 2)), Value = spans[1..] };
                 }
             }
             // 多个短选项，或者带值的短选项。

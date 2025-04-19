@@ -120,7 +120,7 @@ public class FlexibleCommandLineParserTests
         Assert.AreEqual("test", value);
     }
 
-    [Ignore("这样写可读性很差，感觉没有人会喜欢这样的风格。暂定不支持此规则。")]
+    [Ignore("只有 GNU 风格支持。Flexible 包容万象，但包容不下这种偏门功能。")]
     [TestMethod("2.4. 短选项支持无分隔符直接跟参数(GNU风格)")]
     public void ShortOption_NoSeparator_ValueAssigned()
     {
