@@ -27,7 +27,7 @@ internal static class InterceptorModelProvider
     {
         return SelectMethodInvocationProvider(context,
             $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler",
-            parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.]+>").Replace("T,", @"[\w_\.]+,"));
+            "global::" + parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.]+>").Replace("T,", @"[\w_\.]+,"));
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectMethodInvocationProvider(this IncrementalGeneratorInitializationContext context,
@@ -81,7 +81,7 @@ internal static class InterceptorModelProvider
                 for (var i = 0; i < parameterTypeFullNameRegexes.Length; i++)
                 {
                     var parameterSymbol = methodSymbol.Parameters[i];
-                    if (!Regex.Match(parameterSymbol.Type.ToDisplayString(), parameterTypeFullNameRegexes[i]).Success)
+                    if (!Regex.IsMatch(parameterSymbol.Type.ToGlobalDisplayString(), parameterTypeFullNameRegexes[i]))
                     {
                         // 参数类型不匹配。
                         return null;
