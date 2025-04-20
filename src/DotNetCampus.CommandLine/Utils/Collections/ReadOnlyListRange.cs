@@ -28,6 +28,19 @@ internal readonly struct ReadOnlyListRange<T> : IReadOnlyList<T>
         ? throw new ArgumentOutOfRangeException(nameof(index))
         : _sourceList[_range.GetOffsetAndLength(_sourceList.Count).Offset + index];
 
+    public ReadOnlyListRange<T> Slice(int offset, int length)
+    {
+        if (_sourceList is null)
+        {
+            return offset is 0 && length is 0
+                ? new ReadOnlyListRange<T>([], new Range(0, 0))
+                : throw new ArgumentOutOfRangeException(nameof(length));
+        }
+
+        var (start, _) = _range.GetOffsetAndLength(_sourceList.Count);
+        return new ReadOnlyListRange<T>(_sourceList, new Range(start + offset, start + offset + length));
+    }
+
     public IEnumerator<T> GetEnumerator()
     {
         if (_sourceList is null)
