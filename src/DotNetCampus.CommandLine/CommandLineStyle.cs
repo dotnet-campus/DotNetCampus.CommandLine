@@ -8,7 +8,7 @@ public enum CommandLineStyle
 {
     /// <summary>
     /// 灵活风格。<br/>
-    /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="GNU"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
+    /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="Gnu"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
     /// 适用于希望为用户提供更灵活的参数传递体验的工具。
     /// </summary>
     /// <remarks>
@@ -111,7 +111,7 @@ public enum CommandLineStyle
     /// app --option value -- -value1 --value2  # -- 后的 -value1 和 --value2 被视为位置参数
     /// </code>
     /// </remarks>
-    GNU,
+    Gnu,
 
     /// <summary>
     /// POSIX/UNIX风格，类似GNU但更严格：<br/>
@@ -145,7 +145,7 @@ public enum CommandLineStyle
     /// app file1.txt -a file2.txt  # file1.txt 和 file2.txt 是位置参数
     /// </code>
     /// </remarks>
-    POSIX,
+    Posix,
 
     /// <summary>
     /// .NET CLI风格，使用冒号分隔参数：<br/>
@@ -161,7 +161,7 @@ public enum CommandLineStyle
     /// 2. 短选项以单破折线(-)开头，后跟选项名，然后是冒号和参数值<br/>
     /// 3. 长选项以双破折线(--)开头，后跟选项名，然后是冒号和参数值<br/>
     /// 4. 也支持使用斜杠(/)作为选项前缀，特别是在Windows环境中<br/>
-    /// 5. 参数名通常是单个字母、缩写或完整的驼峰式单词<br/>
+    /// 5. 参数名可以是单个字母、多字符缩写或完整的单词，支持各种命名规范<br/>
     /// 6. 布尔选项通常不需要值，或使用true/false、on/off等值<br/>
     /// 7. 多个短选项一般不支持合并（与GNU/POSIX不同）<br/>
     /// 8. 某些.NET工具也接受等号(=)作为选项和值的分隔符<br/>
@@ -171,16 +171,25 @@ public enum CommandLineStyle
     /// dotnet build -c:Release           # 短选项冒号语法
     /// dotnet test -t:UnitTest           # 短选项指定测试类别
     /// dotnet publish -o:./publish       # 指定输出目录
+    /// dotnet build -tl:off              # 双字符短选项
     ///
     /// # 长选项示例
     /// dotnet build --verbosity:minimal  # 长选项冒号语法
     /// dotnet run --project:App1         # 指定项目
     /// msbuild --target:Rebuild          # MSBuild长选项
     ///
+    /// # 不同命名风格
+    /// dotnet build -Configuration:Release      # PascalCase，单破折号
+    /// dotnet build --Configuration:Release     # PascalCase，双破折号
+    /// dotnet build /Configuration:Release      # PascalCase，斜杠前缀
+    /// dotnet test --test-category:UnitTest     # kebab-case，双破折号
+    /// dotnet run --projectName:App1            # camelCase，双破折号
+    ///
     /// # 斜杠前缀(Windows风格)
     /// msbuild /p:Configuration=Release  # MSBuild属性
     /// dotnet test /blame                # 启用故障分析
     /// dotnet nuget push /source:feed    # 指定源
+    /// dotnet test /tl:off               # 斜杠前缀的短选项
     ///
     /// # 布尔选项
     /// dotnet build -m:1                 # 最大并行度
@@ -189,6 +198,7 @@ public enum CommandLineStyle
     ///
     /// # 混合用法
     /// dotnet publish -c:Release --no-build -o:./bin
+    /// dotnet test -Framework:net8.0 --verbosity:normal /blame
     /// </code>
     /// </remarks>
     DotNet,

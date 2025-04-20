@@ -16,7 +16,7 @@ namespace DotNetCampus.Cli.Tests;
 [TestClass]
 public class GnuCommandLineParserTests
 {
-    private CommandLineParsingOptions GNU { get; } = CommandLineParsingOptions.GNU;
+    private CommandLineParsingOptions GNU { get; } = CommandLineParsingOptions.Gnu;
 
     #region 1. 选项识别与解析
 
@@ -68,9 +68,25 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("test", value);
     }
 
-    [Ignore("这样写可读性很差，感觉没有人会喜欢这样的风格。暂定不支持此规则。")]
-    [TestMethod("1.4. 短选项无空格，字符串类型，可正常赋值。")]
+    [TestMethod("1.4.1 短选项无空格，字符串类型，可正常赋值。")]
     public void ShortOptionNoSpace_StringType_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["-vtest.txt"];
+        string? value = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU02_ShortOptions>(o => value = o.Value)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("test.txt", value);
+    }
+
+    [Ignore("目前先 Parse 后 As 的两个步骤，会使得第 1 步的 Parse 无法区分这种短选项无空格的值。1.4.1 因为带了非字母的符号所以还能勉强区分。除非我们未来在 CommandLine 对象里对同一个短选项存两种值才可能。")]
+    [TestMethod("1.4.2 短选项无空格，但难以与缩写区分，字符串类型，可正常赋值。")]
+    public void ShortOptionNoSpace2_StringType_ValueAssigned()
     {
         // Arrange
         string[] args = ["-vtest"];
@@ -219,6 +235,82 @@ public class GnuCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "tag1", "tag2", "tag3" }, tags);
     }
 
+    [TestMethod("2.6. 使用等号分隔的列表选项，通过分号划分")]
+    public void SemicolonSeparatedList_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files=file1.txt;file2.txt;file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.7. 使用等号分隔的列表选项，通过逗号划分")]
+    public void CommaSeparatedList_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files=file1.txt,file2.txt,file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU07_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("2.8. 带引号的列表参数，赋值成功。")]
+    public void QuotedArrayOption_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--files", "\"file with spaces.txt\"", "--files", "normal.txt", "--files", "\"another file.txt\""];
+        string[]? files = null;        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU14_QuotedArrayOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
+    }
+
+    [TestMethod("2.9. 等号方式带引号的列表参数，赋值成功。")]
+    public void QuotedArrayWithEquals_ValueAssigned()
+    {
+        // Arrange
+        string[] args = ["--paths=\"path with spaces\",regular-path,\"another path\""];
+        string[]? paths = null;        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU14_QuotedArrayOptions>(o =>
+            {
+                paths = o.Paths;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(paths);
+        Assert.AreEqual(3, paths.Length);
+        CollectionAssert.AreEqual(new[] { "path with spaces", "regular-path", "another path" }, paths);
+    }
+
     #endregion
 
     #region 3. 边界情况处理
@@ -306,7 +398,6 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("value", value);
     }
 
-    [Ignore("单纯按匹配规则来说，大小写不敏感的确实会把不同大小写的选项匹配上，导致不知会选中哪个值；但处理好此问题需要额外的处理逻辑。个人认为没必要为了这个没人用的场景多写一些没必要的代码，所以暂定不支持此规则。")]
     [TestMethod("3.6. 单个选项设置大小写敏感，全局默认不敏感，识别正确。")]
     public void SingleOptionCaseSensitive_GlobalInsensitive_CorrectlyParsed()
     {
@@ -938,6 +1029,15 @@ internal record GNU27_NonRequiredNonNullableOption
 {
     [Option]
     public string Value { get; init; } = string.Empty;
+}
+
+internal record GNU14_QuotedArrayOptions
+{
+    [Option]
+    public string[] Files { get; init; } = [];
+
+    [Option]
+    public string[] Paths { get; init; } = [];
 }
 
 #endregion

@@ -38,8 +38,9 @@ internal static class NamingHelper
 
         var isFirstLetter = true;
         var isWordStart = true;
-        foreach (char c in oldName)
+        for (var i = 0; i < oldName.Length; i++)
         {
+            var c = oldName[i];
             if (!char.IsLetterOrDigit(c))
             {
                 // Append nothing because PascalCase has no special characters.
@@ -125,8 +126,9 @@ internal static class NamingHelper
         var isFirstLetter = true;
         var isUpperLetter = false;
         var isSeparator = false;
-        foreach (char c in oldName)
+        for (var i = 0; i < oldName.Length; i++)
         {
+            var c = oldName[i];
             if (!char.IsLetterOrDigit(c))
             {
                 isUpperLetter = false;

@@ -1,9 +1,9 @@
-using System.Collections.Immutable;
+using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
 internal readonly record struct CommandLineParsedResult(
     string? GuessedVerbName,
-    ImmutableDictionary<string, ImmutableArray<string>> LongOptions,
-    ImmutableDictionary<char, ImmutableArray<string>> ShortOptions,
-    ImmutableArray<string> Arguments);
+    OptionDictionary LongOptions,
+    OptionDictionary ShortOptions,
+    ReadOnlyListRange<string> Arguments);

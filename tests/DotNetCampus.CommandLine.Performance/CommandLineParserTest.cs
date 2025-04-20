@@ -27,14 +27,14 @@ public class CommandLineParserTest
     [Benchmark(Description = "parse  [] --gnu")]
     public void Parse_NoArgs_Gnu()
     {
-        var commandLine = CommandLine.Parse(NoArgs, GNU);
+        var commandLine = CommandLine.Parse(NoArgs, Gnu);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "parse  [] --posix")]
     public void Parse_NoArgs_Posix()
     {
-        var commandLine = CommandLine.Parse(NoArgs, POSIX);
+        var commandLine = CommandLine.Parse(NoArgs, Posix);
         commandLine.As<Options>();
     }
 
@@ -73,10 +73,10 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [PS1] --powershell")]
+    [Benchmark(Description = "parse  [PS1] --dotnet")]
     public void Parse_PowerShell_PowerShell()
     {
-        var commandLine = CommandLine.Parse(WindowsStyleArgs, PowerShell);
+        var commandLine = CommandLine.Parse(WindowsStyleArgs, DotNet);
         commandLine.As<Options>();
     }
 
@@ -101,10 +101,10 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [CMD] --powershell")]
+    [Benchmark(Description = "parse  [CMD] --dotnet")]
     public void Parse_Cmd_PowerShell()
     {
-        var commandLine = CommandLine.Parse(CmdStyleArgs, PowerShell);
+        var commandLine = CommandLine.Parse(CmdStyleArgs, DotNet);
         commandLine.As<Options>();
     }
 
@@ -132,7 +132,7 @@ public class CommandLineParserTest
     [Benchmark(Description = "parse  [GNU] --gnu")]
     public void Parse_Gnu_Gnu()
     {
-        var commandLine = CommandLine.Parse(LinuxStyleArgs, GNU);
+        var commandLine = CommandLine.Parse(LinuxStyleArgs, Gnu);
         commandLine.As<Options>();
     }
 
@@ -156,6 +156,16 @@ public class CommandLineParserTest
         CommandLine.Parse(EditVerbArgs)
             .AddHandler<EditOptions>(options => 0)
             .AddHandler<PrintOptions>(options => 0)
+            .Run();
+    }
+
+    [Benchmark(Description = "handle [Edit,Print] -v=3.x -p=parser")]
+    public void Handle_Verbs_Parser()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(EditVerbArgs);
+        commandLine
+            .AddHandler(options => 0, new SelfWrittenEditOptionsParser())
+            .AddHandler(options => 0, new SelfWrittenPrintOptionsParser())
             .Run();
     }
 

@@ -284,7 +284,7 @@ public class UrlCommandLineParserTests
 
         // Assert
         Assert.AreEqual(LogLevel.Warning, logLevel);
-        Assert.AreEqual(CommandLineStyle.GNU, style);
+        Assert.AreEqual(CommandLineStyle.Gnu, style);
     }
 
     [TestMethod("3.4. 数组/列表类型转换")]

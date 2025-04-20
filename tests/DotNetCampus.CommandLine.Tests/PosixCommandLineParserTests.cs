@@ -14,7 +14,7 @@ namespace DotNetCampus.Cli.Tests;
 [TestClass]
 public class PosixCommandLineParserTests
 {
-    private CommandLineParsingOptions POSIX { get; } = CommandLineParsingOptions.POSIX;
+    private CommandLineParsingOptions POSIX { get; } = CommandLineParsingOptions.Posix;
 
     #region 1. 基本短选项解析
 
@@ -75,12 +75,11 @@ public class PosixCommandLineParserTests
         Assert.IsTrue(flag);
     }
 
-    [Ignore("POSIX风格不支持短选项无空格跟参数的语法")]
     [TestMethod("1.4. 短选项无空格跟参数 (不支持) 。")]
     public void ShortOptionNoSpace_NotSupported_ThrowsException()
     {
         // Arrange
-        string[] args = ["-vtest"];
+        string[] args = ["-vtest.txt"];
 
         // Act & Assert
         Assert.ThrowsException<CommandLineParseException>(() =>
@@ -253,7 +252,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-invalid-format"];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsException<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX01_ShortOptions>(_ => { })
@@ -313,6 +312,50 @@ public class PosixCommandLineParserTests
 
         // Assert
         Assert.AreEqual("async-test", value);
+    }
+
+    #endregion
+
+    #region 7. 列表参数测试
+
+    [TestMethod("7.1. 多次指定同一选项形成列表")]
+    public void MultipleOptions_FormList()
+    {
+        // Arrange
+        string[] args = ["-f", "file1.txt", "-f", "file2.txt", "-f", "file3.txt"];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, POSIX)
+            .AddHandler<POSIX12_ArrayOptions>(o => files = o.Files)
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
+    }
+
+    [TestMethod("7.2. 带引号的列表参数")]
+    public void QuotedArrayElements()
+    {
+        // Arrange
+        string[] args = ["-f", "\"file with spaces.txt\"", "-f", "normal.txt", "-f", "\"another file.txt\""];
+        string[]? files = null;
+
+        // Act
+        CommandLine.Parse(args, POSIX)
+            .AddHandler<POSIX12_ArrayOptions>(o =>
+            {
+                files = o.Files;
+                return 0;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsNotNull(files);
+        Assert.AreEqual(3, files.Length);
+        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "normal.txt", "another file.txt" }, files);
     }
 
     #endregion
@@ -411,6 +454,12 @@ internal record POSIX11_LongOptionTest
 {
     [Option("option")] // 这个会被POSIX风格拒绝，因为POSIX不支持长选项
     public string LongOption { get; init; } = string.Empty;
+}
+
+internal record POSIX12_ArrayOptions
+{
+    [Option('f')]
+    public string[] Files { get; init; } = [];
 }
 
 #endregion

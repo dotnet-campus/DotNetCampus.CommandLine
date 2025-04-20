@@ -13,14 +13,14 @@ internal static class CommandLineConverter
     /// </summary>
     /// <param name="singleLineCommandLineArgs">一整行命令。</param>
     /// <returns>命令行参数数组。</returns>
-    internal static ImmutableArray<string> SingleLineCommandLineArgsToArrayCommandLineArgs(string singleLineCommandLineArgs)
+    internal static IReadOnlyList<string> SingleLineCommandLineArgsToArrayCommandLineArgs(string singleLineCommandLineArgs)
     {
         if (string.IsNullOrWhiteSpace(singleLineCommandLineArgs))
         {
             return ImmutableArray<string>.Empty;
         }
 
-        var parts = ImmutableArray.CreateBuilder<Range>();
+        List<Range> parts = [];
 
         var start = 0;
         var length = 0;
@@ -67,9 +67,9 @@ internal static class CommandLineConverter
     }
 
     public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
-        ImmutableArray<string> arguments, CommandLineParsingOptions? parsingOptions)
+        IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        var matchedUrlScheme = arguments.Length is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
+        var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
             ? schemeNames.FirstOrDefault(x => arguments[0].StartsWith($"{x}://", StringComparison.OrdinalIgnoreCase))
             : null;
 
@@ -77,8 +77,8 @@ internal static class CommandLineConverter
         {
             ({ } scheme, _) => new UrlStyleParser(scheme),
             (_, CommandLineStyle.Flexible) => new FlexibleStyleParser(),
-            (_, CommandLineStyle.GNU) => new GnuStyleParser(),
-            (_, CommandLineStyle.POSIX) => new PosixStyleParser(),
+            (_, CommandLineStyle.Gnu) => new GnuStyleParser(),
+            (_, CommandLineStyle.Posix) => new PosixStyleParser(),
             (_, CommandLineStyle.DotNet) => new DotNetStyleParser(),
             (_, CommandLineStyle.PowerShell) => new PowerShellStyleParser(),
             _ => new FlexibleStyleParser(),

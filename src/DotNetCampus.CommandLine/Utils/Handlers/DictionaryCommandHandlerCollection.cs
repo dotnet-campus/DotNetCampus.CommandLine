@@ -5,10 +5,10 @@ namespace DotNetCampus.Cli.Utils.Handlers;
 
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
-    private Func<CommandLine, ICommandHandler>? _defaultHandlerCreator;
-    private readonly ConcurrentDictionary<string, Func<CommandLine, ICommandHandler>> _verbHandlers = [];
+    private CommandObjectCreator? _defaultHandlerCreator;
+    private readonly ConcurrentDictionary<string, CommandObjectCreator> _verbHandlers = [];
 
-    public void AddHandler(string? verbName, Func<CommandLine, ICommandHandler> handlerCreator)
+    public void AddHandler(string? verbName, CommandObjectCreator handlerCreator)
     {
         if (verbName is null)
         {
@@ -30,9 +30,9 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
     public ICommandHandler? TryMatch(string? verb, CommandLine commandLine)
     {
         return verb is null
-            ? _defaultHandlerCreator?.Invoke(commandLine)
+            ? (ICommandHandler?)_defaultHandlerCreator?.Invoke(commandLine)
             : _verbHandlers.TryGetValue(verb, out var handlerCreator)
-                ? handlerCreator.Invoke(commandLine)
+                ? (ICommandHandler)handlerCreator.Invoke(commandLine)
                 : null;
     }
 }
