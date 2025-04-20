@@ -27,7 +27,7 @@ internal static class InterceptorModelProvider
     {
         return SelectMethodInvocationProvider(context,
             $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler",
-            "global::" + parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.]+>").Replace("T,", @"[\w_\.]+,"));
+            parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.:\?]+>").Replace("<T,", @"<[\w_\.:\?]+,"));
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectMethodInvocationProvider(this IncrementalGeneratorInitializationContext context,

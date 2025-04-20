@@ -16,12 +16,12 @@ public class InterceptorGenerator : IIncrementalGenerator
         var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var commandLineAsProvider = context.SelectCommandLineAsProvider();
         var commandRunnerAddHandlerProvider = context.SelectCommandBuilderAddHandlerProvider();
-        var commandRunnerAddHandlerCoreActionProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Action<T>");
-        var commandRunnerAddHandlerAsyncActionProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "System.Action<T>");
-        var commandRunnerAddHandlerCoreFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, int>");
-        var commandRunnerAddHandlerAsyncFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "System.Func<T, int>");
-        var commandRunnerAddHandlerCoreFuncTaskProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task>");
-        var commandRunnerAddHandlerCoreFuncTaskIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "System.Func<T, System.Threading.Tasks.Task<int>>");
+        var commandRunnerAddHandlerCoreActionProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "global::System.Action<T>");
+        var commandRunnerAddHandlerAsyncActionProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
+        var commandRunnerAddHandlerCoreFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "global::System.Func<T, int>");
+        var commandRunnerAddHandlerAsyncFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "global::System.Func<T, int>");
+        var commandRunnerAddHandlerCoreFuncTaskProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var commandRunnerAddHandlerCoreFuncTaskIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICoreCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
         context.RegisterSourceOutput(commandLineAsProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
         context.RegisterSourceOutput(commandRunnerAddHandlerProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandRunnerAddHandler);
