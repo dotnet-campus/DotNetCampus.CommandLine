@@ -21,11 +21,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{F26E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine", "src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj", "{B61424A0-02C5-4C24-819B-8153D52BC0B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Sample", "samples\dotnetCampus.CommandLine.Sample\DotNetCampus.CommandLine.Sample.csproj", "{6B8F7500-B161-408D-BFA3-AE77CB8CF4D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Sample", "samples\DotNetCampus.CommandLine.Sample\DotNetCampus.CommandLine.Sample.csproj", "{6B8F7500-B161-408D-BFA3-AE77CB8CF4D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Tests", "tests\dotnetCampus.CommandLine.Tests\DotNetCampus.CommandLine.Tests.csproj", "{70991994-BB0C-4D00-9B74-E8736D0AD7C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Tests", "tests\DotNetCampus.CommandLine.Tests\DotNetCampus.CommandLine.Tests.csproj", "{70991994-BB0C-4D00-9B74-E8736D0AD7C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Performance", "tests\dotnetCampus.CommandLine.Performance\DotNetCampus.CommandLine.Performance.csproj", "{56B65FC1-CE75-4981-A880-954D891901D6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCampus.CommandLine.Performance", "tests\DotNetCampus.CommandLine.Performance\DotNetCampus.CommandLine.Performance.csproj", "{56B65FC1-CE75-4981-A880-954D891901D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

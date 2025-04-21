@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PackageId>dotnetCampus.CommandLine</PackageId>
+    <PackageId>DotNetCampus.CommandLine</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RootNamespace>DotNetCampus.Cli</RootNamespace>
     <IncludeSymbols>true</IncludeSymbols>

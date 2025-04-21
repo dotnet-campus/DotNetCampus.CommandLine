@@ -1,6 +1,6 @@
 # DotNetCampus.CommandLine
 
-![Build](https://github.com/dotnet-campus/DotNetCampus.CommandLine/actions/workflows/dotnet-build.yml/badge.svg)  ![NuGet Package](https://github.com/dotnet-campus/DotNetCampus.CommandLine/actions/workflows/nuget-tag-publish.yml/badge.svg) [![dotnetCampus.CommandLine](https://img.shields.io/nuget/v/DotNetCampus.CommandLine.svg?label=DotnetCampus.CommandLine)](https://www.nuget.org/packages/DotnetCampus.CommandLine/) [![dotnetCampus.CommandLine.Source](https://img.shields.io/nuget/v/DotnetCampus.CommandLine.Source?label=DotnetCampus.CommandLine.Source)](https://www.nuget.org/packages/DotnetCampus.CommandLine.Source/)
+![Build](https://github.com/dotnet-campus/DotNetCampus.CommandLine/actions/workflows/dotnet-build.yml/badge.svg)  ![NuGet Package](https://github.com/dotnet-campus/DotNetCampus.CommandLine/actions/workflows/nuget-tag-publish.yml/badge.svg) [![DotNetCampus.CommandLine](https://img.shields.io/nuget/v/DotNetCampus.CommandLine.svg?label=DotnetCampus.CommandLine)](https://www.nuget.org/packages/DotnetCampus.CommandLine/) [![dotnetCampus.CommandLine.Source](https://img.shields.io/nuget/v/DotnetCampus.CommandLine.Source?label=DotnetCampus.CommandLine.Source)](https://www.nuget.org/packages/DotnetCampus.CommandLine.Source/)
 
 | [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
 | ------------- | ------------------- | ------------------- |
@@ -70,7 +70,7 @@ Then use different command line styles to populate instances of this type:
 ### Linux/GNU Style
 
 ```bash
-$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A B C
+$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A --startup-sessions B --startup-sessions C
 ```
 
 ### .NET CLI Style
