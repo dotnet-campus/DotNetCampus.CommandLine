@@ -103,7 +103,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         return $$"""
 #nullable enable
 
-namespace {{GeneratorInfo.RootNamespace}}.Compiler
+namespace DotNetCampus.Cli.Compiler
 {
     file static class Interceptors
     {
