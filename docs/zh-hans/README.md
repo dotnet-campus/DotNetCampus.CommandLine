@@ -514,7 +514,7 @@ _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
 ```csharp
 #nullable enable
 
-namespace DotNetCampus.CommandLine.Compiler
+namespace DotNetCampus.Cli.Compiler
 {
     file static class Interceptors
     {
