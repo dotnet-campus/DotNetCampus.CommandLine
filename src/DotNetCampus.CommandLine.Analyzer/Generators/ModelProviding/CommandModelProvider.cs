@@ -81,11 +81,13 @@ internal static class CommandModelProvider
 
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
                 var verbName = attribute?.ConstructorArguments[0].Value?.ToString();
+                var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
 
                 return new CommandObjectGeneratingModel
                 {
                     Namespace = @namespace,
                     CommandObjectType = typeSymbol,
+                    IsPublic = isPublic,
                     VerbName = verbName,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
@@ -131,6 +133,8 @@ internal record CommandObjectGeneratingModel
     public required string Namespace { get; init; }
 
     public required INamedTypeSymbol CommandObjectType { get; init; }
+
+    public required bool IsPublic { get; init; }
 
     public required string? VerbName { get; init; }
 
