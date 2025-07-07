@@ -75,7 +75,7 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 辅助 <see cref="{{model.CommandObjectType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
 /// </summary>
-internal sealed class {{model.GetBuilderTypeName()}}
+{{(model.IsPublic ? "public" : "internal")}} sealed class {{model.GetBuilderTypeName()}}
 {
     public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
