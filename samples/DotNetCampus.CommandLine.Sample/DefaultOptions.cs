@@ -7,6 +7,9 @@ namespace DotNetCampus.Cli;
 
 internal class DefaultOptions
 {
+    [RawArguments]
+    public required string[] MainArgs { get; init; }
+
     [Option(LocalizableDescription = nameof(LocalizableStrings.SamplePropertyDescription))]
     public string? DefaultText { get; set; }
 

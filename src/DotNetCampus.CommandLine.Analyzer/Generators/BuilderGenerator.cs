@@ -64,8 +64,10 @@ public class BuilderGenerator : IIncrementalGenerator
         // | 0        | 1        | 1   | 赋值       |
         // | 1        | 1        | 1   | 赋值       |
 
+        var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
         var initValueProperties = model.ValueProperties.Where(x => x.IsRequired || x.IsInitOnly).ToImmutableArray();
+        var setRawArgumentsProperties = model.RawArgumentsProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
         var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
         var setValueProperties = model.ValueProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToImmutableArray();
         return $$"""
@@ -82,11 +84,25 @@ internal sealed class {{model.GetBuilderTypeName()}}
         var caseSensitive = commandLine.DefaultCaseSensitive;
         var result = new {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
-{{(initOptionProperties.Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(initValueProperties.Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+            // 1. [RawArguments]
+{{(initRawArgumentsProperties.Length is 0 ? "            // MainArgs = commandLine.CommandLineArguments," : string.Join("\n", initRawArgumentsProperties.Select(GenerateRawArgumentsPropertyAssignment)))}}
+
+            // 2. [Option]
+{{(initOptionProperties      .Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+
+            // 3. [Value]
+{{(initValueProperties       .Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
         };
-{{(setOptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
-{{(setValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+
+        // 1. [RawArguments]
+{{(setRawArgumentsProperties.Length is 0 ? "        // result.MainArgs = commandLine.CommandLineArguments;" : string.Join("\n", setRawArgumentsProperties.Select(GenerateRawArgumentsPropertyAssignment)))}}
+
+        // 2. [Option]
+{{(setOptionProperties      .Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+
+        // 3. [Value]
+{{(setValueProperties       .Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+
         return result;
     }
 }
@@ -178,6 +194,23 @@ internal sealed class {{model.GetBuilderTypeName()}}
         {
             result.{{property.PropertyName}} = p{{modelIndex}};
         }
+""";
+        }
+    }
+
+    private string GenerateRawArgumentsPropertyAssignment(RawArgumentsPropertyGeneratingModel property, int modelIndex)
+    {
+        var isInitProperty = property.IsRequired || property.IsInitOnly;
+        if (isInitProperty)
+        {
+            return $"""
+            {property.PropertyName} = ({property.Type.ToDisplayString()})commandLine.CommandLineArguments,
+""";
+        }
+        else
+        {
+            return $$"""
+        result.{{property.PropertyName}} = ({{property.Type.ToDisplayString()}})commandLine.CommandLineArguments;
 """;
         }
     }
