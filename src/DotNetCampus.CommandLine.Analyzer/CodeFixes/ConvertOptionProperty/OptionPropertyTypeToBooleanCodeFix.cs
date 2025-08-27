@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToStringCodeFix)), Shared]
-public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFix
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToBooleanCodeFix)), Shared]
+public class OptionPropertyTypeToBooleanCodeFix : ConvertOptionPropertyTypeCodeFix
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds =>
     [
@@ -17,7 +17,7 @@ public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFi
         Diagnostics.NotSupportedOptionPropertyType,
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToString;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToBoolean;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,
@@ -26,6 +26,6 @@ public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFi
         return syntaxRoot.ReplaceNode(
             oldTypeSyntax,
             SyntaxFactory.PredefinedType(
-                SyntaxFactory.Token(SyntaxKind.StringKeyword)));
+                SyntaxFactory.Token(SyntaxKind.BoolKeyword)));
     }
 }

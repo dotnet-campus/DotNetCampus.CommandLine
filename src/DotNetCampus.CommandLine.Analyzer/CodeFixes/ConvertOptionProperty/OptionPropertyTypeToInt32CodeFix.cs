@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToInt32CodeFix)), Shared]
 public class OptionPropertyTypeToInt32CodeFix : ConvertOptionPropertyTypeCodeFix

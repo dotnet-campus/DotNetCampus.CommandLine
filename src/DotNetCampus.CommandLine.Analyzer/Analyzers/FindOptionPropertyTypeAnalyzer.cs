@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer

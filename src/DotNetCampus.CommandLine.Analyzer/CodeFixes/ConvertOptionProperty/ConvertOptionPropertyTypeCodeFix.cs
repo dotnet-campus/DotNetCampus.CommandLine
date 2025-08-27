@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
 public abstract class ConvertOptionPropertyTypeCodeFix : CodeFixProvider
 {

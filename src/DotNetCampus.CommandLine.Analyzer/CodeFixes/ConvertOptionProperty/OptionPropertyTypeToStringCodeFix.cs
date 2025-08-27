@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToDoubleCodeFix)), Shared]
-public class OptionPropertyTypeToDoubleCodeFix : ConvertOptionPropertyTypeCodeFix
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToStringCodeFix)), Shared]
+public class OptionPropertyTypeToStringCodeFix : ConvertOptionPropertyTypeCodeFix
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds =>
     [
@@ -17,7 +17,7 @@ public class OptionPropertyTypeToDoubleCodeFix : ConvertOptionPropertyTypeCodeFi
         Diagnostics.NotSupportedOptionPropertyType,
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToDouble;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToString;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,
@@ -26,6 +26,6 @@ public class OptionPropertyTypeToDoubleCodeFix : ConvertOptionPropertyTypeCodeFi
         return syntaxRoot.ReplaceNode(
             oldTypeSyntax,
             SyntaxFactory.PredefinedType(
-                SyntaxFactory.Token(SyntaxKind.DoubleKeyword)));
+                SyntaxFactory.Token(SyntaxKind.StringKeyword)));
     }
 }

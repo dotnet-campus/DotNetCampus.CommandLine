@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToDictionaryCodeFix)), Shared]
 public class OptionPropertyTypeToDictionaryCodeFix : ConvertOptionPropertyTypeCodeFix
