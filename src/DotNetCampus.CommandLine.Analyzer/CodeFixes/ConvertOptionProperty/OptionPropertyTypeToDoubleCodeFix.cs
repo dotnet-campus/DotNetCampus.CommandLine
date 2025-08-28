@@ -5,12 +5,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 
-namespace DotNetCampus.CommandLine.Analyzers.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToListCodeFix)), Shared]
-public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToDoubleCodeFix)), Shared]
+public class OptionPropertyTypeToDoubleCodeFix : ConvertOptionPropertyTypeCodeFix
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds =>
     [
@@ -18,7 +17,7 @@ public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix
         Diagnostics.NotSupportedOptionPropertyType,
     ];
 
-    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToList;
+    protected sealed override string CodeActionTitle => Localizations.DCL201_202_Fix_OptionTypeToDouble;
 
     protected sealed override CompilationUnitSyntax CreateTypeSyntaxNode(
         TypeSyntax oldTypeSyntax, CompilationUnitSyntax syntaxRoot, SemanticModel semanticModel,
@@ -26,7 +25,7 @@ public class OptionPropertyTypeToListCodeFix : ConvertOptionPropertyTypeCodeFix
     {
         return syntaxRoot.ReplaceNode(
             oldTypeSyntax,
-            SyntaxFactory.ParseName("global::System.Collections.Generic.IReadOnlyList<string>")
-                .WithAdditionalAnnotations(Simplifier.Annotation));
+            SyntaxFactory.PredefinedType(
+                SyntaxFactory.Token(SyntaxKind.DoubleKeyword)));
     }
 }

@@ -63,4 +63,13 @@
   <data name="DCL201" xml:space="preserve">
         <value>符合要求的命令行选项类型</value>
     </data>
+  <data name="DCL203" xml:space="preserve">
+    <value>不支持此类型的原始命令行参数</value>
+  </data>
+  <data name="DCL203_Message" xml:space="preserve">
+    <value>[RawArguments] 只能标记在 string[] 或 IReadOnlyList&lt;string&gt; 属性上。</value>
+  </data>
+  <data name="DCL203_Description" xml:space="preserve">
+    <value>要接收原始命令行参数（通常是 string[] 类型），你应该也使用相同的属性类型 string[] 或其接口 IReadOnlyList&lt;string&gt;。</value>
+  </data>
 </root>

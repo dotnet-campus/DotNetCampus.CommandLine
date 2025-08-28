@@ -44,11 +44,22 @@ public static class Diagnostics
         description: Localize(nameof(DCL202_Description)),
         helpLinkUri: Url(NotSupportedOptionPropertyType));
 
+    public static readonly DiagnosticDescriptor DCL203_NotSupportedRawArgumentsPropertyType = new DiagnosticDescriptor(
+        nameof(DCL203),
+        Localize(nameof(DCL203)),
+        Localize(nameof(DCL203_Message)),
+        Categories.Mechanism,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: Localize(nameof(DCL203_Description)),
+        helpLinkUri: Url(NotSupportedRawArgumentsPropertyType));
+
     #endregion
 
     public const string OptionLongNameMustBeKebabCase = "DCL101";
     public const string SupportedOptionPropertyType = "DCL201";
     public const string NotSupportedOptionPropertyType = "DCL202";
+    public const string NotSupportedRawArgumentsPropertyType = "DCL203";
 
     private static class Categories
     {

@@ -40,6 +40,7 @@ internal static class CommandModelProvider
                 // 3. 拥有 [Verb] 特性
                 // 4. 拥有 [Option] 特性的属性
                 // 5. 拥有 [Value] 特性的属性
+                // 6. 拥有 [RawArguments] 特性的属性
 
                 // 1. 实现 ICommandOptions 接口。
                 var isOptions = typeSymbol.AllInterfaces.Any(i =>
@@ -52,28 +53,15 @@ internal static class CommandModelProvider
                     .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());
                 // 4. 拥有 [Option] 特性的属性。
                 var optionProperties = typeSymbol
-                    .EnumerateBaseTypesRecursively()                                            // 递归获取所有基类
-                    .Reverse()                                                                  // （注意我们先给父类属性赋值，再给子类属性赋值）
-                    .SelectMany(x => x.GetMembers())                              //                 的所有成员，
-                    .OfType<IPropertySymbol>()                                                  //                             然后取出属性，
-                    .Select(OptionPropertyGeneratingModel.TryParse)                             // 解析出 OptionPropertyGeneratingModel。
-                    .OfType<OptionPropertyGeneratingModel>()
-                    .GroupBy(x => x.PropertyName)              // 按属性名去重。
-                    .Select(x => x.Last())  // 随后，取子类的属性（去除父类的重名属性）。
-                    .ToImmutableArray();
+                    .GetAttributedProperties(OptionPropertyGeneratingModel.TryParse);
                 // 5. 拥有 [Value] 特性的属性。
                 var valueProperties = typeSymbol
-                    .EnumerateBaseTypesRecursively()                                            // 递归获取所有基类
-                    .Reverse()                                                                  // （注意我们先给父类属性赋值，再给子类属性赋值）
-                    .SelectMany(x => x.GetMembers())                              //                 的所有成员，
-                    .OfType<IPropertySymbol>()                                                  //                             然后取出属性，
-                    .Select(ValuePropertyGeneratingModel.TryParse)                              // 解析出 ValuePropertyGeneratingModel。
-                    .OfType<ValuePropertyGeneratingModel>()
-                    .GroupBy(x => x.PropertyName)               // 按属性名去重。
-                    .Select(x => x.Last())   // 随后，取子类的属性（去除父类的重名属性）。
-                    .ToImmutableArray();
+                    .GetAttributedProperties(ValuePropertyGeneratingModel.TryParse);
+                // 6. 拥有 [RawArguments] 特性的属性。
+                var rawArgumentsProperties = typeSymbol
+                    .GetAttributedProperties(RawArgumentsPropertyGeneratingModel.TryParse);
 
-                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty)
+                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty && rawArgumentsProperties.IsEmpty)
                 {
                     // 不是命令行选项类型。
                     return null;
@@ -92,6 +80,7 @@ internal static class CommandModelProvider
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
                     ValueProperties = valueProperties,
+                    RawArgumentsProperties = rawArgumentsProperties,
                 };
             })
             .Where(m => m is not null)
@@ -143,6 +132,8 @@ internal record CommandObjectGeneratingModel
     public required ImmutableArray<OptionPropertyGeneratingModel> OptionProperties { get; init; }
 
     public required ImmutableArray<ValuePropertyGeneratingModel> ValueProperties { get; init; }
+
+    public required ImmutableArray<RawArgumentsPropertyGeneratingModel> RawArgumentsProperties { get; init; }
 
     public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
 
@@ -338,6 +329,37 @@ internal record ValuePropertyGeneratingModel
     }
 }
 
+internal record RawArgumentsPropertyGeneratingModel
+{
+    public required string PropertyName { get; init; }
+
+    public required ITypeSymbol Type { get; init; }
+
+    public required bool IsRequired { get; init; }
+
+    public required bool IsInitOnly { get; init; }
+
+    public required bool IsNullable { get; init; }
+
+    public static RawArgumentsPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
+    {
+        var rawArgumentsAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<RawArgumentsAttribute>());
+        if (rawArgumentsAttribute is null)
+        {
+            return null;
+        }
+
+        return new RawArgumentsPropertyGeneratingModel
+        {
+            PropertyName = propertySymbol.Name,
+            Type = propertySymbol.Type,
+            IsRequired = propertySymbol.IsRequired,
+            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
+            IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
+        };
+    }
+}
+
 internal record AssemblyCommandsGeneratingModel
 {
     public required string Namespace { get; init; }
@@ -355,5 +377,22 @@ file static class Extensions
             yield return current;
             current = current.BaseType;
         }
+    }
+
+    public static ImmutableArray<TModel> GetAttributedProperties<TModel>(this ITypeSymbol typeSymbol,
+        Func<IPropertySymbol, TModel?> propertyParser)
+        where TModel : class
+    {
+        return typeSymbol
+            .EnumerateBaseTypesRecursively()                                                 // 递归获取所有基类
+            .Reverse()                                                                       // （注意我们先给父类属性赋值，再给子类属性赋值）
+            .SelectMany(x => x.GetMembers())                                   //                 的所有成员，
+            .OfType<IPropertySymbol>()                                                       //                             然后取出属性，
+            .Select(x => (PropertyName: x.Name, Model: propertyParser(x))) // 解析出 OptionPropertyGeneratingModel。
+            .Where(x => x.Model is not null)
+            .GroupBy(x => x.PropertyName)                            // 按属性名去重。
+            .Select(x => x.Last().Model)           // 随后，取子类的属性（去除父类的重名属性）。
+            .Cast<TModel>()
+            .ToImmutableArray();
     }
 }

@@ -141,13 +141,13 @@
     <value>Use 'string' type instead</value>
   </data>
   <data name="DCL202_Description" xml:space="preserve">
-    <value>This property has the type '{0}' which is not built-in supported. It's recommended to use bool/string/IReadOnlyList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute.</value>
+    <value>As a command-line option, the property type '{0}' is not supported. It is recommended to use bool/string/IReadOnlyList&lt;string&gt; or another type that the code fix may suggest, or add a custom converter on your Value or Option attribute.</value>
   </data>
   <data name="DCL202_Message" xml:space="preserve">
-    <value>This property has the type '{0}' which is not built-in supported.</value>
+    <value>As a command-line option, the property type '{0}' is not supported.</value>
   </data>
   <data name="DCL202" xml:space="preserve">
-    <value>Not supported property type</value>
+    <value>Not supported command-line property type</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
     <value>The command-line option definition names should be kebab-case, even though you can use any kind of style in the command line environment.</value>
@@ -169,5 +169,14 @@
   </data>
   <data name="DCL201" xml:space="preserve">
     <value>Recommended option property type</value>
+  </data>
+  <data name="DCL203" xml:space="preserve">
+    <value>Not supported raw command-line argument type</value>
+  </data>
+  <data name="DCL203_Message" xml:space="preserve">
+    <value>[RawArguments] can only be applied to properties of type string[] or IReadOnlyList&lt;string&gt;.</value>
+  </data>
+  <data name="DCL203_Description" xml:space="preserve">
+    <value>To receive raw command-line arguments (typically string[]), you should also use the same property type string[] or the interface IReadOnlyList&lt;string&gt;.</value>
   </data>
 </root>
