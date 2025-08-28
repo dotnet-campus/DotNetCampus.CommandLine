@@ -20,7 +20,9 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
         "[]", "ImmutableArray", "List", "IList", "IReadOnlyList", "ImmutableHashSet", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable",
     ];
 
-    private readonly ImmutableHashSet<string> _twoGenericTypeNames = ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
+    private readonly ImmutableHashSet<string> _twoGenericTypeNames =
+        ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
+
     private readonly ImmutableHashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
     private readonly ImmutableHashSet<string> _genericArgumentTypeNames = ["String", "string"];
 
@@ -31,6 +33,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     [
         Diagnostics.DCL201_SupportedOptionPropertyType,
         Diagnostics.DCL202_NotSupportedOptionPropertyType,
+        Diagnostics.DCL203_NotSupportedRawArgumentsPropertyType,
     ];
 
     /// <summary>
@@ -56,6 +59,10 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
             context.Compilation.GetTypeByMetadataName("DotNetCampus.Cli.Compiler.OptionAttribute"),
             context.Compilation.GetTypeByMetadataName("DotNetCampus.Cli.Compiler.ValueAttribute"),
         };
+        var rawArgumentsTypes = new[]
+        {
+            context.Compilation.GetTypeByMetadataName("DotNetCampus.Cli.Compiler.RawArgumentsAttribute"),
+        };
 
         foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))
         {
@@ -69,8 +76,11 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
             if (attributeName != null)
             {
                 var attributeType = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
-                var isTheAttributeType = optionTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
-                if (isTheAttributeType)
+                var isOptionAttributeType = optionTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
+                var isRawArgumentsAttributeType = rawArgumentsTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
+
+                // [Option], [Value]
+                if (isOptionAttributeType)
                 {
                     var isValidPropertyUsage = AnalyzeOptionPropertyType(context.SemanticModel, propertyNode);
                     var diagnostic = CreateDiagnosticForTypeSyntax(
@@ -80,6 +90,20 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
                         propertyNode);
                     context.ReportDiagnostic(diagnostic);
                     break;
+                }
+
+                // [RawArguments]
+                if (isRawArgumentsAttributeType)
+                {
+                    var isValidPropertyUsage = AnalyzeRawArgumentsPropertyType(context.SemanticModel, propertyNode);
+                    if (!isValidPropertyUsage)
+                    {
+                        var diagnostic = CreateDiagnosticForTypeSyntax(
+                            Diagnostics.DCL203_NotSupportedRawArgumentsPropertyType,
+                            propertyNode);
+                        context.ReportDiagnostic(diagnostic);
+                        break;
+                    }
                 }
             }
         }
@@ -99,14 +123,11 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Find LongName argument from the OptionAttribute.
+    /// Check whether the property type is supported by OptionAttribute or ValueAttribute.
     /// </summary>
     /// <param name="semanticModel"></param>
     /// <param name="propertySyntax"></param>
-    /// <returns>
-    /// typeName: the LongName value.
-    /// location: the syntax tree location of the LongName argument value.
-    /// </returns>
+    /// <returns></returns>
     private bool AnalyzeOptionPropertyType(SemanticModel semanticModel, PropertyDeclarationSyntax propertySyntax)
     {
         var propertyTypeSyntax = propertySyntax.Type;
@@ -143,6 +164,28 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
         if (semanticModel.GetSymbolInfo(propertyTypeSyntax).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
         {
             // Enum
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check whether the property type is supported by RawArgumentsAttribute.
+    /// </summary>
+    /// <param name="semanticModel"></param>
+    /// <param name="propertySyntax"></param>
+    /// <returns></returns>
+    private bool AnalyzeRawArgumentsPropertyType(SemanticModel semanticModel, PropertyDeclarationSyntax propertySyntax)
+    {
+        var propertyTypeSyntax = propertySyntax.Type;
+        string typeName = GetTypeName(propertyTypeSyntax);
+        var (genericType0, genericType1) = GetGenericTypeNames(propertyTypeSyntax);
+
+        if (IsOneGenericType(typeName)
+            && genericType0 != null
+            && IsGenericArgumentType(genericType0))
+        {
             return true;
         }
 

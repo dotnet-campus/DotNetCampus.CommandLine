@@ -177,7 +177,7 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not supported property type.
+        ///   Looks up a localized string similar to Not supported command-line property type.
         /// </summary>
         public static string DCL202 {
             get {
@@ -186,7 +186,7 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported. It&apos;s recommended to use bool/string/IReadOnlyList&lt;string&gt; or other types that the code fix will suggest you change instead or add a custom converter on your Value or Option attribute..
+        ///   Looks up a localized string similar to As a command-line option, the property type &apos;{0}&apos; is not supported. It is recommended to use bool/string/IReadOnlyList&lt;string&gt; or another type that the code fix may suggest, or add a custom converter on your Value or Option attribute..
         /// </summary>
         public static string DCL202_Description {
             get {
@@ -195,11 +195,38 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This property has the type &apos;{0}&apos; which is not built-in supported..
+        ///   Looks up a localized string similar to As a command-line option, the property type &apos;{0}&apos; is not supported..
         /// </summary>
         public static string DCL202_Message {
             get {
                 return ResourceManager.GetString("DCL202_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not supported raw command-line argument type.
+        /// </summary>
+        public static string DCL203 {
+            get {
+                return ResourceManager.GetString("DCL203", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to To receive raw command-line arguments (typically string[]), you should also use the same property type string[] or the interface IReadOnlyList&lt;string&gt;..
+        /// </summary>
+        public static string DCL203_Description {
+            get {
+                return ResourceManager.GetString("DCL203_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [RawArguments] can only be applied to properties of type string[] or IReadOnlyList&lt;string&gt;..
+        /// </summary>
+        public static string DCL203_Message {
+            get {
+                return ResourceManager.GetString("DCL203_Message", resourceCulture);
             }
         }
     }
