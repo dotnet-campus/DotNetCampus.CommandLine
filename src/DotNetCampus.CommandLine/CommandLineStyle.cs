@@ -15,7 +15,7 @@ public enum CommandLineStyle
     /// 灵活风格是一种包容性最强的命令行参数风格，旨在让不熟悉命令行操作的用户也能轻松使用。它通过智能识别尝试理解用户输入的意图，支持多种参数格式共存。<br/>
     /// <br/>
     /// 详细规则：<br/>
-    /// 1. 参数前缀支持多种形式：双破折线(--), 单破折线(-), 斜杠(/)<br/>
+    /// 1. 参数前缀支持多种形式：双破折线(--), 单破折线(-), 斜杠(/，仅 Windows)<br/>
     /// 2. 参数值分隔符兼容多种形式：空格、等号(=)、冒号(:)<br/>
     /// 3. 参数命名风格兼容kebab-case(--parameter-name)、PascalCase(-ParameterName)和camelCase<br/>
     /// 4. 默认大小写不敏感，便于初学者使用<br/>
@@ -46,7 +46,7 @@ public enum CommandLineStyle
     /// app -p:value               # 短选项冒号分隔
     /// app -pvalue                # 短选项直接跟值（GNU风格）
     ///
-    /// # 斜杠选项（Windows风格）
+    /// # 斜杠选项（Windows风格，仅在 Windows 系统可用）
     /// app /parameter value       # 斜杠前缀长选项
     /// app /p value               # 斜杠前缀短选项
     /// app /parameter:value       # 斜杠前缀冒号分隔（类MSBuild）
@@ -151,7 +151,7 @@ public enum CommandLineStyle
     /// .NET CLI风格，使用冒号分隔参数：<br/>
     /// 1. 短选项形式为 -参数:值<br/>
     /// 2. 长选项可以是 --参数:值<br/>
-    /// 3. 也支持斜杠前缀 /参数:值
+    /// 3. 也支持斜杠前缀 /参数:值（仅 Windows 环境下可用）
     /// </summary>
     /// <remarks>
     /// 这种风格在现代.NET工具链（dotnet CLI、NuGet、MSBuild等）和其他Microsoft工具中广泛使用。<br/>
@@ -160,7 +160,7 @@ public enum CommandLineStyle
     /// 1. 支持使用冒号(:)作为选项和参数值的分隔符<br/>
     /// 2. 短选项以单破折线(-)开头，后跟选项名，然后是冒号和参数值<br/>
     /// 3. 长选项以双破折线(--)开头，后跟选项名，然后是冒号和参数值<br/>
-    /// 4. 也支持使用斜杠(/)作为选项前缀，特别是在Windows环境中<br/>
+    /// 4. 也支持使用斜杠(/)作为选项前缀，仅在Windows环境中可用<br/>
     /// 5. 参数名可以是单个字母、多字符缩写或完整的单词，支持各种命名规范<br/>
     /// 6. 布尔选项通常不需要值，或使用true/false、on/off等值<br/>
     /// 7. 多个短选项一般不支持合并（与GNU/POSIX不同）<br/>
@@ -185,7 +185,7 @@ public enum CommandLineStyle
     /// dotnet test --test-category:UnitTest     # kebab-case，双破折号
     /// dotnet run --projectName:App1            # camelCase，双破折号
     ///
-    /// # 斜杠前缀(Windows风格)
+    /// # 斜杠选项（Windows风格，仅在 Windows 系统可用）
     /// msbuild /p:Configuration=Release  # MSBuild属性
     /// dotnet test /blame                # 启用故障分析
     /// dotnet nuget push /source:feed    # 指定源

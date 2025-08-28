@@ -106,8 +106,11 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
     public static FlexibleArgument Parse(string argument, FlexibleParsedType lastType)
     {
         var isPostPositionalArgument = lastType is FlexibleParsedType.PositionalArgumentSeparator or FlexibleParsedType.PostPositionalArgument;
+        var hasPrefix = OperatingSystem.IsWindows()
+            ? argument.Length > 0 && (argument[0] is '-' or '/')
+            : argument.Length > 0 && argument[0] is '-';
 
-        if (!isPostPositionalArgument && argument is ['-', ..] or ['/', ..])
+        if (!isPostPositionalArgument && hasPrefix)
         {
             if (argument.Length is 1)
             {

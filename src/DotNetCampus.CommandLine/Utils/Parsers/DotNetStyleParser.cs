@@ -105,8 +105,11 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
     public static DotNetArgument Parse(string argument, DotNetParsedType lastType)
     {
         var isPostPositionalArgument = lastType is DotNetParsedType.PositionalArgumentSeparator or DotNetParsedType.PostPositionalArgument;
+        var hasPrefix = OperatingSystem.IsWindows()
+            ? argument.Length > 0 && (argument[0] is '-' or '/')
+            : argument.Length > 0 && argument[0] is '-';
 
-        if (!isPostPositionalArgument && argument is ['-', ..] or ['/', ..])
+        if (!isPostPositionalArgument && hasPrefix)
         {
             if (argument.Length is 1)
             {
