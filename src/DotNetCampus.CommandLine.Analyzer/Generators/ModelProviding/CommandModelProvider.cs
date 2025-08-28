@@ -61,7 +61,7 @@ internal static class CommandModelProvider
                 var rawArgumentsProperties = typeSymbol
                     .GetAttributedProperties(RawArgumentsPropertyGeneratingModel.TryParse);
 
-                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty)
+                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty && rawArgumentsProperties.IsEmpty)
                 {
                     // 不是命令行选项类型。
                     return null;
