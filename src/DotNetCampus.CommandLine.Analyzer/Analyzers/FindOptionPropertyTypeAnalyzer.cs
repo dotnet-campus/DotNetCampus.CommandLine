@@ -9,22 +9,27 @@ namespace DotNetCampus.CommandLine.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
-    private readonly ImmutableHashSet<string> _nonGenericTypeNames =
+    private readonly HashSet<string> _nonGenericTypeNames =
     [
         "String", "string", "Boolean", "bool", "Byte", "byte", "Int16", "short", "UInt16", "ushort", "Int32", "int", "UInt32", "uint", "Int64", "long",
         "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable",
     ];
 
-    private readonly ImmutableHashSet<string> _oneGenericTypeNames =
+    private readonly HashSet<string> _oneGenericTypeNames =
     [
         "[]", "ImmutableArray", "List", "IList", "IReadOnlyList", "ImmutableHashSet", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable",
     ];
 
-    private readonly ImmutableHashSet<string> _twoGenericTypeNames =
+    private readonly HashSet<string> _rawArgumentsGenericTypeNames =
+    [
+        "[]", "IList", "IReadOnlyList", "ICollection", "IReadOnlyCollection", "IEnumerable",
+    ];
+
+    private readonly HashSet<string> _twoGenericTypeNames =
         ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
 
-    private readonly ImmutableHashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
-    private readonly ImmutableHashSet<string> _genericArgumentTypeNames = ["String", "string"];
+    private readonly HashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
+    private readonly HashSet<string> _genericArgumentTypeNames = ["String", "string"];
 
     /// <summary>
     /// Supported diagnostics.
@@ -182,7 +187,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
         string typeName = GetTypeName(propertyTypeSyntax);
         var (genericType0, genericType1) = GetGenericTypeNames(propertyTypeSyntax);
 
-        if (IsOneGenericType(typeName)
+        if (IsRawArgumentsGenericType(typeName)
             && genericType0 != null
             && IsGenericArgumentType(genericType0))
         {
@@ -264,6 +269,9 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 
     private bool IsOneGenericType(string typeName)
         => _oneGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
+
+    private bool IsRawArgumentsGenericType(string typeName)
+        => _rawArgumentsGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
 
     private bool IsTwoGenericType(string typeName)
         => _twoGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
