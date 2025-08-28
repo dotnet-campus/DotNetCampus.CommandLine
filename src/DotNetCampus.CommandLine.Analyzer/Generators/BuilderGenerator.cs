@@ -198,7 +198,7 @@ internal sealed class {{model.GetBuilderTypeName()}}
         }
     }
 
-    private string GenerateRawArgumentsPropertyAssignment(RawArgumentsPropertyGeneratingModel property, int modelIndex)
+    private string GenerateRawArgumentsPropertyAssignment(RawArgumentsPropertyGeneratingModel property)
     {
         var isInitProperty = property.IsRequired || property.IsInitOnly;
         if (isInitProperty)
