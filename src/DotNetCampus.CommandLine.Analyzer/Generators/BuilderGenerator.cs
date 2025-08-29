@@ -204,13 +204,13 @@ namespace {{model.Namespace}};
         if (isInitProperty)
         {
             return $"""
-            {property.PropertyName} = ({property.Type.ToDisplayString()})commandLine.CommandLineArguments,
+            {property.PropertyName} = (commandLine.CommandLineArguments as {property.Type.ToDisplayString()}) ?? [..commandLine.CommandLineArguments],
 """;
         }
         else
         {
             return $$"""
-        result.{{property.PropertyName}} = ({{property.Type.ToDisplayString()}})commandLine.CommandLineArguments;
+        result.{{property.PropertyName}} = (commandLine.CommandLineArguments as {{property.Type.ToDisplayString()}}) ?? [..commandLine.CommandLineArguments];
 """;
         }
     }
