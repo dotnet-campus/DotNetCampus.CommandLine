@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <!--
+      We add net8.0 to support collection expressions for Immutables.
+      We add net6.0 to support ArgumentNullException.ThrowIfNull().
+      We add net5.0 to support OperatingSystem.IsWindows()/IsLinux()/IsMacOS() methods.
+      We add netcoreapp3.1 to support basic string methods.
+    -->
+    <TargetFrameworks>net8.0;net6.0;net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>DotNetCampus.CommandLine</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
