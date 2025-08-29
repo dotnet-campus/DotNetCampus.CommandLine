@@ -11,7 +11,11 @@ namespace DotNetCampus.Cli;
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private static ConcurrentDictionary<Type, CommandObjectCreationInfo> CommandObjectCreationInfos { get; } = new(ReferenceEqualityComparer.Instance);
+    private static ConcurrentDictionary<Type, CommandObjectCreationInfo> CommandObjectCreationInfos { get; } = new(
+#if NET5_0_OR_GREATER
+        ReferenceEqualityComparer.Instance
+#endif
+    );
 
     private readonly CommandLine _commandLine;
     private readonly DictionaryCommandHandlerCollection _dictionaryVerbHandlers = new();

@@ -84,7 +84,13 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
             return new PowerShellArgument(PowerShellParsedType.PositionalArgumentSeparator);
         }
 
-        if (!isPostPositionalArgument && argument.StartsWith('-') && argument.Length > 1 && !char.IsDigit(argument[1]))
+        if (!isPostPositionalArgument && argument.StartsWith(
+#if NETCOREAPP3_1_OR_GREATER
+                '-'
+#else
+                "-"
+#endif
+            ) && argument.Length > 1 && !char.IsDigit(argument[1]))
         {
             // PowerShell 风格的选项 (-ParameterName)
             var optionSpan = argument.AsSpan(1);
