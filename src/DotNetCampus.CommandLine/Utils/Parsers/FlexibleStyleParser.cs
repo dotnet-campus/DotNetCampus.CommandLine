@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Utils.Collections;
 
@@ -106,9 +107,14 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
     public static FlexibleArgument Parse(string argument, FlexibleParsedType lastType)
     {
         var isPostPositionalArgument = lastType is FlexibleParsedType.PositionalArgumentSeparator or FlexibleParsedType.PostPositionalArgument;
-        var hasPrefix = OperatingSystem.IsWindows()
-            ? argument.Length > 0 && (argument[0] is '-' or '/')
-            : argument.Length > 0 && argument[0] is '-';
+        var hasPrefix =
+#if NET5_0_OR_GREATER
+            OperatingSystem.IsWindows()
+#else
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+#endif
+                ? argument.Length > 0 && (argument[0] is '-' or '/')
+                : argument.Length > 0 && argument[0] is '-';
 
         if (!isPostPositionalArgument && hasPrefix)
         {

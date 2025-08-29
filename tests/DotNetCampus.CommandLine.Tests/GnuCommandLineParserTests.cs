@@ -322,7 +322,7 @@ public class GnuCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, GNU)
                 .AddHandler<GNU09_RequiredOptions>(_ => { })
@@ -337,7 +337,7 @@ public class GnuCommandLineParserTests
         string[] args = ["---invalid"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, GNU)
                 .AddHandler<GNU01_StringOptions>(_ => { })
@@ -352,7 +352,7 @@ public class GnuCommandLineParserTests
         string[] args = ["--number", "not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, GNU)
                 .AddHandler<GNU04_IntegerOptions>(_ => { })
@@ -703,7 +703,7 @@ public class GnuCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, GNU)
                 .AddHandler<GNU19_RequiredNonNullableOption>(_ => { })
@@ -734,7 +734,7 @@ public class GnuCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, GNU)
                 .AddHandler<GNU21_RequiredNullableOption>(_ => { })

@@ -566,7 +566,7 @@ public class FlexibleCommandLineParserTests
         string[] args = ["--non-existent", "value"];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<Flexible01_StringOptions>(_ => { })
@@ -581,7 +581,7 @@ public class FlexibleCommandLineParserTests
         string[] args = ["--valu", "test"]; // 应该是 --value
 
         // Act
-        var exception = Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        var exception = Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<Flexible01_StringOptions>(_ => { })
@@ -599,7 +599,7 @@ public class FlexibleCommandLineParserTests
         string[] args = ["--number=not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<Flexible15_TypedOptions>(_ => { })
@@ -614,7 +614,7 @@ public class FlexibleCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<Flexible16_RequiredOptions>(_ => { })

@@ -1,7 +1,9 @@
 ﻿using System.Collections;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using DotNetCampus.Cli.Exceptions;
+#if NETCOREAPP3_1_OR_GREATER
+using System.Collections.Immutable;
+#endif
 
 namespace DotNetCampus.Cli;
 
@@ -155,6 +157,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
                 $"Value [{values[0]}] is not a valid uint value."),
     };
 
+#if NET5_0_OR_GREATER
     /// <summary>
     /// 将从命令行解析出来的属性值转换为 <see cref="nint"/>。
     /// </summary>
@@ -166,7 +169,9 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
             : throw new CommandLineParseValueException(
                 $"Value [{values[0]}] is not a valid nint value."),
     };
+#endif
 
+#if NET5_0_OR_GREATER
     /// <summary>
     /// 将从命令行解析出来的属性值转换为 <see cref="nuint"/>。
     /// </summary>
@@ -178,6 +183,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
             : throw new CommandLineParseValueException(
                 $"Value [{values[0]}] is not a valid unint value."),
     };
+#endif
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为 <see cref="long"/>。
@@ -237,8 +243,13 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
         {
             MultiValueHandling.First => values[0],
             MultiValueHandling.Last => values[^1],
+#if NETCOREAPP3_1_OR_GREATER
             MultiValueHandling.SpaceAll => string.Join(' ', values),
             MultiValueHandling.SlashAll => string.Join('/', values),
+#else
+            MultiValueHandling.SpaceAll => string.Join(" ", values),
+            MultiValueHandling.SlashAll => string.Join("/", values),
+#endif
             _ => values[0],
         },
     };
@@ -252,23 +263,37 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
         { } values => [..SplitValues(values)],
     };
 
+#if NETCOREAPP3_1_OR_GREATER
     /// <summary>
     /// 将从命令行解析出来的属性值转换为不可变字符串数组。
     /// </summary>
     public static implicit operator ImmutableArray<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
+#if NET8_0_OR_GREATER
         { Count: 0 } => [],
         { } values => [..SplitValues(values)],
+#else
+        { Count: 0 } => ImmutableArray<string>.Empty,
+        { } values => SplitValues(values).ToImmutableArray(),
+#endif
     };
+#endif
 
+#if NETCOREAPP3_1_OR_GREATER
     /// <summary>
     /// 将从命令行解析出来的属性值转换为不可变字符串哈希集合。
     /// </summary>
     public static implicit operator ImmutableHashSet<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
+#if NET8_0_OR_GREATER
         { Count: 0 } => [],
         { } values => [..SplitValues(values)],
+#else
+        { Count: 0 } => ImmutableHashSet<string>.Empty,
+        { } values => SplitValues(values).ToImmutableHashSet(),
+#endif
     };
+#endif
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为字符串集合。
@@ -300,7 +325,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public T ToEnum<T>() where T : unmanaged, Enum => _values switch
     {
         { Count: 0 } => default,
-        { } values => Enum.TryParse(typeof(T), values[0], true, out var result) ? (T)result : default!,
+        { } values => Enum.TryParse<T>(values[0], true, out var result) ? result : default!,
     };
 
     /// <summary>
@@ -319,7 +344,13 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     {
         { Count: 0 } => new Dictionary<string, string>(),
         { } values => values
-            .SelectMany(x => x.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            .SelectMany(x => x.Split(
+#if NETCOREAPP3_1_OR_GREATER
+                ';'
+#else
+                [";"]
+#endif
+                , StringSplitOptions.RemoveEmptyEntries))
             .Select(x =>
             {
                 var parts = x.Split('=');

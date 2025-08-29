@@ -307,6 +307,10 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
         {
             return builder.ToString();
         }
+#if NETCOREAPP3_1_OR_GREATER
         return new string(builder[..actualBuilderCount]);
+#else
+        return builder[..actualBuilderCount].ToString();
+#endif
     }
 }
