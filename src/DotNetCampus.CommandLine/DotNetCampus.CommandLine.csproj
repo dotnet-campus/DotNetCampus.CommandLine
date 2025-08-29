@@ -13,7 +13,11 @@
     <EmbedAllSources Condition="'$(Configuration)' != 'debug'">true</EmbedAllSources>
     <WarningLevel Condition="'$(TargetFramework)' == 'net6.0'">0</WarningLevel>
   </PropertyGroup>
-
+  
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <NoWarn>$(NoWarn);CS8767</NoWarn>
+  </PropertyGroup>
+  
   <ItemGroup>
     <InternalsVisibleTo Include="DotNetCampus.CommandLine.Tests" />
   </ItemGroup>
