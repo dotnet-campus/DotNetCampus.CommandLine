@@ -99,7 +99,7 @@ public class InheritanceCommandLineParserTests
         string[] args = ["--child-value", "child-test"];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<ChildWithRequiredParentProps>(_ => { })
@@ -130,7 +130,7 @@ public class InheritanceCommandLineParserTests
         string[] args = ["--parent-value", "parent-test"];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<ChildWithRequiredProps>(_ => { })
@@ -210,7 +210,7 @@ public class InheritanceCommandLineParserTests
         ];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<GrandChildWithRequiredProps>(_ => { })
