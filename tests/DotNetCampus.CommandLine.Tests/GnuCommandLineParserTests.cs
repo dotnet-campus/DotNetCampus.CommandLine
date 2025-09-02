@@ -774,6 +774,28 @@ public class GnuCommandLineParserTests
         Assert.AreEqual("value4", nonReqNonNull);
     }
 
+    [TestMethod("6.6. 可空枚举类型，无CLI参数，赋默认值(null)。")]
+    public void NullableEnumOption_NoCli_DefaultNull()
+    {
+        // Arrange
+        string[] args = ["--log-level", "Warning"]; // 只提供非可空枚举，不提供可空枚举
+        LogLevel? logLevel = null;
+        LogLevel? nullableLogLevel = LogLevel.Error; // 初始化为非null值，验证会被设置为null
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU06_EnumOptions>(o =>
+            {
+                logLevel = o.LogLevel;
+                nullableLogLevel = o.NullableLogLevel;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual(LogLevel.Warning, logLevel);
+        Assert.IsNull(nullableLogLevel, $"可空枚举应该是null，但实际值是: {nullableLogLevel}"); // 可空枚举应该是null
+    }
+
     #endregion
 
     #region 7. 异步处理测试
