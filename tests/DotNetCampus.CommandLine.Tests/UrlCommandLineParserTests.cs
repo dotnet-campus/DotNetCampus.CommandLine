@@ -454,7 +454,7 @@ public class UrlCommandLineParserTests
         string[] args = ["myapp:/path?invalid-format"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, Scheme)
                 .AddHandler<Url20_MalformedUrlOptions>(_ => { })

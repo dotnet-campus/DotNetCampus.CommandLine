@@ -9,13 +9,16 @@
     <Deterministic>true</Deterministic>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
     <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts\</ArtifactsPath>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <PropertyGroup>
     <!--
       DCL101: 命令行库自己的警告，是为了给库的用户报告的；而本仓库要测这些，所以不能放一堆警告破窗。
+      NU1507: 没有指定包源映射
     -->
-    <NoWarn>$(NoWarn);DCL101</NoWarn>
+    <NoWarn>$(NoWarn);DCL101;NU1507</NoWarn>
     <!--
       CA1416: 平台兼容性警告
     -->

@@ -456,7 +456,7 @@ public class DotNetCommandLineParserTests
         string[] args = ["--properties:key1=value1;key2"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet23_DictionaryOptions>(_ => { })
@@ -471,7 +471,7 @@ public class DotNetCommandLineParserTests
         string[] args = ["--properties:key1:value1"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet23_DictionaryOptions>(_ => { })
@@ -546,7 +546,7 @@ public class DotNetCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet09_RequiredOptions>(_ => { })
@@ -561,7 +561,7 @@ public class DotNetCommandLineParserTests
         string[] args = ["---invalid:value"]; // 三个破折号是无效的
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet01_StringOptions>(_ => { })
@@ -576,7 +576,7 @@ public class DotNetCommandLineParserTests
         string[] args = ["--number:not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet04_IntegerOptions>(_ => { })
@@ -757,7 +757,7 @@ public class DotNetCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet19_RequiredNonNullableOption>(_ => { })
@@ -788,7 +788,7 @@ public class DotNetCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, DotNet)
                 .AddHandler<DotNet21_RequiredNullableOption>(_ => { })

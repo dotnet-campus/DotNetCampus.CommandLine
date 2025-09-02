@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{2AC77BF2
 		LICENSE = LICENSE
 		README.md = README.md
 		build\Version.props = build\Version.props
+		Directory.Packages.props = Directory.Packages.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCampus.CommandLine.Analyzer", "src\DotNetCampus.CommandLine.Analyzer\DotNetCampus.CommandLine.Analyzer.csproj", "{8AD0FEAB-2E36-4EBB-9E32-C4394FC6DC86}"

@@ -183,7 +183,7 @@ public class AddHandlerTests
         bool removeHandlerCalled = false;
 
         // Act & Assert
-        var exception = Assert.ThrowsException<CommandVerbNotFoundException>(() => {
+        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<AddOptions>(_ => addHandlerCalled = true)
                 .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
@@ -300,7 +300,7 @@ public class AddHandlerTests
         // Arrange
         string[] args = ["--value", "test"];
         var expectedException = new InvalidOperationException("Test exception");        // Act & Assert
-        var exception = Assert.ThrowsException<InvalidOperationException>(() => {
+        var exception = Assert.ThrowsExactly<InvalidOperationException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<SimpleOptions>(new Action<SimpleOptions>(_ => { throw expectedException; }))
                 .Run();
@@ -316,7 +316,7 @@ public class AddHandlerTests
         string[] args = ["unknown-verb"];
 
         // Act & Assert
-        var exception = Assert.ThrowsException<CommandVerbNotFoundException>(() => {
+        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<AddOptions>(_ => { })
                 .AddHandler<RemoveOptions>(_ => { })
@@ -334,7 +334,7 @@ public class AddHandlerTests
         string[] args = ["add"]; // 缺少 ItemToAdd 参数
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() => {
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<AddOptions>(_ => { })
                 .Run();

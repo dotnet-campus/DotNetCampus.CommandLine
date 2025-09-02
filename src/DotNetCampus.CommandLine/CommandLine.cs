@@ -143,7 +143,14 @@ public class CommandLine : ICoreCommandRunnerBuilder
     [Pure]
     public static CommandLine Parse(IReadOnlyList<string> args, CommandLineParsingOptions? parsingOptions = null)
     {
+#if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(args);
+#else
+        if (args is null)
+        {
+            throw new ArgumentNullException(nameof(args));
+        }
+#endif
         return args.Count is 0
             ? new CommandLine()
             : new CommandLine(args, parsingOptions);

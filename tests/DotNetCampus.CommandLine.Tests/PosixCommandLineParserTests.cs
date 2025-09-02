@@ -82,7 +82,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-vtest.txt"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX01_ShortOptions>(_ => { })
@@ -126,7 +126,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-abc", "value"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX05_CombinedWithValueOptions>(_ => { })
@@ -237,7 +237,7 @@ public class PosixCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX10_RequiredOptions>(_ => { })
@@ -252,7 +252,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-invalid-format"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX01_ShortOptions>(_ => { })
@@ -267,7 +267,7 @@ public class PosixCommandLineParserTests
         string[] args = ["-n", "not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX02_IntegerOptions>(_ => { })
@@ -282,7 +282,7 @@ public class PosixCommandLineParserTests
         string[] args = ["--option", "value"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, POSIX)
                 .AddHandler<POSIX11_LongOptionTest>(_ => { })

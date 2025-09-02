@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using DotNetCampus.Cli.Utils.Parsers;
+﻿using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli.Utils;
 
@@ -17,7 +16,7 @@ internal static class CommandLineConverter
     {
         if (string.IsNullOrWhiteSpace(singleLineCommandLineArgs))
         {
-            return ImmutableArray<string>.Empty;
+            return [];
         }
 
         List<Range> parts = [];
@@ -69,7 +68,7 @@ internal static class CommandLineConverter
     public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
         IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions)
     {
-        var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Length: > 0 } schemeNames
+        var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Count: > 0 } schemeNames
             ? schemeNames.FirstOrDefault(x => arguments[0].StartsWith($"{x}://", StringComparison.OrdinalIgnoreCase))
             : null;
 

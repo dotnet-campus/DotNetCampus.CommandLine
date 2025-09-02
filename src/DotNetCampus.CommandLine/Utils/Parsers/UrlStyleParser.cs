@@ -218,7 +218,11 @@ internal sealed class UrlStyleParser : ICommandLineParser
             index = endIndex;
             return new UrlPart(UrlParsedType.ParameterName)
             {
-                Name = OptionName.MakeKebabCase(value),
+                Name = OptionName.MakeKebabCase(value
+#if !NETCOREAPP3_1_OR_GREATER
+                        .AsSpan()
+#endif
+                ),
             };
         }
 

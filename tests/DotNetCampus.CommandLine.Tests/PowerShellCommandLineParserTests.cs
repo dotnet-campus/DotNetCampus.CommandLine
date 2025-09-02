@@ -209,7 +209,7 @@ public class PowerShellCommandLineParserTests
         string[] args = ["-Co", "value"]; // 可能是 ComputerName 或 Count
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseException>(() =>
+        Assert.ThrowsExactly<CommandLineParseException>(() =>
         {
             CommandLine.Parse(args, PowerShell)
                 .AddHandler<PS08_AmbiguousOptions>(_ => { })
@@ -407,7 +407,7 @@ public class PowerShellCommandLineParserTests
         string[] args = [];
 
         // Act & Assert
-        Assert.ThrowsException<RequiredPropertyNotAssignedException>(() =>
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, PowerShell)
                 .AddHandler<PS14_RequiredOptions>(_ => { })
@@ -422,7 +422,7 @@ public class PowerShellCommandLineParserTests
         string[] args = ["-Count", "not-a-number"];
 
         // Act & Assert
-        Assert.ThrowsException<CommandLineParseValueException>(() =>
+        Assert.ThrowsExactly<CommandLineParseValueException>(() =>
         {
             CommandLine.Parse(args, PowerShell)
                 .AddHandler<PS15_TypeConversionOptions>(_ => { })
