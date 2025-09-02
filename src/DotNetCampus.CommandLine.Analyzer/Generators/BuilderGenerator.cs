@@ -122,9 +122,12 @@ namespace {{model.Namespace}};
         };
         var exception = property.IsRequired
             ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
-            : property.IsValueType
-                ? "default"
-                : "null!";
+            : (property.IsNullable, property.IsValueType) switch
+            {
+                (true, _) => "null",
+                (false, true) => "default",
+                (false, false) => "null!",
+            };
 
         var getters = property.GenerateAllNames(
             shortOption => $"""commandLine.GetShortOption("{shortOption}"{caseSensitive})""",
@@ -178,9 +181,12 @@ namespace {{model.Namespace}};
         var verbText = model.VerbName is { } verbName ? $"\"{verbName}\"" : "null";
         var exception = property.IsRequired
             ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
-            : property.IsValueType
-                ? "default"
-                : "null!";
+            : (property.IsNullable, property.IsValueType) switch
+            {
+                (true, _) => "null",
+                (false, true) => "default",
+                (false, false) => "null!",
+            };
         if (property.IsRequired || property.IsInitOnly)
         {
             return $"""
