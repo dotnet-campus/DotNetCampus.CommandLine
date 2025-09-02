@@ -796,6 +796,37 @@ public class GnuCommandLineParserTests
         Assert.IsNull(nullableLogLevel, $"可空枚举应该是null，但实际值是: {nullableLogLevel}"); // 可空枚举应该是null
     }
 
+    [TestMethod("6.7. 可空值类型，无CLI参数，赋默认值(null)。")]
+    public void NullableValueTypes_NoCli_DefaultNull()
+    {
+        // Arrange
+        string[] args = ["--provided-int", "42"]; // 只提供一个必需的参数，不提供其他可空参数
+        int? nullableInt = 123; // 初始化为非null值，验证会被设置为null
+        bool? nullableBool = true; // 初始化为非null值，验证会被设置为null
+        double? nullableDouble = 3.14; // 初始化为非null值，验证会被设置为null
+        decimal? nullableDecimal = 100.5m; // 初始化为非null值，验证会被设置为null
+        int? providedInt = null;
+
+        // Act
+        CommandLine.Parse(args, GNU)
+            .AddHandler<GNU28_NullableValueTypesOptions>(o =>
+            {
+                nullableInt = o.NullableInt;
+                nullableBool = o.NullableBool;
+                nullableDouble = o.NullableDouble;
+                nullableDecimal = o.NullableDecimal;
+                providedInt = o.ProvidedInt;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual(42, providedInt); // 提供的参数应该正确解析
+        Assert.IsNull(nullableInt, $"可空int应该是null，但实际值是: {nullableInt}");
+        Assert.IsNull(nullableBool, $"可空bool应该是null，但实际值是: {nullableBool}");
+        Assert.IsNull(nullableDouble, $"可空double应该是null，但实际值是: {nullableDouble}");
+        Assert.IsNull(nullableDecimal, $"可空decimal应该是null，但实际值是: {nullableDecimal}");
+    }
+
     #endregion
 
     #region 7. 异步处理测试
@@ -1051,6 +1082,24 @@ internal record GNU27_NonRequiredNonNullableOption
 {
     [Option]
     public string Value { get; init; } = string.Empty;
+}
+
+internal record GNU28_NullableValueTypesOptions
+{
+    [Option("nullable-int")]
+    public int? NullableInt { get; init; }
+
+    [Option("nullable-bool")]
+    public bool? NullableBool { get; init; }
+
+    [Option("nullable-double")]
+    public double? NullableDouble { get; init; }
+
+    [Option("nullable-decimal")]
+    public decimal? NullableDecimal { get; init; }
+
+    [Option("provided-int")]
+    public int ProvidedInt { get; init; }
 }
 
 internal record GNU14_QuotedArrayOptions
