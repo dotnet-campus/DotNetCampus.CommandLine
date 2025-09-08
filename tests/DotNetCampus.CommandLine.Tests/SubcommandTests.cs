@@ -168,6 +168,69 @@ public class SubcommandTests
         Assert.AreEqual("development", capturedProfile);
     }
 
+    [TestMethod("2.4. kebab-case 命名的子命令匹配")]
+    public void KebabCaseSubcommand_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["get-info", "user", "123"];
+        string? capturedUserId = null;
+        bool otherHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GetInfoUserOptions>(o =>
+            {
+                capturedUserId = o.UserId;
+            })
+            .AddHandler<GetInfoSystemOptions>(_ => otherHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("123", capturedUserId);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    [TestMethod("2.5. 混合 kebab-case 和普通命名的多级子命令")]
+    public void MixedKebabCaseAndNormalSubcommand_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["user-management", "create-account", "--username", "john", "--email", "john@example.com"];
+        string? capturedUsername = null;
+        string? capturedEmail = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<UserManagementCreateAccountOptions>(o =>
+            {
+                capturedUsername = o.Username;
+                capturedEmail = o.Email;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("john", capturedUsername);
+        Assert.AreEqual("john@example.com", capturedEmail);
+    }
+
+    [TestMethod("2.6. 复杂的 kebab-case 三级子命令")]
+    public void ComplexKebabCaseThreeLevelSubcommand_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["cloud-service", "auto-scaling", "set-policy", "scale-up"];
+        string? capturedPolicy = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<CloudServiceAutoScalingSetPolicyOptions>(o =>
+            {
+                capturedPolicy = o.PolicyName;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("scale-up", capturedPolicy);
+    }
+
     #endregion
 
     #region 3. 子命令优先级与匹配规则测试
@@ -594,6 +657,48 @@ internal class ServiceStartCommandHandler : ICommandHandler
         WasHandlerCalled = false;
         CapturedServiceName = null;
     }
+}
+
+// kebab-case 命名相关子命令选项类
+
+[Command("get-info user")]
+internal class GetInfoUserOptions
+{
+    [Value(0)]
+    public required string UserId { get; init; }
+}
+
+[Command("get-info system")]
+internal class GetInfoSystemOptions
+{
+    [Option("verbose")]
+    public bool Verbose { get; init; }
+}
+
+[Command("user-management create-account")]
+internal class UserManagementCreateAccountOptions
+{
+    [Option("username")]
+    public required string Username { get; init; }
+
+    [Option("email")]
+    public required string Email { get; init; }
+
+    [Option("role")]
+    public string Role { get; init; } = "user";
+}
+
+[Command("cloud-service auto-scaling set-policy")]
+internal class CloudServiceAutoScalingSetPolicyOptions
+{
+    [Value(0)]
+    public required string PolicyName { get; init; }
+
+    [Option("min-instances")]
+    public int MinInstances { get; init; } = 1;
+
+    [Option("max-instances")]
+    public int MaxInstances { get; init; } = 10;
 }
 
 #endregion
