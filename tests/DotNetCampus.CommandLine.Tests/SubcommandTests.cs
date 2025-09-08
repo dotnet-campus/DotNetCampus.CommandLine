@@ -366,7 +366,7 @@ public class SubcommandTests
         string[] args = ["unknown", "subcommand"];
 
         // Act & Assert
-        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() =>
+        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<GitRemoteAddOptions>(_ => { })
@@ -400,7 +400,7 @@ public class SubcommandTests
         string[] args = ["remote", "unknown"];
 
         // Act & Assert
-        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() =>
+        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() =>
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<GitRemoteAddOptions>(_ => { })

@@ -26,7 +26,7 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         {
             if (!_commandHandlers.TryAdd(commandNames, handlerCreator))
             {
-                throw new InvalidOperationException($"Duplicate handler with verb {commandNames}. Existed: {_commandHandlers}, new: {handlerCreator}");
+                throw new InvalidOperationException($"Duplicate handler with command {commandNames}. Existed: {_commandHandlers}, new: {handlerCreator}");
             }
         }
     }

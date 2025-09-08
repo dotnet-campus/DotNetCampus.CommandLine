@@ -200,8 +200,8 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
         if (handler is null)
         {
-            throw new CommandVerbNotFoundException(
-                $"No command handler found for verb '{_commandLine.PossibleCommandNames}'. Please ensure that the command handler is registered correctly.",
+            throw new CommandNameNotFoundException(
+                $"No command handler found for command '{_commandLine.PossibleCommandNames}'. Please ensure that the command handler is registered correctly.",
                 _commandLine.PossibleCommandNames);
         }
 

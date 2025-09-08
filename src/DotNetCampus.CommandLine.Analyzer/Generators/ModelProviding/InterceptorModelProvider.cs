@@ -102,8 +102,8 @@ internal static class InterceptorModelProvider
                                 ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
 #pragma warning restore CS0618 // 类型或成员已过时
                     ;
-                var verbName = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } verbArgument
-                    ? verbArgument.Value?.ToString()
+                var commandName = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
+                    ? commandArgument.Value?.ToString()
                     : null;
                 // 获取调用代码所在的类和方法。
                 var methodDeclaration = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
@@ -111,7 +111,7 @@ internal static class InterceptorModelProvider
                 var invocationFileName = Path.GetFileName(node.SyntaxTree.FilePath);
                 var invocationInfo = $"{classDeclaration?.Identifier.ToString()}.{methodDeclaration?.Identifier.ToString()} @{invocationFileName}";
 
-                return new InterceptorGeneratingModel(interceptableLocation, symbol, verbName, invocationInfo);
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, commandName, invocationInfo);
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -121,7 +121,7 @@ internal static class InterceptorModelProvider
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
     INamedTypeSymbol CommandObjectType,
-    string? VerbName,
+    string? CommandName,
     string InvocationInfo
 )
 {

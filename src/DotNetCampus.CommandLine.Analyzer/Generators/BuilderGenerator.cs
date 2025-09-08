@@ -338,7 +338,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
         {
             var commandName = group.Key is { } cn ? $"\"{cn}\"" : "null";
             return $"""
-        throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
+        throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same command name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
 """;
         }
     }

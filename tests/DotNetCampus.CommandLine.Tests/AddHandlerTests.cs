@@ -183,7 +183,7 @@ public class AddHandlerTests
         bool removeHandlerCalled = false;
 
         // Act & Assert
-        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() => {
+        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<AddOptions>(_ => addHandlerCalled = true)
                 .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
@@ -309,14 +309,14 @@ public class AddHandlerTests
         Assert.AreEqual(expectedException.Message, exception.Message);
     }
 
-    [TestMethod("4.2. 未找到匹配的处理器时抛出CommandVerbNotFoundException")]
+    [TestMethod("4.2. 未找到匹配的处理器时抛出CommandNameNotFoundException")]
     public void NoMatchingHandler_ThrowsCommandVerbNotFoundException()
     {
         // Arrange
-        string[] args = ["unknown-verb"];
+        string[] args = ["unknown-command-name"];
 
         // Act & Assert
-        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() => {
+        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() => {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<AddOptions>(_ => { })
                 .AddHandler<RemoveOptions>(_ => { })
@@ -324,7 +324,7 @@ public class AddHandlerTests
         });
 
         // 确认异常包含正确的谓词信息
-        Assert.IsTrue(exception.Message.Contains("unknown-verb"));
+        Assert.IsTrue(exception.Message.Contains("unknown-command-name"));
     }
 
     [TestMethod("4.3. 必需属性未赋值时抛出异常")]
