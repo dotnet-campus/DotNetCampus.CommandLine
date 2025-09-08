@@ -55,7 +55,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <param name="context"></param>
     private void AnalyzeClass(SyntaxNodeAnalysisContext context)
     {
-        var classNode = (PropertyDeclarationSyntax)context.Node;
+        var classNode = (ClassDeclarationSyntax)context.Node;
         AnalyzeAttribute(context, classNode.AttributeLists);
     }
 
