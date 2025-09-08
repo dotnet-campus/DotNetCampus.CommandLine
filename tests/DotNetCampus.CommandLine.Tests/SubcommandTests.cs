@@ -240,7 +240,7 @@ public class SubcommandTests
     public void Subcommand_WithOptions_ParsedCorrectly()
     {
         // Arrange
-        string[] args = ["remote", "add", "--fetch", "--tags", "origin", "https://example.com"];
+        string[] args = ["remote", "add", "origin", "https://example.com", "--fetch", "--tags"];
         bool fetchEnabled = false;
         bool tagsEnabled = false;
         string? remoteName = null;
