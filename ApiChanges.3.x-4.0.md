@@ -43,7 +43,7 @@ DotNetCampus.CommandLine 4.0版本带来了全面的架构升级和功能增强�
 
 ### 破坏性变更和升级指南
 
-1. **命名空间变更**：`OptionAttribute`、`ValueAttribute`、`VerbAttribute` 的命名空间发生了变化。升级库后，您可能需要借助IDE来修正相关引用。
+1. **命名空间变更**：`OptionAttribute`、`ValueAttribute` 的命名空间发生了变化，`VerbAttribute` 名称变为了 `CommandAttribute`。升级库后，您可能需要借助IDE来修正相关引用。
 
 2. **参数解析选项变更**：`CommandLine.Parse(args, xxx)` 的第二个参数已从简单的URL scheme字符串升级为完整的 `CommandLineParsingOptions` 对象：
 ```csharp

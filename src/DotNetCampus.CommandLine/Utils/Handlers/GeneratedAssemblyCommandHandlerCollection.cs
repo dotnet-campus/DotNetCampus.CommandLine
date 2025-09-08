@@ -15,11 +15,11 @@ public abstract class GeneratedAssemblyCommandHandlerCollection : ICommandHandle
     /// <summary>
     /// 源生成器在构造函数中，为有命令名称的命令处理器赋值。
     /// </summary>
-    protected Dictionary<string, CommandObjectCreator> VerbHandlers { get; init; } = [];
+    protected Dictionary<string, CommandObjectCreator> CommandHandlers { get; init; } = [];
 
     /// <inheritdoc />
     public ICommandHandler? TryMatch(string commandNames, CommandLine commandLine)
     {
-        return commandLine.TryMatch(commandNames, DefaultHandlerCreator, VerbHandlers);
+        return commandLine.TryMatch(commandNames, DefaultHandlerCreator, CommandHandlers);
     }
 }

@@ -8,7 +8,7 @@ namespace DotNetCampus.CommandLine;
 
 public static class Diagnostics
 {
-    #region Verb/Value/Options Definition 101-199
+    #region Command/Value/Options Definition 101-199
 
     public static readonly DiagnosticDescriptor DCL101_OptionLongNameMustBeKebabCase = new DiagnosticDescriptor(
         nameof(DCL101),

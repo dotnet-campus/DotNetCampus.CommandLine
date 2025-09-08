@@ -285,7 +285,7 @@ internal static class CommandLineModuleInitializer
     {
         var commandCode = model.CommandNames is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
-        // {{model.CommandObjectType.Name}} { VerbName = {{commandCode}} }
+        // {{model.CommandObjectType.Name}} { CommandName = {{commandCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
             {{commandCode}},
             global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
@@ -322,7 +322,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             var model = models[0];
             if (model.IsHandler)
             {
-                var assignment = group.Key is { } commandName ? $"VerbHandlers[\"{commandName}\"]" : "DefaultHandlerCreator";
+                var assignment = group.Key is { } commandName ? $"CommandHandlers[\"{commandName}\"]" : "DefaultHandlerCreator";
                 return $"""
         {assignment} = cl => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl);
 """;
