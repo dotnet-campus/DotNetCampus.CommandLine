@@ -56,7 +56,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     private void AnalyzeClass(SyntaxNodeAnalysisContext context)
     {
         var classNode = (ClassDeclarationSyntax)context.Node;
-        AnalyzeAttribute(context, classNode.AttributeLists);
+        AnalyzeAttribute(context, classNode.AttributeLists, true);
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     private void AnalyzeProperty(SyntaxNodeAnalysisContext context)
     {
         var propertyNode = (PropertyDeclarationSyntax)context.Node;
-        AnalyzeAttribute(context, propertyNode.AttributeLists);
+        AnalyzeAttribute(context, propertyNode.AttributeLists, false);
     }
 
     /// <summary>
@@ -74,7 +74,8 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// </summary>
     /// <param name="context"></param>
     /// <param name="attributeSyntaxes"></param>
-    private void AnalyzeAttribute(SyntaxNodeAnalysisContext context, SyntaxList<AttributeListSyntax> attributeSyntaxes)
+    /// <param name="hasSeparator"></param>
+    private void AnalyzeAttribute(SyntaxNodeAnalysisContext context, SyntaxList<AttributeListSyntax> attributeSyntaxes, bool hasSeparator)
     {
         foreach (var attributeSyntax in attributeSyntaxes.SelectMany(x => x.Attributes))
         {
@@ -82,7 +83,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             var fullAttributeName = attributeTypeSymbol?.ToDisplayString();
             if (fullAttributeName != null && _attributeNames.Contains(fullAttributeName))
             {
-                var (name, location, type) = AnalyzeOptionAttributeArguments(attributeSyntax);
+                var (name, location, type) = AnalyzeOptionAttributeArguments(attributeSyntax, hasSeparator);
                 if (name != null && location != null)
                 {
                     var descriptor = type is SuggestionType.Warning
@@ -100,11 +101,13 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// Find LongName argument from the OptionAttribute.
     /// </summary>
     /// <param name="attributeSyntax"></param>
+    /// <param name="hasSeparator"></param>
     /// <returns>
     /// name: the LongName value.
     /// location: the syntax tree location of the LongName argument value.
     /// </returns>
-    private (string? Name, Location? Location, SuggestionType SuggestionType) AnalyzeOptionAttributeArguments(AttributeSyntax attributeSyntax)
+    private (string? Name, Location? Location, SuggestionType SuggestionType) AnalyzeOptionAttributeArguments(AttributeSyntax attributeSyntax,
+        bool hasSeparator)
     {
         var argumentList = attributeSyntax.ChildNodes().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
         if (argumentList != null)
@@ -135,6 +138,19 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             }
         }
         return (null, null, SuggestionType.Hidden);
+    }
+
+    private string MakeKebabCase(string oldName, bool isUpperSeparator, bool toLower, bool hasSeparator)
+    {
+        if (hasSeparator)
+        {
+            return string.Join(" ", oldName.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => NamingHelper.MakeKebabCase(x, isUpperSeparator, toLower)));
+        }
+        else
+        {
+            return NamingHelper.MakeKebabCase(oldName, isUpperSeparator, toLower);
+        }
     }
 
     private enum SuggestionType
