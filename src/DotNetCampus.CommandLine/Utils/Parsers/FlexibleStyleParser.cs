@@ -93,7 +93,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength)),
+            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength).Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());

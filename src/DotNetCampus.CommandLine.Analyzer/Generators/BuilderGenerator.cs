@@ -283,7 +283,7 @@ internal static class CommandLineModuleInitializer
 
     private string GenerateCommandRunnerRegisterCode(CommandObjectGeneratingModel model)
     {
-        var commandCode = model.CommandNames is { } vn ? $"\"{vn}\"" : "null";
+        var commandCode = model.GetKebabCaseCommandNames() is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
         // {{model.CommandObjectType.Name}} { CommandName = {{commandCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
@@ -307,7 +307,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
 {
     public {{model.AssemblyCommandHandlerType.Name}}()
     {
-{{string.Join("\n", models.GroupBy(x => x.CommandNames).Select(GenerateAssemblyCommandHandlerMatchCode))}}
+{{string.Join("\n", models.GroupBy(x => x.GetKebabCaseCommandNames()).Select(GenerateAssemblyCommandHandlerMatchCode))}}
     }
 }
 

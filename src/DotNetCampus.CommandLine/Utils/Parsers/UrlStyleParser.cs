@@ -34,7 +34,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
 
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
-        var possibleCommandNames = "";
+        List<string> possibleCommandNames = [];
         List<string> arguments = [];
 
         string? lastParameterName = null;
@@ -49,9 +49,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             {
                 lastParameterName = null;
                 var commandNameOrPositionalArgument = result.Value;
-                possibleCommandNames = possibleCommandNames.Length is 0
-                    ? commandNameOrPositionalArgument
-                    : $"{possibleCommandNames} {commandNameOrPositionalArgument}";
+                possibleCommandNames.Add(commandNameOrPositionalArgument);
                 arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
@@ -91,7 +89,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            possibleCommandNames,
+            string.Join(" ", possibleCommandNames.Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());

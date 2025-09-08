@@ -146,6 +146,16 @@ internal record CommandObjectGeneratingModel
         { } names => names.Count(x => x == ' ') + 1,
     };
 
+    public string? GetKebabCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+    }
+
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
         return $"{commandObjectType.Name}Builder";
