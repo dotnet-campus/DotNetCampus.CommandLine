@@ -357,6 +357,12 @@ public class CommandLine : ICoreCommandRunnerBuilder
         {
             return 0;
         }
+#if !NETCOREAPP3_1_OR_GREATER
+        if (commandNames is null)
+        {
+            return 0;
+        }
+#endif
         if (commandNames.Length > possibleCommandNames.Length)
         {
             return 0;

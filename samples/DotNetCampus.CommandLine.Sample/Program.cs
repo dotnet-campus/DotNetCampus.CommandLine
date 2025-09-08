@@ -181,7 +181,7 @@ class Program
 // [CollectCommandHandlersFromThisAssembly]
 // internal partial class AssemblyCommandHandler;
 
-[Verb("sample")]
+[Command("sample")]
 internal class SampleCommandHandler : ICommandHandler
 {
     [Option("SampleProperty")]

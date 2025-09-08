@@ -4,7 +4,7 @@ using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Tests.Fakes;
 
-[Verb("Fake")]
+[Command("Fake")]
 public class FakeVerbCommandHandler : ICommandHandler
 {
     [Option("Fake")]

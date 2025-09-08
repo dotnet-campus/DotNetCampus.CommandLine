@@ -8,9 +8,13 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
     private CommandObjectCreator? _defaultHandlerCreator;
     private readonly ConcurrentDictionary<string, CommandObjectCreator> _verbHandlers = [];
 
-    public void AddHandler(string commandNames, CommandObjectCreator handlerCreator)
+    public void AddHandler(string? commandNames, CommandObjectCreator handlerCreator)
     {
-        if (string.IsNullOrEmpty(commandNames))
+        if (
+#if !NETCOREAPP3_1_OR_GREATER
+            commandNames is null ||
+#endif
+            string.IsNullOrEmpty(commandNames))
         {
             if (_defaultHandlerCreator is not null)
             {

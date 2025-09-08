@@ -38,7 +38,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <param name="creator">命令处理器的创建方法。</param>
     /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void Register<T>(string commandNames, CommandObjectCreator creator)
+    public static void Register<T>(string? commandNames, CommandObjectCreator creator)
         where T : class
     {
         CommandObjectCreationInfos[typeof(T)] = new CommandObjectCreationInfo(commandNames, creator);
@@ -99,7 +99,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandler<T>(string command, CommandObjectCreator creator)
+    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator)
         where T : class, ICommandHandler
     {
         _dictionaryCommandHandlers.AddHandler(command, creator);
@@ -134,7 +134,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    internal CommandRunner AddHandler<T>(string command, CommandObjectCreator creator, Func<T, Task<int>> handler)
+    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator, Func<T, Task<int>> handler)
         where T : class
     {
         _dictionaryCommandHandlers.AddHandler(command, cl => new TaskCommandHandler<T>(
@@ -208,5 +208,5 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return handler.RunAsync();
     }
 
-    private readonly record struct CommandObjectCreationInfo(string CommandNames, CommandObjectCreator Creator);
+    private readonly record struct CommandObjectCreationInfo(string? CommandNames, CommandObjectCreator Creator);
 }

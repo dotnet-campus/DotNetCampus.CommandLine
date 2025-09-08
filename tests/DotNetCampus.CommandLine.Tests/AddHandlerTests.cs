@@ -375,7 +375,7 @@ internal class SimpleOptions
 }
 
 // AddOptions 类 - 用于测试谓词命令
-[Verb("add")]
+[Command("add")]
 internal class AddOptions
 {
     [Value(0)]
@@ -383,7 +383,7 @@ internal class AddOptions
 }
 
 // RemoveOptions 类 - 用于测试谓词命令
-[Verb("remove")]
+[Command("remove")]
 internal class RemoveOptions
 {
     [Value(0)]

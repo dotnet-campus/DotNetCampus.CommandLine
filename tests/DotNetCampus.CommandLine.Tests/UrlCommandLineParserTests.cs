@@ -658,7 +658,7 @@ internal record Url17_PathAsPositionalOptions
     public required string[] Paths { get; init; }
 }
 
-[Verb("open")]
+[Command("open")]
 internal record Url18_VerbPathOptions
 {
     [Value(0)]
