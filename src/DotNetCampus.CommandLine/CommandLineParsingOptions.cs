@@ -79,7 +79,7 @@ public readonly record struct CommandLineParsingOptions()
     /// 7. 支持无值参数，被视为布尔值true，如?enabled<br/>
     /// 8. 参数值为空字符串时保留等号，如?name=<br/>
     /// 9. 路径部分(path)一般情况下会被视为位置参数，例如 myapp://documents/open 中，documents/open 被视为位置参数<br/>
-    /// 10. 但在某些情况下，路径的第一个部分可能会被当作谓词（命令），例如 myapp://open/file.txt 中，open 可能是谓词，file.txt 是位置参数。具体解释为位置参数还是谓词取决于应用的命令行处理器实现<br/>
+    /// 10. 但在某些情况下，路径的前几个部分可能会被当作命令（含子命令），例如 myapp://open/file.txt 中，open 可能是命令，file.txt 是位置参数。具体解释为位置参数还是命令取决于应用的命令行处理器实现<br/>
     /// 11. 整个URL可以用引号包围，以避免特殊字符被shell解释<br/>
     /// </para>
     /// <code>
@@ -97,9 +97,9 @@ public readonly record struct CommandLineParsingOptions()
     /// myapp://settings?debug                      # 无值参数(视为true)
     /// yourapp://profile?name=&amp;id=123          # 空字符串值
     ///
-    /// # 路径与谓词示例
+    /// # 路径与命令示例
     /// myapp://documents/open?readonly=true        # documents 和 open 作为位置参数
-    /// myapp://open/file.txt?temporary=true        # open 是谓词，file.txt 是位置参数；或 open 和 file.txt 都是位置参数
+    /// myapp://open/file.txt?temporary=true        # open 是命令，file.txt 是位置参数；或 open 和 file.txt 都是位置参数
     /// </code>
     /// </remarks>
     public IReadOnlyList<string> SchemeNames { get; init; } = [];

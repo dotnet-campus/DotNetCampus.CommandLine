@@ -25,7 +25,7 @@ public static class CommandRunnerBuilderExtensions
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="command">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
@@ -158,7 +158,7 @@ public static class CommandRunnerBuilderExtensions
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="command">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>

@@ -44,7 +44,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// # 2. do 是命令，something 是位置参数。
     /// # 3. do 和 something 都是命令。
     /// </code>
-    /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有谓词来决定这个词是否是位置参数。<br/>
+    /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有命令来决定这个词是否是位置参数。<br/>
     /// 另外，**特别强调**，此属性的值可能是命名变体，例如命令行传入 DoSomething 时，此属性则是 Do-Something。
     /// </remarks>
     internal string PossibleCommandNames { get; }
@@ -107,7 +107,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// # 2. do 是命令，something 是位置参数。
     /// # 3. do 和 something 都是命令。
     /// </code>
-    /// 如果处理器决定将 something 作为谓词，那么当需要取出位置参数时，此属性的第一个值需要排除。
+    /// 如果处理器决定将 something 作为命令名称，那么当需要取出位置参数时，此属性的第一个值需要排除。
     /// </remarks>
     private ReadOnlyListRange<string> PositionalArguments { get; }
 

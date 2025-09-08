@@ -170,7 +170,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             }
         }
 
-        // 如果没有找到，那么很可能此命令没有谓词，需要使用默认的处理器。
+        // 如果没有找到，那么很可能此命令没有命令名称，需要使用默认的处理器。
         if (_dictionaryCommandHandlers.TryMatch("", _commandLine) is { } h3)
         {
             return h3;

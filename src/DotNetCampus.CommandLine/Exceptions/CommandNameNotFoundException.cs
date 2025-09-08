@@ -8,34 +8,21 @@ public class CommandNameNotFoundException : CommandLineException
     /// <summary>
     /// 获取命令行的命令（主命令和子命令）。
     /// </summary>
-    public IReadOnlyList<string> CommandNames { get; }
+    public string? CommandNames { get; }
 
     /// <summary>
-    /// 获取命令行谓词的名称。
+    /// 获取命令行的命令（主命令和子命令）。
     /// </summary>
-    public string? VerbName => CommandNames.Count > 0 ? CommandNames[0] : null;
-
-    /// <summary>
-    /// 初始化 <see cref="CommandNameNotFoundException"/> 类的新实例。
-    /// </summary>
-    /// <param name="message">异常提示信息。</param>
-    /// <param name="commandNames">已解析的命令行的命令（主命令和子命令）。</param>
-    public CommandNameNotFoundException(string message, IReadOnlyList<string> commandNames)
-        : base(message)
-    {
-        CommandNames = commandNames;
-    }
+    public string? VerbName => CommandNames;
 
     /// <summary>
     /// 初始化 <see cref="CommandNameNotFoundException"/> 类的新实例。
     /// </summary>
     /// <param name="message">异常提示信息。</param>
-    /// <param name="mainCommandName">主命令名称。</param>
-    public CommandNameNotFoundException(string message, string? mainCommandName)
+    /// <param name="commandName">已解析的命令行的命令（主命令和子命令）。</param>
+    public CommandNameNotFoundException(string message, string? commandName)
         : base(message)
     {
-        CommandNames = mainCommandName is null
-            ? []
-            : [mainCommandName];
+        CommandNames = commandName;
     }
 }

@@ -398,7 +398,7 @@ public class UrlCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "documents", "reports", "annual" }, paths);
     }
 
-    [TestMethod("5.2. 路径首部分作为谓词，其余作为位置参数")]
+    [TestMethod("5.2. 路径首部分作为命令名称，其余作为位置参数")]
     public void FirstPathSegmentAsVerb_RemainingAsPositional()
     {
         // Arrange

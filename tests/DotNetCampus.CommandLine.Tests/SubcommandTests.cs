@@ -360,7 +360,7 @@ public class SubcommandTests
     #region 5. 子命令错误处理测试
 
     [TestMethod("5.1. 未知子命令抛出异常")]
-    public void UnknownSubcommand_ThrowsCommandVerbNotFoundException()
+    public void UnknownSubcommand_ThrowsCommandNameNotFoundException()
     {
         // Arrange
         string[] args = ["unknown", "subcommand"];

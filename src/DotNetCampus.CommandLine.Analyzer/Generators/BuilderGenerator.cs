@@ -77,7 +77,7 @@ public class BuilderGenerator : IIncrementalGenerator
 namespace {{model.Namespace}};
 
 /// <summary>
-/// 辅助 <see cref="{{model.CommandObjectType.ToGlobalDisplayString()}}"/> 生成命令行选项、谓词或处理函数的创建。
+/// 辅助 <see cref="{{model.CommandObjectType.ToGlobalDisplayString()}}"/> 生成命令行选项、子命令或处理函数的创建。
 /// </summary>
 {{(model.IsPublic ? "public" : "internal")}} sealed class {{model.GetBuilderTypeName()}}
 {
@@ -267,7 +267,7 @@ namespace {{model.Namespace}};
 namespace DotNetCampus.Cli;
 
 /// <summary>
-/// 为本程序集中的所有命令行选项、谓词或处理函数编译时信息初始化。
+/// 为本程序集中的所有命令行选项、子命令或处理函数编译时信息初始化。
 /// </summary>
 internal static class CommandLineModuleInitializer
 {
@@ -338,7 +338,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
         {
             var commandName = group.Key is { } cn ? $"\"{cn}\"" : "null";
             return $"""
-        throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same command name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
+        throw new global::DotNetCampus.Cli.Exceptions.CommandNameAmbiguityException($"Multiple command handlers match the same command name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
 """;
         }
     }

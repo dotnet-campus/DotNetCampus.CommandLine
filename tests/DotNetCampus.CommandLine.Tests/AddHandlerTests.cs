@@ -134,9 +134,9 @@ public class AddHandlerTests
 
     #endregion
 
-    #region 2. 命令谓词测试
+    #region 2. 命令命令名称测试
 
-    [TestMethod("2.1. 使用谓词匹配并处理命令")]
+    [TestMethod("2.1. 使用命令名称匹配并处理命令")]
     public void RegisterHandler_WithVerb_MatchesCorrectCommand()
     {
         // Arrange
@@ -155,7 +155,7 @@ public class AddHandlerTests
         Assert.IsNull(capturedRemoveItem);
     }
 
-    [TestMethod("2.2. 多个谓词时匹配正确的命令")]
+    [TestMethod("2.2. 多个命令名称时匹配正确的命令")]
     public void RegisterHandler_WithMultipleVerbs_MatchesCorrectCommand()
     {
         // Arrange
@@ -174,8 +174,8 @@ public class AddHandlerTests
         Assert.AreEqual("item2", capturedRemoveItem);
     }
 
-    [TestMethod("2.3. 未提供谓词时不匹配任何命令抛出CommandVerbNotFoundException")]
-    public void RegisterHandler_WithNoVerbProvided_ThrowsCommandVerbNotFoundException()
+    [TestMethod("2.3. 未提供命令名称时不匹配任何命令抛出CommandNameNotFoundException")]
+    public void RegisterHandler_WithNoVerbProvided_ThrowsCommandNameNotFoundException()
     {
         // Arrange
         string[] args = ["item3"];
@@ -190,13 +190,13 @@ public class AddHandlerTests
                 .Run();
         });
 
-        // 确认异常包含正确的谓词信息
+        // 确认异常包含正确的命令名称信息
         Assert.IsTrue(exception.Message.Contains("item3"));
         Assert.IsFalse(addHandlerCalled);
         Assert.IsFalse(removeHandlerCalled);
     }
 
-    [TestMethod("2.4. 使用默认处理器处理无谓词命令")]
+    [TestMethod("2.4. 使用默认处理器处理默认命令")]
     public void RegisterHandler_WithDefaultHandler_HandlesNoVerbCommand()
     {
         // Arrange
@@ -271,7 +271,7 @@ public class AddHandlerTests
         await Task.CompletedTask;
     }
 
-    [TestMethod("3.3. 处理器注册顺序不影响谓词匹配")]
+    [TestMethod("3.3. 处理器注册顺序不影响命令名称匹配")]
     public void HandlerRegistrationOrder_DoesNotAffectVerbMatching()
     {
         // Arrange
@@ -310,7 +310,7 @@ public class AddHandlerTests
     }
 
     [TestMethod("4.2. 未找到匹配的处理器时抛出CommandNameNotFoundException")]
-    public void NoMatchingHandler_ThrowsCommandVerbNotFoundException()
+    public void NoMatchingHandler_ThrowsCommandNameNotFoundException()
     {
         // Arrange
         string[] args = ["unknown-command-name"];
@@ -323,7 +323,7 @@ public class AddHandlerTests
                 .Run();
         });
 
-        // 确认异常包含正确的谓词信息
+        // 确认异常包含正确的命令名称信息
         Assert.IsTrue(exception.Message.Contains("unknown-command-name"));
     }
 
@@ -355,7 +355,7 @@ public class AddHandlerTests
         // 由于有其他大量测试类污染源生成器搜集到的命令处理器，所以目前暂时无法测试。
     }
 
-    [TestMethod("5.2. 自动发现的默认处理器在没有匹配谓词时被调用")]
+    [TestMethod("5.2. 自动发现的默认处理器在没有匹配命令名称时被调用")]
     [Ignore("需要源生成器支持，在单元测试环境中可能无法正常运行")]
     public void AddHandlers_DefaultHandlerCalled_WhenNoVerbMatched()
     {
@@ -374,7 +374,7 @@ internal class SimpleOptions
     public string? Value { get; init; }
 }
 
-// AddOptions 类 - 用于测试谓词命令
+// AddOptions 类 - 用于测试命令名称
 [Command("add")]
 internal class AddOptions
 {
@@ -382,7 +382,7 @@ internal class AddOptions
     public required string ItemToAdd { get; init; }
 }
 
-// RemoveOptions 类 - 用于测试谓词命令
+// RemoveOptions 类 - 用于测试命令名称
 [Command("remove")]
 internal class RemoveOptions
 {
@@ -390,7 +390,7 @@ internal class RemoveOptions
     public required string ItemToRemove { get; init; }
 }
 
-// 默认选项类 - 用于测试无谓词命令
+// 默认选项类 - 用于测试默认命令
 internal class DefaultOptions
 {
     [Option('h', "help")]
