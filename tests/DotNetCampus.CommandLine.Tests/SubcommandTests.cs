@@ -1,0 +1,599 @@
+using System.Threading.Tasks;
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable InconsistentNaming
+
+namespace DotNetCampus.Cli.Tests;
+
+/// <summary>
+/// 测试子命令（SubCommand）功能，包括二级子命令、多级子命令和嵌套子命令。
+/// </summary>
+[TestClass]
+public class SubcommandTests
+{
+    private CommandLineParsingOptions Flexible { get; } = CommandLineParsingOptions.Flexible;
+
+    #region 1. 基本子命令测试
+
+    [TestMethod("1.1. 二级子命令匹配 - 使用斜杠分隔符")]
+    public void BasicSubcommand_WithSlashSeparator_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["remote", "add", "origin", "https://github.com/user/repo.git"];
+        string? capturedRemoteName = null;
+        string? capturedRemoteUrl = null;
+        bool otherHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteAddOptions>(o =>
+            {
+                capturedRemoteName = o.RemoteName;
+                capturedRemoteUrl = o.RemoteUrl;
+            })
+            .AddHandler<GitRemoteListOptions>(_ => otherHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("origin", capturedRemoteName);
+        Assert.AreEqual("https://github.com/user/repo.git", capturedRemoteUrl);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    [TestMethod("1.2. 二级子命令匹配 - 使用空格分隔符")]
+    public void BasicSubcommand_WithSpaceSeparator_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["container", "run", "--name", "test-container", "nginx"];
+        string? capturedContainerName = null;
+        string? capturedImageName = null;
+        bool otherHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<DockerContainerRunOptions>(o =>
+            {
+                capturedContainerName = o.ContainerName;
+                capturedImageName = o.ImageName;
+            })
+            .AddHandler<DockerContainerListOptions>(_ => otherHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("test-container", capturedContainerName);
+        Assert.AreEqual("nginx", capturedImageName);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    [TestMethod("1.3. 单级命令与二级子命令共存")]
+    public void SingleCommandAndSubcommand_Coexist()
+    {
+        // Arrange - 测试主命令
+        string[] mainArgs = ["status"];
+        bool statusHandlerCalled = false;
+        bool subcommandHandlerCalled = false;
+
+        // Act - 执行主命令
+        CommandLine.Parse(mainArgs, Flexible)
+            .AddHandler<GitStatusOptions>(_ => statusHandlerCalled = true)
+            .AddHandler<GitRemoteAddOptions>(_ => subcommandHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsTrue(statusHandlerCalled);
+        Assert.IsFalse(subcommandHandlerCalled);
+
+        // Reset
+        statusHandlerCalled = false;
+        subcommandHandlerCalled = false;
+
+        // Arrange - 测试子命令
+        string[] subArgs = ["remote", "add", "origin", "https://example.com"];
+
+        // Act - 执行子命令
+        CommandLine.Parse(subArgs, Flexible)
+            .AddHandler<GitStatusOptions>(_ => statusHandlerCalled = true)
+            .AddHandler<GitRemoteAddOptions>(_ => subcommandHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsFalse(statusHandlerCalled);
+        Assert.IsTrue(subcommandHandlerCalled);
+    }
+
+    #endregion
+
+    #region 2. 多级子命令测试
+
+    [TestMethod("2.1. 三级子命令匹配 - 使用斜杠分隔符")]
+    public void ThreeLevelSubcommand_WithSlashSeparator_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["container", "image", "list"];
+        bool handlerCalled = false;
+        bool otherHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<DockerContainerImageListOptions>(_ => handlerCalled = true)
+            .AddHandler<DockerContainerRunOptions>(_ => otherHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsTrue(handlerCalled);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    [TestMethod("2.2. 三级子命令匹配 - 使用空格分隔符")]
+    public void ThreeLevelSubcommand_WithSpaceSeparator_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["cluster", "node", "delete", "worker-node-1"];
+        string? capturedNodeName = null;
+        bool otherHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<KubernetesClusterNodeDeleteOptions>(o =>
+            {
+                capturedNodeName = o.NodeName;
+            })
+            .AddHandler<DockerContainerImageListOptions>(_ => otherHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.AreEqual("worker-node-1", capturedNodeName);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    [TestMethod("2.3. 四级子命令匹配")]
+    public void FourLevelSubcommand_MatchesCorrectly()
+    {
+        // Arrange
+        string[] args = ["config", "user", "profile", "set", "development"];
+        string? capturedProfile = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<ConfigUserProfileSetOptions>(o =>
+            {
+                capturedProfile = o.ProfileName;
+            })
+            .Run();
+
+        // Assert
+        Assert.AreEqual("development", capturedProfile);
+    }
+
+    #endregion
+
+    #region 3. 子命令优先级与匹配规则测试
+
+    [TestMethod("3.1. 更具体的子命令优先匹配")]
+    public void MoreSpecificSubcommand_TakesPriority()
+    {
+        // Arrange
+        string[] args = ["remote", "add", "origin", "https://example.com"];
+        bool genericRemoteHandlerCalled = false;
+        bool specificRemoteAddHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteOptions>(_ => genericRemoteHandlerCalled = true)
+            .AddHandler<GitRemoteAddOptions>(_ => specificRemoteAddHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsFalse(genericRemoteHandlerCalled);
+        Assert.IsTrue(specificRemoteAddHandlerCalled);
+    }
+
+    [TestMethod("3.2. 部分匹配子命令的处理")]
+    public void PartialSubcommandMatch_MatchesLongestPath()
+    {
+        // Arrange
+        string[] args = ["container", "run", "nginx"];
+        bool containerHandlerCalled = false;
+        bool containerRunHandlerCalled = false;
+        bool containerImageHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<DockerContainerOptions>(_ => containerHandlerCalled = true)
+            .AddHandler<DockerContainerRunOptions>(_ => containerRunHandlerCalled = true)
+            .AddHandler<DockerContainerImageOptions>(_ => containerImageHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsFalse(containerHandlerCalled);
+        Assert.IsTrue(containerRunHandlerCalled);
+        Assert.IsFalse(containerImageHandlerCalled);
+    }
+
+    [TestMethod("3.3. 注册顺序不影响子命令匹配优先级")]
+    public void RegistrationOrder_DoesNotAffectSubcommandPriority()
+    {
+        // Arrange
+        string[] args = ["remote", "add", "origin", "https://example.com"];
+        bool genericRemoteHandlerCalled = false;
+        bool specificRemoteAddHandlerCalled = false;
+
+        // Act - 先注册具体的，再注册通用的
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteAddOptions>(_ => specificRemoteAddHandlerCalled = true)
+            .AddHandler<GitRemoteOptions>(_ => genericRemoteHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsFalse(genericRemoteHandlerCalled);
+        Assert.IsTrue(specificRemoteAddHandlerCalled);
+    }
+
+    #endregion
+
+    #region 4. 子命令参数与选项测试
+
+    [TestMethod("4.1. 子命令带选项参数")]
+    public void Subcommand_WithOptions_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["remote", "add", "--fetch", "--tags", "origin", "https://example.com"];
+        bool fetchEnabled = false;
+        bool tagsEnabled = false;
+        string? remoteName = null;
+        string? remoteUrl = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteAddOptionsWithFlags>(o =>
+            {
+                fetchEnabled = o.EnableFetch;
+                tagsEnabled = o.EnableTags;
+                remoteName = o.RemoteName;
+                remoteUrl = o.RemoteUrl;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsTrue(fetchEnabled);
+        Assert.IsTrue(tagsEnabled);
+        Assert.AreEqual("origin", remoteName);
+        Assert.AreEqual("https://example.com", remoteUrl);
+    }
+
+    [TestMethod("4.2. 子命令带位置参数和选项混合")]
+    public void Subcommand_WithMixedPositionalAndOptions_ParsedCorrectly()
+    {
+        // Arrange
+        string[] args = ["container", "run", "--detach", "--publish", "8080:80", "nginx", "nginx:latest"];
+        bool detached = false;
+        string? portMapping = null;
+        string? containerName = null;
+        string? imageName = null;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<DockerContainerRunOptionsDetailed>(o =>
+            {
+                detached = o.Detach;
+                portMapping = o.Publish;
+                containerName = o.ContainerName;
+                imageName = o.ImageName;
+            })
+            .Run();
+
+        // Assert
+        Assert.IsTrue(detached);
+        Assert.AreEqual("8080:80", portMapping);
+        Assert.AreEqual("nginx", containerName);
+        Assert.AreEqual("nginx:latest", imageName);
+    }
+
+    #endregion
+
+    #region 5. 子命令错误处理测试
+
+    [TestMethod("5.1. 未知子命令抛出异常")]
+    public void UnknownSubcommand_ThrowsCommandVerbNotFoundException()
+    {
+        // Arrange
+        string[] args = ["unknown", "subcommand"];
+
+        // Act & Assert
+        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() =>
+        {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<GitRemoteAddOptions>(_ => { })
+                .AddHandler<DockerContainerRunOptions>(_ => { })
+                .Run();
+        });
+
+        // 确认异常包含正确的子命令信息
+        Assert.IsTrue(exception.Message.Contains("unknown"));
+    }
+
+    [TestMethod("5.2. 子命令缺少必需参数抛出异常")]
+    public void Subcommand_MissingRequiredParameter_ThrowsException()
+    {
+        // Arrange
+        string[] args = ["remote", "add"]; // 缺少 remote name 和 URL
+
+        // Act & Assert
+        Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
+        {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<GitRemoteAddOptions>(_ => { })
+                .Run();
+        });
+    }
+
+    [TestMethod("5.3. 部分匹配但无完全匹配的子命令")]
+    public void PartialSubcommandMatch_NoExactMatch_ThrowsException()
+    {
+        // Arrange - "remote" 存在，但 "remote unknown" 不存在
+        string[] args = ["remote", "unknown"];
+
+        // Act & Assert
+        var exception = Assert.ThrowsExactly<CommandVerbNotFoundException>(() =>
+        {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<GitRemoteAddOptions>(_ => { })
+                .AddHandler<GitRemoteListOptions>(_ => { })
+                .Run();
+        });
+
+        Assert.IsTrue(exception.Message.Contains("remote"));
+    }
+
+    #endregion
+
+    #region 6. 异步子命令处理测试
+
+    [TestMethod("6.1. 异步子命令处理")]
+    public async Task AsyncSubcommand_ExecutesSuccessfully()
+    {
+        // Arrange
+        string[] args = ["remote", "sync", "origin"];
+        string? capturedRemoteName = null;
+        bool asyncOperationCompleted = false;
+
+        // Act
+        await CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteSyncOptions>(async o =>
+            {
+                await Task.Delay(10); // 模拟异步操作
+                capturedRemoteName = o.RemoteName;
+                asyncOperationCompleted = true;
+                return 0;
+            })
+            .RunAsync();
+
+        // Assert
+        Assert.AreEqual("origin", capturedRemoteName);
+        Assert.IsTrue(asyncOperationCompleted);
+    }
+
+    [TestMethod("6.2. 混合同步异步子命令处理")]
+    public async Task MixedSyncAsyncSubcommands_ExecuteCorrectly()
+    {
+        // Arrange
+        string[] args = ["container", "build", ".", "--tag", "myapp"];
+        string? capturedTag = null;
+        string? capturedPath = null;
+        bool otherHandlerCalled = false;
+
+        // Act
+        await CommandLine.Parse(args, Flexible)
+            .AddHandler<DockerContainerBuildOptions>(o =>
+            {
+                capturedPath = o.BuildPath;
+                capturedTag = o.Tag;
+            })
+            .AddHandler<DockerContainerRunOptions>(_ => Task.FromResult(otherHandlerCalled = true))
+            .RunAsync();
+
+        // Assert
+        Assert.AreEqual(".", capturedPath);
+        Assert.AreEqual("myapp", capturedTag);
+        Assert.IsFalse(otherHandlerCalled);
+    }
+
+    #endregion
+
+    #region 7. ICommandHandler 接口子命令测试
+
+    [TestMethod("7.1. ICommandHandler 接口实现的子命令")]
+    public async Task ICommandHandler_Subcommand_ExecutesCorrectly()
+    {
+        // Arrange
+        string[] args = ["service", "start", "web-api"];
+
+        // Act
+        int exitCode = await CommandLine.Parse(args, Flexible)
+            .AddHandler<ServiceStartCommandHandler>()
+            .RunAsync();
+
+        // Assert
+        Assert.AreEqual(ServiceStartCommandHandler.ExpectedExitCode, exitCode);
+        Assert.IsTrue(ServiceStartCommandHandler.WasHandlerCalled);
+        Assert.AreEqual("web-api", ServiceStartCommandHandler.CapturedServiceName);
+
+        // Reset static state for other tests
+        ServiceStartCommandHandler.ResetState();
+    }
+
+    #endregion
+}
+
+#region 测试用数据模型
+
+// Git 相关子命令选项类
+
+[Verb("status")]
+internal class GitStatusOptions
+{
+    [Option("short")]
+    public bool Short { get; init; }
+}
+
+[Verb("remote")]
+internal class GitRemoteOptions
+{
+    [Option("verbose")]
+    public bool Verbose { get; init; }
+}
+
+[Verb("remote/add")]
+internal class GitRemoteAddOptions
+{
+    [Value(0)]
+    public required string RemoteName { get; init; }
+
+    [Value(1)]
+    public required string RemoteUrl { get; init; }
+}
+
+[Verb("remote/list")]
+internal class GitRemoteListOptions
+{
+    [Option("verbose")]
+    public bool Verbose { get; init; }
+}
+
+[Verb("remote/add")]
+internal class GitRemoteAddOptionsWithFlags
+{
+    [Option("fetch")]
+    public bool EnableFetch { get; init; }
+
+    [Option("tags")]
+    public bool EnableTags { get; init; }
+
+    [Value(0)]
+    public required string RemoteName { get; init; }
+
+    [Value(1)]
+    public required string RemoteUrl { get; init; }
+}
+
+[Verb("remote sync")]
+internal class GitRemoteSyncOptions
+{
+    [Value(0)]
+    public required string RemoteName { get; init; }
+}
+
+// Docker 相关子命令选项类
+
+[Verb("container run")]
+internal class DockerContainerRunOptions
+{
+    [Option("name")]
+    public string? ContainerName { get; init; }
+
+    [Value(0)]
+    public required string ImageName { get; init; }
+}
+
+[Verb("container/list")]
+internal class DockerContainerListOptions
+{
+    [Option("all")]
+    public bool ShowAll { get; init; }
+}
+
+[Verb("container")]
+internal class DockerContainerOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Verb("container/image")]
+internal class DockerContainerImageOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Verb("container/image/list")]
+internal class DockerContainerImageListOptions
+{
+    [Option("all")]
+    public bool ShowAll { get; init; }
+}
+
+[Verb("container run")]
+internal class DockerContainerRunOptionsDetailed
+{
+    [Option("detach")]
+    public bool Detach { get; init; }
+
+    [Option("publish")]
+    public string? Publish { get; init; }
+
+    [Value(0)]
+    public required string ContainerName { get; init; }
+
+    [Value(1)]
+    public required string ImageName { get; init; }
+}
+
+[Verb("container build")]
+internal class DockerContainerBuildOptions
+{
+    [Value(0)]
+    public required string BuildPath { get; init; }
+
+    [Option("tag")]
+    public string? Tag { get; init; }
+}
+
+// Kubernetes 相关子命令选项类
+
+[Verb("cluster node delete")]
+internal class KubernetesClusterNodeDeleteOptions
+{
+    [Value(0)]
+    public required string NodeName { get; init; }
+}
+
+// 配置管理相关子命令选项类
+
+[Verb("config/user/profile/set")]
+internal class ConfigUserProfileSetOptions
+{
+    [Value(0)]
+    public required string ProfileName { get; init; }
+}
+
+// 服务管理相关子命令选项类
+
+[Verb("service start")]
+internal class ServiceStartCommandHandler : ICommandHandler
+{
+    public static bool WasHandlerCalled { get; private set; }
+    public static string? CapturedServiceName { get; private set; }
+    public const int ExpectedExitCode = 100;
+
+    [Value(0)]
+    public required string ServiceName { get; init; }
+
+    public Task<int> RunAsync()
+    {
+        WasHandlerCalled = true;
+        CapturedServiceName = ServiceName;
+        return Task.FromResult(ExpectedExitCode);
+    }
+
+    public static void ResetState()
+    {
+        WasHandlerCalled = false;
+        CapturedServiceName = null;
+    }
+}
+
+#endregion
