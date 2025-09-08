@@ -18,8 +18,8 @@ public class SubcommandTests
 
     #region 1. 基本子命令测试
 
-    [TestMethod("1.1. 二级子命令匹配 - 使用斜杠分隔符")]
-    public void BasicSubcommand_WithSlashSeparator_MatchesCorrectly()
+    [TestMethod("1.1. 二级子命令匹配")]
+    public void BasicSubcommand_MatchesCorrectly()
     {
         // Arrange
         string[] args = ["remote", "add", "origin", "https://github.com/user/repo.git"];
@@ -43,8 +43,8 @@ public class SubcommandTests
         Assert.IsFalse(otherHandlerCalled);
     }
 
-    [TestMethod("1.2. 二级子命令匹配 - 使用空格分隔符")]
-    public void BasicSubcommand_WithSpaceSeparator_MatchesCorrectly()
+    [TestMethod("1.2. 另一个二级子命令匹配")]
+    public void AnotherBasicSubcommand_MatchesCorrectly()
     {
         // Arrange
         string[] args = ["container", "run", "--name", "test-container", "nginx"];
@@ -108,8 +108,8 @@ public class SubcommandTests
 
     #region 2. 多级子命令测试
 
-    [TestMethod("2.1. 三级子命令匹配 - 使用斜杠分隔符")]
-    public void ThreeLevelSubcommand_WithSlashSeparator_MatchesCorrectly()
+    [TestMethod("2.1. 三级子命令匹配")]
+    public void ThreeLevelSubcommand_MatchesCorrectly()
     {
         // Arrange
         string[] args = ["container", "image", "list"];
@@ -127,8 +127,8 @@ public class SubcommandTests
         Assert.IsFalse(otherHandlerCalled);
     }
 
-    [TestMethod("2.2. 三级子命令匹配 - 使用空格分隔符")]
-    public void ThreeLevelSubcommand_WithSpaceSeparator_MatchesCorrectly()
+    [TestMethod("2.2. 另一个三级子命令匹配")]
+    public void AnotherThreeLevelSubcommand_MatchesCorrectly()
     {
         // Arrange
         string[] args = ["cluster", "node", "delete", "worker-node-1"];
@@ -432,21 +432,21 @@ public class SubcommandTests
 
 // Git 相关子命令选项类
 
-[Verb("status")]
+[Command("status")]
 internal class GitStatusOptions
 {
     [Option("short")]
     public bool Short { get; init; }
 }
 
-[Verb("remote")]
+[Command("remote")]
 internal class GitRemoteOptions
 {
     [Option("verbose")]
     public bool Verbose { get; init; }
 }
 
-[Verb("remote/add")]
+[Command("remote add")]
 internal class GitRemoteAddOptions
 {
     [Value(0)]
@@ -456,14 +456,14 @@ internal class GitRemoteAddOptions
     public required string RemoteUrl { get; init; }
 }
 
-[Verb("remote/list")]
+[Command("remote list")]
 internal class GitRemoteListOptions
 {
     [Option("verbose")]
     public bool Verbose { get; init; }
 }
 
-[Verb("remote/add")]
+[Command("remote add")]
 internal class GitRemoteAddOptionsWithFlags
 {
     [Option("fetch")]
@@ -479,7 +479,7 @@ internal class GitRemoteAddOptionsWithFlags
     public required string RemoteUrl { get; init; }
 }
 
-[Verb("remote sync")]
+[Command("remote sync")]
 internal class GitRemoteSyncOptions
 {
     [Value(0)]
@@ -488,7 +488,7 @@ internal class GitRemoteSyncOptions
 
 // Docker 相关子命令选项类
 
-[Verb("container run")]
+[Command("container run")]
 internal class DockerContainerRunOptions
 {
     [Option("name")]
@@ -498,35 +498,35 @@ internal class DockerContainerRunOptions
     public required string ImageName { get; init; }
 }
 
-[Verb("container/list")]
+[Command("container list")]
 internal class DockerContainerListOptions
 {
     [Option("all")]
     public bool ShowAll { get; init; }
 }
 
-[Verb("container")]
+[Command("container")]
 internal class DockerContainerOptions
 {
     [Option("help")]
     public bool ShowHelp { get; init; }
 }
 
-[Verb("container/image")]
+[Command("container image")]
 internal class DockerContainerImageOptions
 {
     [Option("help")]
     public bool ShowHelp { get; init; }
 }
 
-[Verb("container/image/list")]
+[Command("container image list")]
 internal class DockerContainerImageListOptions
 {
     [Option("all")]
     public bool ShowAll { get; init; }
 }
 
-[Verb("container run")]
+[Command("container run")]
 internal class DockerContainerRunOptionsDetailed
 {
     [Option("detach")]
@@ -542,7 +542,7 @@ internal class DockerContainerRunOptionsDetailed
     public required string ImageName { get; init; }
 }
 
-[Verb("container build")]
+[Command("container build")]
 internal class DockerContainerBuildOptions
 {
     [Value(0)]
@@ -554,7 +554,7 @@ internal class DockerContainerBuildOptions
 
 // Kubernetes 相关子命令选项类
 
-[Verb("cluster node delete")]
+[Command("cluster node delete")]
 internal class KubernetesClusterNodeDeleteOptions
 {
     [Value(0)]
@@ -563,7 +563,7 @@ internal class KubernetesClusterNodeDeleteOptions
 
 // 配置管理相关子命令选项类
 
-[Verb("config/user/profile/set")]
+[Command("config user profile set")]
 internal class ConfigUserProfileSetOptions
 {
     [Value(0)]
@@ -572,7 +572,7 @@ internal class ConfigUserProfileSetOptions
 
 // 服务管理相关子命令选项类
 
-[Verb("service start")]
+[Command("service start")]
 internal class ServiceStartCommandHandler : ICommandHandler
 {
     public static bool WasHandlerCalled { get; private set; }
