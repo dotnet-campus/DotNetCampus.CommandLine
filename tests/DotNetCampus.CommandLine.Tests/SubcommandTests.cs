@@ -295,6 +295,117 @@ public class SubcommandTests
         Assert.IsTrue(specificRemoteAddHandlerCalled);
     }
 
+    [TestMethod("3.4. 最长路径匹配 - 基本情况")]
+    public void LongestPathMatching_BasicCase()
+    {
+        // Arrange - 测试 "git", "git remote", "git remote add" 的优先级
+        string[] args = ["git", "remote", "add", "origin", "https://example.com"];
+        bool gitHandlerCalled = false;
+        bool gitRemoteHandlerCalled = false;
+        bool gitRemoteAddHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitBaseOptions>(_ => gitHandlerCalled = true)
+            .AddHandler<GitRemoteOptionsNew>(_ => gitRemoteHandlerCalled = true)
+            .AddHandler<GitRemoteAddOptionsNew>(_ => gitRemoteAddHandlerCalled = true)
+            .Run();
+
+        // Assert - 应该匹配最长的 "git remote add"
+        Assert.IsFalse(gitHandlerCalled);
+        Assert.IsFalse(gitRemoteHandlerCalled);
+        Assert.IsTrue(gitRemoteAddHandlerCalled);
+    }
+
+    [TestMethod("3.5. 最长路径匹配 - 复杂情况")]
+    public void LongestPathMatching_ComplexCase()
+    {
+        // Arrange - 测试多个不同长度的命令路径
+        string[] args = ["cluster", "config", "set-context", "my-context"];
+        bool clusterHandlerCalled = false;
+        bool clusterConfigHandlerCalled = false;
+        bool clusterConfigSetHandlerCalled = false;
+        bool clusterConfigSetContextHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<KubernetesClusterOptions>(_ => clusterHandlerCalled = true)
+            .AddHandler<KubernetesClusterConfigOptions>(_ => clusterConfigHandlerCalled = true)
+            .AddHandler<KubernetesClusterConfigSetOptions>(_ => clusterConfigSetHandlerCalled = true)
+            .AddHandler<KubernetesClusterConfigSetContextOptions>(_ => clusterConfigSetContextHandlerCalled = true)
+            .Run();
+
+        // Assert - 应该匹配最长的 "cluster config set-context"
+        Assert.IsFalse(clusterHandlerCalled);
+        Assert.IsFalse(clusterConfigHandlerCalled);
+        Assert.IsFalse(clusterConfigSetHandlerCalled);
+        Assert.IsTrue(clusterConfigSetContextHandlerCalled);
+    }
+
+    [TestMethod("3.6. 最长路径匹配 - 前缀匹配但非完整匹配")]
+    public void LongestPathMatching_PrefixButNotComplete()
+    {
+        // Arrange - "remote addx" 不应该匹配 "remote add"
+        string[] args = ["remote", "addx", "test"];
+        bool remoteHandlerCalled = false;
+        bool remoteAddHandlerCalled = false;
+
+        // Act & Assert - 应该抛出 CommandNameNotFoundException 因为没有精确匹配
+        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() =>
+        {
+            CommandLine.Parse(args, Flexible)
+                .AddHandler<GitRemoteOptions>(_ => remoteHandlerCalled = true)
+                .AddHandler<GitRemoteAddOptions>(_ => remoteAddHandlerCalled = true)
+                .Run();
+        });
+
+        // 确认没有处理器被调用
+        Assert.IsFalse(remoteHandlerCalled);
+        Assert.IsFalse(remoteAddHandlerCalled);
+        Assert.IsTrue(exception.Message.Contains("remote"));
+    }
+
+    [TestMethod("3.7. 最长路径匹配 - 大小写不敏感")]
+    public void LongestPathMatching_CaseInsensitive()
+    {
+        // Arrange
+        string[] args = ["Remote", "ADD", "origin", "https://example.com"];
+        bool remoteHandlerCalled = false;
+        bool remoteAddHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible) // Flexible 默认大小写不敏感
+            .AddHandler<GitRemoteOptions>(_ => remoteHandlerCalled = true)
+            .AddHandler<GitRemoteAddOptions>(_ => remoteAddHandlerCalled = true)
+            .Run();
+
+        // Assert
+        Assert.IsFalse(remoteHandlerCalled);
+        Assert.IsTrue(remoteAddHandlerCalled);
+    }
+
+    [TestMethod("3.8. 最长路径匹配 - 单个字符差异")]
+    public void LongestPathMatching_SingleCharacterDifference()
+    {
+        // Arrange - 测试命令名称相似但不同的情况
+        string[] args = ["config", "users", "list"];
+        bool configUserHandlerCalled = false;
+        bool configUsersHandlerCalled = false;
+        bool configUserListHandlerCalled = false;
+
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<ConfigUserOptions>(_ => configUserHandlerCalled = true)
+            .AddHandler<ConfigUsersOptions>(_ => configUsersHandlerCalled = true)
+            .AddHandler<ConfigUserListOptions>(_ => configUserListHandlerCalled = true)
+            .Run();
+
+        // Assert - 应该匹配 "config users" 而不是其他
+        Assert.IsFalse(configUserHandlerCalled);
+        Assert.IsTrue(configUsersHandlerCalled);
+        Assert.IsFalse(configUserListHandlerCalled);
+    }
+
     #endregion
 
     #region 4. 子命令参数与选项测试
@@ -699,6 +810,83 @@ internal class CloudServiceAutoScalingSetPolicyOptions
 
     [Option("max-instances")]
     public int MaxInstances { get; init; } = 10;
+}
+
+// 新增的测试数据模型类 - 用于最长路径匹配测试
+
+[Command("git")]
+internal class GitBaseOptions
+{
+    [Option("version")]
+    public bool ShowVersion { get; init; }
+}
+
+[Command("cluster")]
+internal class KubernetesClusterOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Command("cluster config")]
+internal class KubernetesClusterConfigOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Command("cluster config set")]
+internal class KubernetesClusterConfigSetOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Command("cluster config set-context")]
+internal class KubernetesClusterConfigSetContextOptions
+{
+    [Value(0)]
+    public required string ContextName { get; init; }
+}
+
+[Command("config user")]
+internal class ConfigUserOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Command("config users")]
+internal class ConfigUsersOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+[Command("config user list")]
+internal class ConfigUserListOptions
+{
+    [Option("help")]
+    public bool ShowHelp { get; init; }
+}
+
+// 新增用于最长路径匹配测试的 Git 命令类
+
+[Command("git remote")]
+internal class GitRemoteOptionsNew
+{
+    [Option("verbose")]
+    public bool Verbose { get; init; }
+}
+
+[Command("git remote add")]
+internal class GitRemoteAddOptionsNew
+{
+    [Value(0)]
+    public required string RemoteName { get; init; }
+
+    [Value(1)]
+    public required string RemoteUrl { get; init; }
 }
 
 #endregion
