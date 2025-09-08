@@ -430,7 +430,7 @@ internal partial class TestCommandHandlerCollection : ICommandHandlerCollection
 }
 
 // 自动发现的示例命令处理器
-[Verb("sample")]
+[Command("sample")]
 internal class SampleCommandHandler : ICommandHandler
 {
     public static bool WasHandlerCalled { get; private set; }

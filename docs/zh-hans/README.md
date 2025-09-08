@@ -270,14 +270,14 @@ commandLine.AddHandler<AddOptions>(options => { /* 处理add命令 */ })
 定义命令选项类时使用`Verb`特性标记谓词：
 
 ```csharp
-[Verb("add")]
+[Command("add")]
 public class AddOptions
 {
     [Value(0)]
     public string ItemToAdd { get; init; }
 }
 
-[Verb("remove")]
+[Command("remove")]
 public class RemoveOptions
 {
     [Value(0)]
@@ -290,7 +290,7 @@ public class RemoveOptions
 对于更复杂的命令处理逻辑，你可以创建实现 `ICommandHandler` 接口的类，将命令选项和处理逻辑封装在一起：
 
 ```csharp
-[Verb("convert")]
+[Command("convert")]
 internal class ConvertCommandHandler : ICommandHandler
 {
     [Option('i', "input")]
@@ -335,10 +335,10 @@ commandLine.AddHandlers<AssemblyCommandHandler>()
     .Run();
 ```
 
-通常，处理器类需要添加 `[Verb]` 特性并实现 `ICommandHandler` 接口，它就会被自动发现和添加：
+通常，处理器类需要添加 `[Command]` 特性并实现 `ICommandHandler` 接口，它就会被自动发现和添加：
 
 ```csharp
-[Verb("sample")]
+[Command("sample")]
 internal class SampleCommandHandler : ICommandHandler
 {
     [Option("SampleProperty")]
@@ -355,10 +355,10 @@ internal class SampleCommandHandler : ICommandHandler
 }
 ```
 
-此外，你也可以创建一个没有 `[Verb]` 特性的命令处理器作为默认处理器。在程序集中最多只能有一个没有 `[Verb]` 特性的命令处理器，它将在没有其他命令匹配时被使用：
+此外，你也可以创建一个没有 `[Command]` 特性的命令处理器作为默认处理器。在程序集中最多只能有一个没有 `[Command]` 特性的命令处理器，它将在没有其他命令匹配时被使用：
 
 ```csharp
-// 没有 [Verb] 特性的默认处理器
+// 没有 [Command] 特性的默认处理器
 internal class DefaultCommandHandler : ICommandHandler
 {
     [Option('h', "help")]
@@ -402,7 +402,7 @@ dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startu
 URL协议解析的特点和用法：
 
 1. URL路径部分（如示例中的 `open/document.txt`）会被解析为位置参数或谓词加位置参数
-   - 路径的第一部分可作为谓词（需标记 `[Verb]` 特性）
+   - 路径的第一部分可作为谓词（需标记 `[Command]` 特性）
    - 随后的路径部分会被解析为位置参数
 2. 查询参数（`?` 后的部分）会被解析为命名选项
 3. 集合类型选项可通过重复参数名传入多个值，如：`tags=csharp&tags=dotnet`

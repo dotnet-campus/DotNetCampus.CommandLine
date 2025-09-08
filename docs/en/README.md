@@ -270,14 +270,14 @@ commandLine.AddHandler<AddOptions>(options => { /* Handle the add command */ })
 Use the `Verb` attribute to mark predicates when defining command option classes:
 
 ```csharp
-[Verb("add")]
+[Command("add")]
 public class AddOptions
 {
     [Value(0)]
     public string ItemToAdd { get; init; }
 }
 
-[Verb("remove")]
+[Command("remove")]
 public class RemoveOptions
 {
     [Value(0)]
@@ -290,7 +290,7 @@ public class RemoveOptions
 For more complex command handling logic, you can create classes that implement the `ICommandHandler` interface, encapsulating command options and handling logic together:
 
 ```csharp
-[Verb("convert")]
+[Command("convert")]
 internal class ConvertCommandHandler : ICommandHandler
 {
     [Option('i', "input")]
@@ -335,10 +335,10 @@ commandLine.AddHandlers<AssemblyCommandHandler>()
     .Run();
 ```
 
-Typically, handler classes need to add the `[Verb]` attribute and implement the `ICommandHandler` interface, and they will be automatically discovered and added:
+Typically, handler classes need to add the `[Command]` attribute and implement the `ICommandHandler` interface, and they will be automatically discovered and added:
 
 ```csharp
-[Verb("sample")]
+[Command("sample")]
 internal class SampleCommandHandler : ICommandHandler
 {
     [Option("SampleProperty")]
@@ -355,10 +355,10 @@ internal class SampleCommandHandler : ICommandHandler
 }
 ```
 
-Additionally, you can create a command handler without the `[Verb]` attribute as the default handler. There can be at most one command handler without the `[Verb]` attribute in the assembly, which will be used when no other commands match:
+Additionally, you can create a command handler without the `[Command]` attribute as the default handler. There can be at most one command handler without the `[Command]` attribute in the assembly, which will be used when no other commands match:
 
 ```csharp
-// Default handler without [Verb] attribute
+// Default handler without [Command] attribute
 internal class DefaultCommandHandler : ICommandHandler
 {
     [Option('h', "help")]
@@ -402,7 +402,7 @@ dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startu
 Features and usage of URL protocol parsing:
 
 1. The URL path part (such as `open/document.txt` in the example) will be parsed as positional arguments or verb plus positional arguments
-   - The first part of the path can serve as a verb (needs to be marked with the `[Verb]` attribute)
+   - The first part of the path can serve as a verb (needs to be marked with the `[Command]` attribute)
    - The subsequent path parts will be parsed as positional arguments
 2. Query parameters (the part after `?`) will be parsed as named options
 3. Collection type options can be passed multiple values by repeating parameter names, such as: `tags=csharp&tags=dotnet`
