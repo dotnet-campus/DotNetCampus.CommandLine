@@ -30,7 +30,9 @@ public class BuilderGenerator : IIncrementalGenerator
         context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.cs", code);
     }
 
-    private void Execute(SourceProductionContext context, ((ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandObjectGeneratingModel> Right) Left, AnalyzerConfigOptionsProvider Right) args)
+    private void Execute(SourceProductionContext context,
+        ((ImmutableArray<AssemblyCommandsGeneratingModel> Left, ImmutableArray<CommandObjectGeneratingModel> Right) Left, AnalyzerConfigOptionsProvider Right)
+            args)
     {
         var ((assemblyCommandsGeneratingModels, commandOptionsGeneratingModels), analyzerConfigOptions) = args;
         commandOptionsGeneratingModels = [..commandOptionsGeneratingModels.OrderBy(x => x.GetBuilderTypeName())];
@@ -88,20 +90,20 @@ namespace {{model.Namespace}};
 {{(initRawArgumentsProperties.Length is 0 ? "            // MainArgs = commandLine.CommandLineArguments," : string.Join("\n", initRawArgumentsProperties.Select(GenerateRawArgumentsPropertyAssignment)))}}
 
             // 2. [Option]
-{{(initOptionProperties      .Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(initOptionProperties.Length is 0 ? "            // There is no option to be initialized." : string.Join("\n", initOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
 
             // 3. [Value]
-{{(initValueProperties       .Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+{{(initValueProperties.Length is 0 ? "            // There is no positional argument to be initialized." : string.Join("\n", initValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
         };
 
         // 1. [RawArguments]
 {{(setRawArgumentsProperties.Length is 0 ? "        // result.MainArgs = commandLine.CommandLineArguments;" : string.Join("\n", setRawArgumentsProperties.Select(GenerateRawArgumentsPropertyAssignment)))}}
 
         // 2. [Option]
-{{(setOptionProperties      .Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
+{{(setOptionProperties.Length is 0 ? "        // There is no option to be assigned." : string.Join("\n", setOptionProperties.Select(GenerateOptionPropertyAssignment)))}}
 
         // 3. [Value]
-{{(setValueProperties       .Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
+{{(setValueProperties.Length is 0 ? "        // There is no positional argument to be assigned." : string.Join("\n", setValueProperties.Select((x, i) => GenerateValuePropertyAssignment(model, x, i))))}}
 
         return result;
     }
@@ -132,7 +134,8 @@ namespace {{model.Namespace}};
         var getters = property.GenerateAllNames(
             shortOption => $"""commandLine.GetShortOption("{shortOption}"{caseSensitive})""",
             longOption => $"""commandLine.GetOption("{longOption}"{caseSensitive})""",
-            (caseSensitiveLongOption, ignoreCaseLongName) => $"""commandLine.GetOption(caseSensitive ? "{caseSensitiveLongOption}" : "{ignoreCaseLongName}"{caseSensitive})""",
+            (caseSensitiveLongOption, ignoreCaseLongName) =>
+                $"""commandLine.GetOption(caseSensitive ? "{caseSensitiveLongOption}" : "{ignoreCaseLongName}"{caseSensitive})""",
             aliasOption => $"""commandLine.GetOption("{aliasOption}")"""
         );
 
@@ -171,16 +174,16 @@ namespace {{model.Namespace}};
     private string GenerateValuePropertyAssignment(CommandObjectGeneratingModel model, ValuePropertyGeneratingModel property, int modelIndex)
     {
         var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
+        var baseIndex = model.GetCommandLevel();
         var indexLengthCode = (property.Index, property.Length) switch
         {
-            (null, null) => "0, 1",
-            (null, { } length) when length == int.MaxValue => "0, int.MaxValue",
-            (null, { } length) => $"0, {length}",
-            ({ } index, null) => $"{index}, 1",
-            ({ } index, { } length) when length == int.MaxValue => $"{index}, int.MaxValue",
-            ({ } index, { } length) => $"{index}, {length}",
+            (null, null) => $"{baseIndex}, 1",
+            (null, { } length) when length == int.MaxValue => $"{baseIndex}, int.MaxValue",
+            (null, { } length) => $"{baseIndex}, {length}",
+            ({ } index, null) => $"{baseIndex + index}, 1",
+            ({ } index, { } length) when length == int.MaxValue => $"{baseIndex + index}, int.MaxValue",
+            ({ } index, { } length) => $"{baseIndex + index}, {length}",
         };
-        var commandText = model.CommandNames is { } commandNames ? $"\"{commandNames}\"" : "null";
         var exception = property.IsRequired
             ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : (property.IsNullable, property.IsValueType) switch
@@ -192,13 +195,13 @@ namespace {{model.Namespace}};
         if (property.IsRequired || property.IsInitOnly)
         {
             return $"""
-            {property.PropertyName} = commandLine.GetPositionalArgument({$"{indexLengthCode}, {commandText}"}){toMethod} ?? {exception},
+            {property.PropertyName} = commandLine.GetPositionalArgument({$"{indexLengthCode}"}){toMethod} ?? {exception},
 """;
         }
         else
         {
             return $$"""
-        if (commandLine.GetPositionalArgument({{$"{indexLengthCode}, {commandText}"}}){{toMethod}} is { } p{{modelIndex}})
+        if (commandLine.GetPositionalArgument({{$"{indexLengthCode}"}}){{toMethod}} is { } p{{modelIndex}})
         {
             result.{{property.PropertyName}} = p{{modelIndex}};
         }

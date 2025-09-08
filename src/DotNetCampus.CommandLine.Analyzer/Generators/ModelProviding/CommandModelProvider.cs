@@ -140,6 +140,12 @@ internal record CommandObjectGeneratingModel
 
     public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
 
+    public int GetCommandLevel() => CommandNames switch
+    {
+        null => 0,
+        { } names => names.Count(x => x == ' ') + 1,
+    };
+
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
         return $"{commandObjectType.Name}Builder";
