@@ -127,8 +127,8 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
 
         if (lastType is PowerShellParsedType.OptionValue)
         {
-            // PowerShell 允许选项后面的多个选项值。
-            return new PowerShellArgument(PowerShellParsedType.OptionValue) { Value = argument.AsSpan() };
+            // 如果前一个已经是选项值了，那么后一个是位置参数。
+            return new PowerShellArgument(PowerShellParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
         if (lastType is PowerShellParsedType.PositionalArgumentSeparator or PowerShellParsedType.PostPositionalArgument)

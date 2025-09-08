@@ -324,24 +324,6 @@ public class PowerShellCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "server1", "server2", "server3" }, computerNames.ToArray());
     }
 
-    [TestMethod("5.3. 单个选项后接多个值形成数组。")]
-    public void SingleOption_MultipleValues_FormArray()
-    {
-        // Arrange
-        string[] args = ["-Tags", "tag1", "tag2", "tag3"];
-        string[]? tags = null;
-
-        // Act
-        CommandLine.Parse(args, PowerShell)
-            .AddHandler<PS19_ArrayMultiValueOptions>(o => tags = o.Tags)
-            .Run();
-
-        // Assert
-        Assert.IsNotNull(tags);
-        Assert.AreEqual(3, tags.Length);
-        CollectionAssert.AreEqual(new[] { "tag1", "tag2", "tag3" }, tags);
-    }
-
     [TestMethod("5.4. 分号分隔的数组参数。")]
     public void SemicolonSeparatedArrayParameter()
     {
@@ -358,24 +340,6 @@ public class PowerShellCommandLineParserTests
         Assert.IsNotNull(processes);
         Assert.AreEqual(3, processes.Length);
         CollectionAssert.AreEqual(new[] { "chrome", "firefox", "edge" }, processes);
-    }
-
-    [TestMethod("5.5. 带引号的数组元素。")]
-    public void QuotedArrayElements()
-    {
-        // Arrange
-        string[] args = ["-Files", "\"file with spaces.txt\"", "\"another file.txt\"", "normal.txt"];
-        string[]? files = null;
-
-        // Act
-        CommandLine.Parse(args, PowerShell)
-            .AddHandler<PS20_QuotedArrayOptions>(o => files = o.Files)
-            .Run();
-
-        // Assert
-        Assert.IsNotNull(files);
-        Assert.AreEqual(3, files.Length);
-        CollectionAssert.AreEqual(new[] { "file with spaces.txt", "another file.txt", "normal.txt" }, files);
     }
 
     [TestMethod("5.6. 逗号分隔的带引号数组元素。")]

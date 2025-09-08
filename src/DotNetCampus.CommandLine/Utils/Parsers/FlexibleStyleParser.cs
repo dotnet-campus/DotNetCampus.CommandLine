@@ -199,8 +199,8 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
 
         if (lastType is FlexibleParsedType.OptionValue)
         {
-            // Flexible 允许选项后面的多个单独的选项值。
-            return new FlexibleArgument(FlexibleParsedType.OptionValue) { Value = argument.AsSpan() };
+            // 如果前一个已经是选项值了，那么后一个是位置参数。
+            return new FlexibleArgument(FlexibleParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
         if (lastType is FlexibleParsedType.LongOptionWithValue
