@@ -11,7 +11,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
     {
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
         OptionName? lastOption = null;
@@ -24,11 +24,12 @@ internal sealed class DotNetStyleParser : ICommandLineParser
             var tempLastType = lastType;
             lastType = result.Type;
 
-            if (result.Type is DotNetParsedType.VerbOrPositionalArgument)
+            if (result.Type is DotNetParsedType.CommandNameOrPositionalArgument)
             {
                 lastOption = null;
-                guessedVerbName = result.Value.ToString();
-                arguments.Add(guessedVerbName);
+                possibleCommandNamesLength++;
+                var commandNameOrPositionalArgument = result.Value.ToString();
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -90,7 +91,8 @@ internal sealed class DotNetStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength)),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -176,16 +178,20 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
             };
         }
 
-        // 处理各种类型的位置参数
-        if (lastType is DotNetParsedType.Start)
+        if (lastType is DotNetParsedType.Start or DotNetParsedType.CommandNameOrPositionalArgument)
         {
-            // 如果是第一个参数，则可能是或位置参数。
-            return new DotNetArgument(DotNetParsedType.VerbOrPositionalArgument) { Value = argument.AsSpan() };
+            // 如果是第一个参数，则后续可能是命令名或位置参数。
+            // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
+            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            return new DotNetArgument(isValidName ? DotNetParsedType.CommandNameOrPositionalArgument : DotNetParsedType.PositionalArgument)
+            {
+                Value = argument.AsSpan(),
+            };
         }
 
-        if (lastType is DotNetParsedType.VerbOrPositionalArgument or DotNetParsedType.PositionalArgument)
+        if (lastType is DotNetParsedType.PositionalArgument)
         {
-            // 如果是位置参数，则必定是位置参数。
+            // 如果是位置参数，则后续必定是位置参数。
             return new DotNetArgument(DotNetParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
@@ -216,9 +222,9 @@ internal enum DotNetParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。

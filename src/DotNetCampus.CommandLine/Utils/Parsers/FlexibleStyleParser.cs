@@ -11,7 +11,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
     {
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
         OptionDictionary? lastOptions = null;
@@ -25,12 +25,13 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             var tempLastType = lastType;
             lastType = result.Type;
 
-            if (result.Type is FlexibleParsedType.VerbOrPositionalArgument)
+            if (result.Type is FlexibleParsedType.CommandNameOrPositionalArgument)
             {
                 lastOptions = null;
                 lastOption = null;
-                guessedVerbName = result.Value.ToString();
-                arguments.Add(guessedVerbName);
+                possibleCommandNamesLength++;
+                var commandNameOrPositionalArgument = result.Value.ToString();
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -91,7 +92,8 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength)),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -178,15 +180,20 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
         }
 
         // 处理各种类型的位置参数
-        if (lastType is FlexibleParsedType.Start)
+        if (lastType is FlexibleParsedType.Start or FlexibleParsedType.CommandNameOrPositionalArgument)
         {
-            // 如果是第一个参数，则可能是或位置参数。
-            return new FlexibleArgument(FlexibleParsedType.VerbOrPositionalArgument) { Value = argument.AsSpan() };
+            // 如果是第一个参数，则后续可能是命令名或位置参数。
+            // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
+            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            return new FlexibleArgument(isValidName ? FlexibleParsedType.CommandNameOrPositionalArgument : FlexibleParsedType.PositionalArgument)
+            {
+                Value = argument.AsSpan(),
+            };
         }
 
-        if (lastType is FlexibleParsedType.VerbOrPositionalArgument or FlexibleParsedType.PositionalArgument)
+        if (lastType is FlexibleParsedType.PositionalArgument)
         {
-            // 如果是位置参数，则必定是位置参数。
+            // 如果是位置参数，则后续必定是位置参数。
             return new FlexibleArgument(FlexibleParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
@@ -222,9 +229,9 @@ internal enum FlexibleParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。
