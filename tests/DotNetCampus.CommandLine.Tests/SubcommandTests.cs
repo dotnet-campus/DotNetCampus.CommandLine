@@ -355,7 +355,7 @@ public class SubcommandTests
         {
             CommandLine.Parse(args, Flexible)
                 .AddHandler<GitRemoteOptions>(_ => remoteHandlerCalled = true)
-                .AddHandler<GitRemoteAddOptions>(_ => remoteAddHandlerCalled = true)
+                .AddHandler<GitRemoteNullableAddOptions>(_ => remoteAddHandlerCalled = true)
                 .Run();
         });
 
@@ -628,6 +628,16 @@ internal class GitRemoteAddOptions
 
     [Value(1)]
     public required string RemoteUrl { get; init; }
+}
+
+[Command("remote add")]
+internal class GitRemoteNullableAddOptions
+{
+    [Value(0)]
+    public string? RemoteName { get; init; }
+
+    [Value(1)]
+    public string? RemoteUrl { get; init; }
 }
 
 [Command("remote list")]
