@@ -43,16 +43,16 @@
         <value>不支持此类型的命令行属性</value>
     </data>
   <data name="DCL101_Message" xml:space="preserve">
-    <value>选项名称 {0} 应该使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义应该是 kebab-case 风格。</value>
+    <value>选项/命令名称 {0} 应该使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义应该是 kebab-case 风格。</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
-    <value>选项名称的定义建议使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义也应该是 kebab-case 风格。</value>
+    <value>选项/命令名称的定义建议使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义也应该是 kebab-case 风格。</value>
   </data>
   <data name="DCL101_Fix1" xml:space="preserve">
         <value>改成 kebab-case 命名法</value>
     </data>
   <data name="DCL101" xml:space="preserve">
-    <value>选项名称建议使用 kebab-case 命名法</value>
+    <value>选项/命令名称建议使用 kebab-case 命名法</value>
   </data>
   <data name="DCL201_Description" xml:space="preserve">
         <value>此属性的类型 {0} 符合命令行选项的类型要求。</value>
@@ -73,12 +73,12 @@
     <value>要接收原始命令行参数（通常是 string[] 类型），你应该也使用相同的属性类型 string[] 或其接口 IReadOnlyList&lt;string&gt;。</value>
   </data>
   <data name="DCL102" xml:space="preserve">
-    <value>选项名称建议使用 kebab-case 命名法</value>
+    <value>选项/命令名称建议使用 kebab-case 命名法</value>
   </data>
   <data name="DCL102_Message" xml:space="preserve">
-    <value>选项名称 {0} 有可能不是 kebab-case 命名法命名。</value>
+    <value>选项/命令名称 {0} 有可能不是 kebab-case 命名法命名。</value>
   </data>
   <data name="DCL102_Description" xml:space="preserve">
-    <value>选项名称的定义有可能不是 kebab-case 命名法命名。</value>
+    <value>选项/命令名称的定义有可能不是 kebab-case 命名法命名。</value>
   </data>
 </root>

@@ -17,7 +17,12 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Recognize these attributes.
     /// </summary>
-    private readonly ImmutableHashSet<string> _attributeNames = ["DotNetCampus.Cli.Compiler.OptionAttribute"];
+    private readonly ImmutableHashSet<string> _attributeNames =
+    [
+        "DotNetCampus.Cli.Compiler.OptionAttribute",
+        "DotNetCampus.Cli.Compiler.CommandAttribute",
+        "DotNetCampus.Cli.Compiler.VerbAttribute",
+    ];
 
     /// <summary>
     /// Supported diagnostics.
@@ -41,6 +46,17 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
         context.RegisterSyntaxNodeAction(AnalyzeProperty, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
+    }
+
+    /// <summary>
+    /// Find CommandAttribute from a property.
+    /// </summary>
+    /// <param name="context"></param>
+    private void AnalyzeClass(SyntaxNodeAnalysisContext context)
+    {
+        var classNode = (PropertyDeclarationSyntax)context.Node;
+        AnalyzeAttribute(context, classNode.AttributeLists);
     }
 
     /// <summary>
@@ -50,8 +66,17 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     private void AnalyzeProperty(SyntaxNodeAnalysisContext context)
     {
         var propertyNode = (PropertyDeclarationSyntax)context.Node;
+        AnalyzeAttribute(context, propertyNode.AttributeLists);
+    }
 
-        foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))
+    /// <summary>
+    /// Find OptionAttribute/CommandAttribute from attributes.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="attributeSyntaxes"></param>
+    private void AnalyzeAttribute(SyntaxNodeAnalysisContext context, SyntaxList<AttributeListSyntax> attributeSyntaxes)
+    {
+        foreach (var attributeSyntax in attributeSyntaxes.SelectMany(x => x.Attributes))
         {
             var attributeTypeSymbol = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
             var fullAttributeName = attributeTypeSymbol?.ToDisplayString();
