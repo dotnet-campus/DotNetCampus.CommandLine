@@ -126,7 +126,7 @@
   <data name="SamplePropertyDescription" xml:space="preserve">
     <value>输出传入的任何类型的字符串。</value>
   </data>
-  <data name="SampleVerbDescription" xml:space="preserve">
+  <data name="SampleCommandDescription" xml:space="preserve">
     <value>执行示例命令。</value>
   </data>
 </root>

@@ -252,9 +252,9 @@ class OptionsBestPractice
 }
 ```
 
-## Command Handling and Verbs
+## Command Handling and Commands
 
-You can use the command handler pattern to handle different commands (verbs), similar to `git commit`, `git push`, etc. DotNetCampus.CommandLine provides multiple ways to add command handlers:
+You can use the command handler pattern to handle different commands, similar to `git commit`, `git push`, etc. DotNetCampus.CommandLine provides multiple ways to add command handlers:
 
 ### 1. Using Delegates to Handle Commands
 
@@ -267,7 +267,7 @@ commandLine.AddHandler<AddOptions>(options => { /* Handle the add command */ })
     .Run();
 ```
 
-Use the `Verb` attribute to mark predicates when defining command option classes:
+Use the `Command` attribute to mark commands when defining command option classes:
 
 ```csharp
 [Command("add")]
@@ -401,8 +401,8 @@ dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startu
 
 Features and usage of URL protocol parsing:
 
-1. The URL path part (such as `open/document.txt` in the example) will be parsed as positional arguments or verb plus positional arguments
-   - The first part of the path can serve as a verb (needs to be marked with the `[Command]` attribute)
+1. The URL path part (such as `open/document.txt` in the example) will be parsed as positional arguments or command plus positional arguments
+   - The first part of the path can serve as a command (needs to be marked with the `[Command]` attribute)
    - The subsequent path parts will be parsed as positional arguments
 2. Query parameters (the part after `?`) will be parsed as named options
 3. Collection type options can be passed multiple values by repeating parameter names, such as: `tags=csharp&tags=dotnet`
@@ -482,7 +482,7 @@ Corresponding generated source:
 namespace DotNetCampus.Cli.Tests;
 
 /// <summary>
-/// Helper for generating command-line options, verbs, or handler functions for <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/>.
+/// Helper for generating command-line options, commands, or handler functions for <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/>.
 /// </summary>
 internal sealed class DotNet03_MixedOptionsBuilder
 {
@@ -563,11 +563,11 @@ namespace DotNetCampus.Cli.Tests.Fakes;
 /// </summary>
 partial class AssemblyCommandHandler : global::DotNetCampus.Cli.Compiler.ICommandHandlerCollection
 {
-    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::DotNetCampus.Cli.CommandLine cl) => verb switch
+    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? command, global::DotNetCampus.Cli.CommandLine cl) => command switch
     {
-        null => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name 'null': AmbiguousOptions, CollectionOptions, ComparedOptions, DefaultVerbCommandHandler, DictionaryOptions, FakeCommandOptions, Options, PrimaryOptions, UnlimitedValueOptions, ValueOptions.", null),
+        null => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same command name 'null': AmbiguousOptions, CollectionOptions, ComparedOptions, DefaultCommandHandler, DictionaryOptions, FakeCommandOptions, Options, PrimaryOptions, UnlimitedValueOptions, ValueOptions.", null),
         // Type EditOptions does not implement the ICommandHandler interface, so it cannot be dispatched uniformly and must be called by the developer separately.
-        "Fake" => (global::DotNetCampus.Cli.ICommandHandler)global::DotNetCampus.Cli.Tests.Fakes.FakeVerbCommandHandlerBuilder.CreateInstance(cl),
+        "Fake" => (global::DotNetCampus.Cli.ICommandHandler)global::DotNetCampus.Cli.Tests.Fakes.FakeCommandHandlerBuilder.CreateInstance(cl),
         // Type PrintOptions does not implement the ICommandHandler interface, so it cannot be dispatched uniformly and must be called by the developer separately.
         // Type ShareOptions does not implement the ICommandHandler interface, so it cannot be dispatched uniformly and must be called by the developer separately.
         _ => null,

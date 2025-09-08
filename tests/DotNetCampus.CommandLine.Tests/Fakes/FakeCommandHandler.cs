@@ -1,10 +1,11 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Tests.Fakes;
 
-public class DefaultVerbCommandHandler : ICommandHandler
+[Command("Fake")]
+public class FakeCommandHandler : ICommandHandler
 {
     [Option("Fake")]
     public string? Fake { get; init; }

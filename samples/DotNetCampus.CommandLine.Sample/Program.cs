@@ -141,37 +141,37 @@ class Program
     [MethodImpl(MethodImplOptions.NoInlining)]
     internal static void Initialize()
     {
-        // DefaultOptions { VerbName = null }
+        // DefaultOptions { CommandName = null }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
             null,
             global::DotNetCampus.Cli.DefaultOptionsBuilder.CreateInstance);
 
-        // EditOptions { VerbName = "Edit" }
+        // EditOptions { CommandName = "Edit" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
             "Edit",
             global::DotNetCampus.Cli.Tests.Fakes.EditOptionsBuilder.CreateInstance);
 
-        // Options { VerbName = null }
+        // Options { CommandName = null }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
             null,
             global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
 
-        // PrintOptions { VerbName = "Print" }
+        // PrintOptions { CommandName = "Print" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
             "Print",
             global::DotNetCampus.Cli.Tests.Fakes.PrintOptionsBuilder.CreateInstance);
 
-        // SampleCommandHandler { VerbName = "sample" }
+        // SampleCommandHandler { CommandName = "sample" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleCommandHandler>(
             "sample",
             global::DotNetCampus.Cli.SampleCommandHandlerBuilder.CreateInstance);
 
-        // SampleOptions { VerbName = "sample-options" }
+        // SampleOptions { CommandName = "sample-options" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
             "sample-options",
             global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
 
-        // ShareOptions { VerbName = "Share" }
+        // ShareOptions { CommandName = "Share" }
         global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
             "Share",
             global::DotNetCampus.Cli.Tests.Fakes.ShareOptionsBuilder.CreateInstance);

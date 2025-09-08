@@ -252,9 +252,9 @@ class OptionsBestPractice
 }
 ```
 
-## 命令处理与谓词
+## 命令处理与命令
 
-你可以使用命令处理器模式处理不同的命令（谓词），类似于`git commit`、`git push`等。DotNetCampus.CommandLine 提供了多种添加命令处理器的方式：
+你可以使用命令处理器模式处理不同的命令，类似于`git commit`、`git push`等。DotNetCampus.CommandLine 提供了多种添加命令处理器的方式：
 
 ### 1. 使用委托处理命令
 
@@ -267,7 +267,7 @@ commandLine.AddHandler<AddOptions>(options => { /* 处理add命令 */ })
     .Run();
 ```
 
-定义命令选项类时使用`Verb`特性标记谓词：
+定义命令选项类时使用`Command`特性标记命令：
 
 ```csharp
 [Command("add")]
@@ -401,8 +401,8 @@ dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startu
 
 URL协议解析的特点和用法：
 
-1. URL路径部分（如示例中的 `open/document.txt`）会被解析为位置参数或谓词加位置参数
-   - 路径的第一部分可作为谓词（需标记 `[Command]` 特性）
+1. URL路径部分（如示例中的 `open/document.txt`）会被解析为位置参数或命令加位置参数
+   - 路径的第一部分可作为命令（需标记 `[Command]` 特性）
    - 随后的路径部分会被解析为位置参数
 2. 查询参数（`?` 后的部分）会被解析为命名选项
 3. 集合类型选项可通过重复参数名传入多个值，如：`tags=csharp&tags=dotnet`
@@ -482,7 +482,7 @@ internal record DotNet03_MixedOptions
 namespace DotNetCampus.Cli.Tests;
 
 /// <summary>
-/// 辅助 <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/> 生成命令行选项、谓词或处理函数的创建。
+/// 辅助 <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/> 生成命令行选项、命令或处理函数的创建。
 /// </summary>
 internal sealed class DotNet03_MixedOptionsBuilder
 {
@@ -563,11 +563,11 @@ namespace DotNetCampus.Cli.Tests.Fakes;
 /// </summary>
 partial class AssemblyCommandHandler : global::DotNetCampus.Cli.Compiler.ICommandHandlerCollection
 {
-    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::DotNetCampus.Cli.CommandLine cl) => verb switch
+    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? command, global::DotNetCampus.Cli.CommandLine cl) => command switch
     {
-        null => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name 'null': AmbiguousOptions, CollectionOptions, ComparedOptions, DefaultVerbCommandHandler, DictionaryOptions, FakeCommandOptions, Options, PrimaryOptions, UnlimitedValueOptions, ValueOptions.", null),
+        null => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same command name 'null': AmbiguousOptions, CollectionOptions, ComparedOptions, DefaultCommandHandler, DictionaryOptions, FakeCommandOptions, Options, PrimaryOptions, UnlimitedValueOptions, ValueOptions.", null),
         // 类型 EditOptions 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
-        "Fake" => (global::DotNetCampus.Cli.ICommandHandler)global::DotNetCampus.Cli.Tests.Fakes.FakeVerbCommandHandlerBuilder.CreateInstance(cl),
+        "Fake" => (global::DotNetCampus.Cli.ICommandHandler)global::DotNetCampus.Cli.Tests.Fakes.FakeCommandHandlerBuilder.CreateInstance(cl),
         // 类型 PrintOptions 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
         // 类型 ShareOptions 没有继承 ICommandHandler 接口，因此无法统一调度执行，只能由开发者单独调用。
         _ => null,

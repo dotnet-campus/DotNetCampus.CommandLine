@@ -268,7 +268,7 @@ commandLine.AddHandler<AddOptions>(options => { /* 處理add命令 */ })
     .Run();
 ```
 
-定義命令選項類時使用`Verb`特性標記謂詞：
+定義命令選項類時使用`Command`特性標記命令：
 
 ```csharp
 [Command("add")]

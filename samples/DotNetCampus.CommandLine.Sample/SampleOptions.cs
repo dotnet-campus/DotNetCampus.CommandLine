@@ -5,7 +5,7 @@ using DotNetCampus.Cli.Properties;
 
 namespace DotNetCampus.Cli;
 
-[Command("sample-options", LocalizableDescription = nameof(LocalizableStrings.SampleVerbDescription))]
+[Command("sample-options", LocalizableDescription = nameof(LocalizableStrings.SampleCommandDescription))]
 internal class SampleOptions
 {
     [Option(LocalizableDescription = nameof(LocalizableStrings.SamplePropertyDescription))]
