@@ -6,11 +6,11 @@
 ### New Rules
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-DCL101 | DotNetCampus.AvoidBugs | Warning | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL101.md>
-DCL102 | DotNetCampus.AvoidBugs | Hidden | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL102.md>
-DCL201 | DotNetCampus.CodeFixOnly | Hidden | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL201.md>
-DCL202 | DotNetCampus.RuntimeException | Error | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL202.md>
-DCL203 | DotNetCampus.Mechanism | Error | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL203.md>
+DCL101 | DotNetCampus.AvoidBugs | Warning  | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL101.md>
+DCL102 | DotNetCampus.AvoidBugs | Info     | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL102.md>
+DCL201 | DotNetCampus.CodeFixOnly | Hidden   | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL201.md>
+DCL202 | DotNetCampus.RuntimeException | Error    | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL202.md>
+DCL203 | DotNetCampus.Mechanism | Error    | <https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL203.md>
 
 ## Release 3.2
 

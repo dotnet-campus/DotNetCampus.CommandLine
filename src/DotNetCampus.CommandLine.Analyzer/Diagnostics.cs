@@ -25,7 +25,7 @@ public static class Diagnostics
         Localize(nameof(DCL102)),
         Localize(nameof(DCL102_Message)),
         Categories.AvoidBugs,
-        DiagnosticSeverity.Hidden,
+        DiagnosticSeverity.Info,
         isEnabledByDefault: true,
         description: Localize(nameof(DCL102_Description)),
         helpLinkUri: Url(OptionLongNameCanBeKebabCase));
