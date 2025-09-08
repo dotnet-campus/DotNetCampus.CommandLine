@@ -121,7 +121,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             if (!exactSpelling && longName is not null)
             {
                 // 严格检查。
-                var kebabCase1 = NamingHelper.MakeKebabCase(longName, true, false);
+                var kebabCase1 = MakeKebabCase(longName, true, false, hasSeparator);
                 var isKebabCase1 = string.Equals(kebabCase1, longName, StringComparison.Ordinal);
                 if (!isKebabCase1)
                 {
@@ -129,7 +129,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                 }
 
                 // 宽松检查。
-                var kebabCase2 = NamingHelper.MakeKebabCase(longName, true, true);
+                var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
                 var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
                 if (!isKebabCase2)
                 {
