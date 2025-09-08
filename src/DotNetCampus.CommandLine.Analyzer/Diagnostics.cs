@@ -20,6 +20,16 @@ public static class Diagnostics
         description: Localize(nameof(DCL101_Description)),
         helpLinkUri: Url(OptionLongNameMustBeKebabCase));
 
+    public static readonly DiagnosticDescriptor DCL102_OptionLongNameCanBeKebabCase = new DiagnosticDescriptor(
+        nameof(DCL102),
+        Localize(nameof(DCL102)),
+        Localize(nameof(DCL102_Message)),
+        Categories.AvoidBugs,
+        DiagnosticSeverity.Hidden,
+        isEnabledByDefault: true,
+        description: Localize(nameof(DCL102_Description)),
+        helpLinkUri: Url(OptionLongNameCanBeKebabCase));
+
     #endregion
 
     #region Options Properties 201-299
@@ -57,6 +67,7 @@ public static class Diagnostics
     #endregion
 
     public const string OptionLongNameMustBeKebabCase = "DCL101";
+    public const string OptionLongNameCanBeKebabCase = "DCL102";
     public const string SupportedOptionPropertyType = "DCL201";
     public const string NotSupportedOptionPropertyType = "DCL202";
     public const string NotSupportedRawArgumentsPropertyType = "DCL203";

@@ -17,7 +17,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Recognize these attributes.
     /// </summary>
-    private readonly ImmutableHashSet<string> _attributeNames = ["Option", "OptionAttribute"];
+    private readonly ImmutableHashSet<string> _attributeNames = ["DotNetCampus.Cli.Compiler.OptionAttribute"];
 
     /// <summary>
     /// Supported diagnostics.
@@ -25,6 +25,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
     [
         Diagnostics.DCL101_OptionLongNameMustBeKebabCase,
+        Diagnostics.DCL102_OptionLongNameCanBeKebabCase,
     ];
 
     /// <summary>
@@ -52,19 +53,17 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
 
         foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))
         {
-            string? attributeName = attributeSyntax.Name switch
+            var attributeTypeSymbol = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
+            var fullAttributeName = attributeTypeSymbol?.ToDisplayString();
+            if (fullAttributeName != null && _attributeNames.Contains(fullAttributeName))
             {
-                IdentifierNameSyntax identifierName => identifierName.ToString(),
-                QualifiedNameSyntax qualifiedName => qualifiedName.ChildNodes().OfType<IdentifierNameSyntax>().LastOrDefault()?.ToString(),
-                _ => null,
-            };
-
-            if (attributeName != null && _attributeNames.Contains(attributeName))
-            {
-                var (name, location) = AnalyzeOptionAttributeArguments(attributeSyntax);
+                var (name, location, type) = AnalyzeOptionAttributeArguments(attributeSyntax);
                 if (name != null && location != null)
                 {
-                    var diagnostic = Diagnostic.Create(Diagnostics.DCL101_OptionLongNameMustBeKebabCase, location, name);
+                    var descriptor = type is SuggestionType.Warning
+                        ? Diagnostics.DCL101_OptionLongNameMustBeKebabCase
+                        : Diagnostics.DCL102_OptionLongNameCanBeKebabCase;
+                    var diagnostic = Diagnostic.Create(descriptor, location, name);
                     context.ReportDiagnostic(diagnostic);
                 }
                 break;
@@ -80,7 +79,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// name: the LongName value.
     /// location: the syntax tree location of the LongName argument value.
     /// </returns>
-    private (string? name, Location? location) AnalyzeOptionAttributeArguments(AttributeSyntax attributeSyntax)
+    private (string? Name, Location? Location, SuggestionType SuggestionType) AnalyzeOptionAttributeArguments(AttributeSyntax attributeSyntax)
     {
         var argumentList = attributeSyntax.ChildNodes().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
         if (argumentList != null)
@@ -93,14 +92,29 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             var exactSpelling = ignoreCaseExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
             if (!exactSpelling && longName is not null)
             {
-                var kebabCase = NamingHelper.MakeKebabCase(longName, true, false);
-                var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
-                if (!isKebabCase)
+                // 严格检查。
+                var kebabCase1 = NamingHelper.MakeKebabCase(longName, true, false);
+                var isKebabCase1 = string.Equals(kebabCase1, longName, StringComparison.Ordinal);
+                if (!isKebabCase1)
                 {
-                    return (longName, longNameExpression?.GetLocation());
+                    return (longName, longNameExpression?.GetLocation(), SuggestionType.Warning);
+                }
+
+                // 宽松检查。
+                var kebabCase2 = NamingHelper.MakeKebabCase(longName, true, true);
+                var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
+                if (!isKebabCase2)
+                {
+                    return (longName, longNameExpression?.GetLocation(), SuggestionType.Hidden);
                 }
             }
         }
-        return (null, null);
+        return (null, null, SuggestionType.Hidden);
+    }
+
+    private enum SuggestionType
+    {
+        Hidden,
+        Warning,
     }
 }

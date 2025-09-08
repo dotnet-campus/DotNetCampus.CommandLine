@@ -179,4 +179,13 @@
   <data name="DCL203_Description" xml:space="preserve">
     <value>To receive raw command-line arguments (typically string[]), you should also use the same property type string[] or the interface IReadOnlyList&lt;string&gt;.</value>
   </data>
+  <data name="DCL102" xml:space="preserve">
+    <value>Option long name may not be kebab-case</value>
+  </data>
+  <data name="DCL102_Message" xml:space="preserve">
+    <value>The option definition long name '{0}' may not be kebab-case.</value>
+  </data>
+  <data name="DCL102_Description" xml:space="preserve">
+    <value>The command-line option definition names may not be kebab-case.</value>
+  </data>
 </root>

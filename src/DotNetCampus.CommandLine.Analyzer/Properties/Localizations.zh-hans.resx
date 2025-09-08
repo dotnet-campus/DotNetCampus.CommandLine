@@ -72,4 +72,13 @@
   <data name="DCL203_Description" xml:space="preserve">
     <value>要接收原始命令行参数（通常是 string[] 类型），你应该也使用相同的属性类型 string[] 或其接口 IReadOnlyList&lt;string&gt;。</value>
   </data>
+  <data name="DCL102" xml:space="preserve">
+    <value>选项名称建议使用 kebab-case 命名法</value>
+  </data>
+  <data name="DCL102_Message" xml:space="preserve">
+    <value>选项名称 {0} 有可能不是 kebab-case 命名法命名。</value>
+  </data>
+  <data name="DCL102_Description" xml:space="preserve">
+    <value>选项名称的定义有可能不是 kebab-case 命名法命名。</value>
+  </data>
 </root>

@@ -96,6 +96,33 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Option long name may not be kebab-case.
+        /// </summary>
+        public static string DCL102 {
+            get {
+                return ResourceManager.GetString("DCL102", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command-line option definition names may not be kebab-case..
+        /// </summary>
+        public static string DCL102_Description {
+            get {
+                return ResourceManager.GetString("DCL102_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option definition long name &apos;{0}&apos; may not be kebab-case..
+        /// </summary>
+        public static string DCL102_Message {
+            get {
+                return ResourceManager.GetString("DCL102_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recommended option property type.
         /// </summary>
         public static string DCL201 {
