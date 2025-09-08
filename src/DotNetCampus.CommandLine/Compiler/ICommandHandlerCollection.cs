@@ -20,3 +20,36 @@ public interface ICommandHandlerCollection
     /// <returns>匹配的命令处理器，如果没有匹配的命令处理器，则返回 <see langword="null"/>。</returns>
     ICommandHandler? TryMatch(string commandNames, CommandLine commandLine);
 }
+
+internal static class CommandHandlerCollectionMatcher
+{
+    internal static ICommandHandler? TryMatch(
+        this CommandLine commandLine,
+        string commandNames,
+        CommandObjectCreator? defaultHandlerCreator,
+        IReadOnlyDictionary<string, CommandObjectCreator> commandHandlers)
+    {
+        var caseSensitive = commandLine.ParsingOptions.CaseSensitive;
+        if (string.IsNullOrEmpty(commandNames))
+        {
+            return (ICommandHandler?)defaultHandlerCreator?.Invoke(commandLine);
+        }
+
+        var bestMatchLength = -1;
+        var bestMatch = new KeyValuePair<string, CommandObjectCreator?>("", null!);
+        foreach (var pair in commandHandlers)
+        {
+            var names = pair.Key;
+            var creator = pair.Value;
+            if (names.Length > bestMatchLength
+                && commandNames.StartsWith(names, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            {
+                bestMatchLength = names.Length;
+                bestMatch = new KeyValuePair<string, CommandObjectCreator?>(names, creator);
+            }
+        }
+        return bestMatch.Value is { } handlerCreator
+            ? (ICommandHandler)handlerCreator.Invoke(commandLine)
+            : null;
+    }
+}

@@ -298,16 +298,17 @@ internal static class CommandLineModuleInitializer
 #nullable enable
 namespace {{model.Namespace}};
 
+#pragma warning disable CS0162
+
 /// <summary>
 /// 提供一种辅助自动搜集并执行本程序集中所有命令行处理器的方式。
 /// </summary>
-partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.Cli.Compiler.ICommandHandlerCollection
+partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.Cli.Utils.Handlers.GeneratedAssemblyCommandHandlerCollection
 {
-    public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::DotNetCampus.Cli.CommandLine cl) => verb switch
+    public {{model.AssemblyCommandHandlerType.Name}}()
     {
 {{string.Join("\n", models.GroupBy(x => x.CommandNames).Select(GenerateAssemblyCommandHandlerMatchCode))}}
-        _ => null,
-    };
+    }
 }
 
 """;
@@ -321,8 +322,9 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             var model = models[0];
             if (model.IsHandler)
             {
+                var assignment = group.Key is { } commandName ? $"VerbHandlers[\"{commandName}\"]" : "DefaultHandlerCreator";
                 return $"""
-        {(group.Key is { } vn ? $"\"{vn}\"" : "null")} => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl),
+        {assignment} = cl => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl);
 """;
             }
             else
@@ -334,9 +336,9 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
         }
         else
         {
-            var verbCode = group.Key is { } vn ? $"\"{vn}\"" : "null";
+            var commandName = group.Key is { } cn ? $"\"{cn}\"" : "null";
             return $"""
-        {verbCode} => throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {verbCode}),
+        throw new global::DotNetCampus.Cli.Exceptions.CommandVerbAmbiguityException($"Multiple command handlers match the same verb name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
 """;
         }
     }
