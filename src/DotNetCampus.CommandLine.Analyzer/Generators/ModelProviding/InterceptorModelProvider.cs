@@ -96,10 +96,13 @@ internal static class InterceptorModelProvider
                 {
                     return null;
                 }
-                // 获取 [Verb("xxx")] 特性中的 xxx。
-                var verbName = symbol.GetAttributes()
-                    .FirstOrDefault(attribute => attribute.AttributeClass?.IsAttributeOf<VerbAttribute>() is true)?
-                    .ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } verbArgument
+                // 获取 [Command("xxx")] 或 [Verb("xxx")] 特性中的 xxx。
+                var commandAttribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
+#pragma warning disable CS0618 // 类型或成员已过时
+                                ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
+#pragma warning restore CS0618 // 类型或成员已过时
+                    ;
+                var verbName = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } verbArgument
                     ? verbArgument.Value?.ToString()
                     : null;
                 // 获取调用代码所在的类和方法。

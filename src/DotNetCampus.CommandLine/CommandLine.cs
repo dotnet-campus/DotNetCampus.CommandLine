@@ -18,24 +18,36 @@ public class CommandLine : ICoreCommandRunnerBuilder
     public IReadOnlyList<string> CommandLineArguments { get; }
 
     /// <summary>
+    /// 获取解析此命令行时所使用的各种选项。
+    /// </summary>
+    internal CommandLineParsingOptions ParsingOptions { get; }
+
+    /// <summary>
     /// 在特定的属性不指定时，默认应使用的大小写敏感性。
     /// </summary>
     public bool DefaultCaseSensitive { get; }
 
     /// <summary>
-    /// 获取命令行参数中猜测的谓词名称。
+    /// 获取命令行参数中猜测的多级命令名称。
+    /// 请注意，此字符串中可能包含空格，表示多级命令名称。也可能比预期的更长，包含后续的一部分位置参数，因为暂时还无法确定那些位置参数是否是命令名称。
     /// </summary>
     /// <remarks>
     /// <code>
     /// # 对于以下命令：
     /// do something --option value
-    /// # 可能存在两种情况：
-    /// # 1. do 是位置参数，something 是谓词。
-    /// # 2. do 是谓词，something 是位置参数。
+    /// # 本属性的值为 "do something"。
+    /// # 对于以下命令：
+    /// do something /var/file --option value
+    /// # 本属性的值为 "do something"（因为 /var/file 可以提前判断出来不可能是命令）
+    /// # 可能存在三种情况：
+    /// # 1. do 和 something 都是位置参数。
+    /// # 2. do 是命令，something 是位置参数。
+    /// # 3. do 和 something 都是命令。
     /// </code>
-    /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有谓词来决定这个词是否是位置参数。
+    /// 此属性保存这个 something 的值，待后续决定使用处理器时，根据处理器是否要求有谓词来决定这个词是否是位置参数。<br/>
+    /// 另外，**特别强调**，此属性的值可能是命名变体，例如命令行传入 DoSomething 时，此属性则是 Do-Something。
     /// </remarks>
-    internal string? GuessedVerbName { get; }
+    internal string PossibleCommandNames { get; }
 
     /// <summary>
     /// 如果此命令行是从 Web 请求的 URL 中解析出来的，则此属性保存 URL 的 Scheme 部分。
@@ -86,13 +98,14 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// 从命令行中解析出来的位置参数。
     /// </summary>
     /// <remarks>
-    /// 注意，位置参数的第一个值可能是谓词名称；这取决于 <see cref="GuessedVerbName"/> 和实际处理器的谓词。
+    /// 注意，位置参数的前几个值可能是命令名称；这取决于 <see cref="PossibleCommandNames"/> 和实际处理器的命令。
     /// <code>
     /// # 对于以下命令：
     /// do something --option value
-    /// # 可能存在两种情况：
-    /// # 1. do 是位置参数，something 是谓词。
-    /// # 2. do 是谓词，something 是位置参数。
+    /// # 可能存在三种情况：
+    /// # 1. do 和 something 都是位置参数。
+    /// # 2. do 是命令，something 是位置参数。
+    /// # 3. do 和 something 都是命令。
     /// </code>
     /// 如果处理器决定将 something 作为谓词，那么当需要取出位置参数时，此属性的第一个值需要排除。
     /// </remarks>
@@ -103,8 +116,9 @@ public class CommandLine : ICoreCommandRunnerBuilder
         var options = OptionDictionary.Empty;
         var arguments = new ReadOnlyListRange<string>();
         CommandLineArguments = arguments;
+        ParsingOptions = CommandLineParsingOptions.Flexible;
         DefaultCaseSensitive = false;
-        GuessedVerbName = null;
+        PossibleCommandNames = "";
         MatchedUrlScheme = null;
         OptionMultiValueHandling = MultiValueHandling.First;
         PositionalArgumentsMultiValueHandling = MultiValueHandling.First;
@@ -120,9 +134,10 @@ public class CommandLine : ICoreCommandRunnerBuilder
     private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
         CommandLineArguments = arguments;
+        ParsingOptions = parsingOptions ?? CommandLineParsingOptions.Flexible;
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
-        GuessedVerbName = result.GuessedVerbName;
+        PossibleCommandNames = result.PossibleCommandNames;
         OptionMultiValueHandling = MatchedUrlScheme is null ? MultiValueHandling.First : MultiValueHandling.Last;
         PositionalArgumentsMultiValueHandling = MatchedUrlScheme is null ? MultiValueHandling.SpaceAll : MultiValueHandling.SlashAll;
         LongOptionValuesCaseSensitive = result.LongOptions.ToOptionLookup(true);
@@ -296,31 +311,17 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取命令行参数中位置参数的值。
     /// </summary>
-    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
-    /// <returns>位置参数的值。</returns>
-    [Pure]
-    public CommandLinePropertyValue? GetPositionalArgument(string? verbName = null)
-    {
-        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        var verbOffset = shouldSkipVerb ? 1 : 0;
-        return PositionalArguments.Count <= verbOffset
-            ? null
-            : new CommandLinePropertyValue(PositionalArguments.Slice(verbOffset, 1), PositionalArgumentsMultiValueHandling);
-    }
-
-    /// <summary>
-    /// 获取命令行参数中位置参数的值。
-    /// </summary>
     /// <param name="index">获取指定索引处的参数值。</param>
     /// <param name="length">从索引处获取参数值的最长长度。当大于 1 时，会将这些值合并为一个字符串。</param>
-    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
+    /// <param name="commandNames">因为子命令会影响到位置参数的序号，所以如果存在命令和子命令，则需要传入所有多级命令共同组成的字符串。</param>
     /// <returns>位置参数的值。</returns>
     [Pure]
-    public CommandLinePropertyValue? GetPositionalArgument(int index, int length, string? verbName = null)
+    public CommandLinePropertyValue? GetPositionalArgument(int index, int length, string? commandNames = null)
     {
-        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        var verbOffset = shouldSkipVerb ? 1 : 0;
-        var realIndex = index + verbOffset;
+        var commandLevel = GetCommandLevel(commandNames);
+        var positionalArgumentsStartIndex = Math.Max(0, commandLevel);
+        positionalArgumentsStartIndex = Math.Min(positionalArgumentsStartIndex, commandLevel);
+        var realIndex = index + positionalArgumentsStartIndex;
         return realIndex < 0 || realIndex >= PositionalArguments.Count
             ? null
             : new CommandLinePropertyValue(
@@ -331,13 +332,49 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取命令行参数中所有位置参数值的集合。
     /// </summary>
-    /// <param name="verbName">因为是否存在谓词会影响到位置参数的序号，所以如果有谓词名称，则需要传入。</param>
+    /// <param name="commandNames">因为子命令会影响到位置参数的序号，所以如果存在命令和子命令，则需要传入所有多级命令共同组成的字符串。</param>
     /// <returns>命令行参数中位置参数值的集合。</returns>
     [Pure]
-    public IReadOnlyList<string> GetPositionalArguments(string? verbName = null)
+    public IReadOnlyList<string> GetPositionalArguments(string? commandNames = null)
     {
-        var shouldSkipVerb = verbName is not null && GuessedVerbName is not null;
-        return shouldSkipVerb ? PositionalArguments.Slice(1, PositionalArguments.Count - 1) : PositionalArguments;
+        var commandLevel = GetCommandLevel(commandNames);
+        var positionalArgumentsStartIndex = Math.Max(0, commandLevel);
+        positionalArgumentsStartIndex = Math.Min(positionalArgumentsStartIndex, commandLevel);
+        return PositionalArguments.Slice(positionalArgumentsStartIndex, PositionalArguments.Count - 1);
+    }
+
+    /// <summary>
+    /// 根据某个特定的命令名称字符串，获取此字符串中包含了多少级命令。
+    /// </summary>
+    /// <param name="commandNames">命令名称字符串。</param>
+    /// <returns>命令的层级数。</returns>
+    private int GetCommandLevel(string? commandNames)
+    {
+        var possibleCommandNames = PossibleCommandNames;
+
+        // 如果没有命令，则不需要排除任何位置参数。
+        if (string.IsNullOrEmpty(commandNames) || string.IsNullOrEmpty(possibleCommandNames))
+        {
+            return 0;
+        }
+        if (commandNames.Length > possibleCommandNames.Length)
+        {
+            return 0;
+        }
+        if (!possibleCommandNames.StartsWith(commandNames, DefaultCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+        {
+            return 0;
+        }
+        // 计算 possibleCommandNames 中有多少个空格。
+        var commandLevel = 1;
+        for (var i = 0; i < commandNames.Length; i++)
+        {
+            if (possibleCommandNames[i] == ' ')
+            {
+                commandLevel++;
+            }
+        }
+        return commandLevel;
     }
 
     /// <summary>

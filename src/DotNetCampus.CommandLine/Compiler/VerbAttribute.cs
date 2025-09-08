@@ -14,7 +14,7 @@
 /// public class SlnAddCommand { ... }
 /// </code>
 /// </summary>
-/// <param name="name">
+/// <param name="names">
 /// 命令。必须使用 kebab-case 命名规则，且不带 -- 前缀。
 /// 可选三种形式：
 /// <list type="number">
@@ -24,12 +24,12 @@
 /// </list>
 /// </param>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public sealed class CommandAttribute(string? name) : CommandLineAttribute
+public sealed class CommandAttribute(string? names) : CommandLineAttribute
 {
     /// <summary>
     /// 获取命令行的命令，可以是单个词组的主命令（Main Command），也可以是多个词组的子命令或多级子命令（Sub Command）。
     /// </summary>
-    public string? Name { get; } = name;
+    public string? Names { get; } = names;
 }
 
 /// <summary>

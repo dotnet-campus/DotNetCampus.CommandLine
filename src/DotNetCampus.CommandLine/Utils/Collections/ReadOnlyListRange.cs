@@ -28,6 +28,11 @@ internal readonly struct ReadOnlyListRange<T> : IReadOnlyList<T>
         ? throw new ArgumentOutOfRangeException(nameof(index))
         : _sourceList[_range.GetOffsetAndLength(_sourceList.Count).Offset + index];
 
+    /// <summary>
+    /// 获取第一个元素，如果没有元素则返回默认值。
+    /// </summary>
+    public T? FirstOrDefault => Count is 0 ? default : this[0];
+
     public ReadOnlyListRange<T> Slice(int offset, int length)
     {
         if (_sourceList is null)

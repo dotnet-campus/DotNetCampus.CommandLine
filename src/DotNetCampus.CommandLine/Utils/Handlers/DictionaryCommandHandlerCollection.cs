@@ -8,9 +8,9 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
     private CommandObjectCreator? _defaultHandlerCreator;
     private readonly ConcurrentDictionary<string, CommandObjectCreator> _verbHandlers = [];
 
-    public void AddHandler(string? verbName, CommandObjectCreator handlerCreator)
+    public void AddHandler(string commandNames, CommandObjectCreator handlerCreator)
     {
-        if (verbName is null)
+        if (string.IsNullOrEmpty(commandNames))
         {
             if (_defaultHandlerCreator is not null)
             {
@@ -20,19 +20,36 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         }
         else
         {
-            if (!_verbHandlers.TryAdd(verbName, handlerCreator))
+            if (!_verbHandlers.TryAdd(commandNames, handlerCreator))
             {
-                throw new InvalidOperationException($"Duplicate handler with verb {verbName}. Existed: {_verbHandlers}, new: {handlerCreator}");
+                throw new InvalidOperationException($"Duplicate handler with verb {commandNames}. Existed: {_verbHandlers}, new: {handlerCreator}");
             }
         }
     }
 
-    public ICommandHandler? TryMatch(string? verb, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string commandNames, CommandLine commandLine)
     {
-        return verb is null
-            ? (ICommandHandler?)_defaultHandlerCreator?.Invoke(commandLine)
-            : _verbHandlers.TryGetValue(verb, out var handlerCreator)
-                ? (ICommandHandler)handlerCreator.Invoke(commandLine)
-                : null;
+        var caseSensitive = commandLine.ParsingOptions.CaseSensitive;
+        if (string.IsNullOrEmpty(commandNames))
+        {
+            return (ICommandHandler?)_defaultHandlerCreator?.Invoke(commandLine);
+        }
+
+        var bestMatchLength = -1;
+        var bestMatch = new KeyValuePair<string, CommandObjectCreator?>("", null!);
+        foreach (var pair in _verbHandlers)
+        {
+            var names = pair.Key;
+            var creator = pair.Value;
+            if (names.Length > bestMatchLength
+                && commandNames.StartsWith(names, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            {
+                bestMatchLength = names.Length;
+                bestMatch = new KeyValuePair<string, CommandObjectCreator?>(names, creator);
+            }
+        }
+        return bestMatch.Value is { } handlerCreator
+            ? (ICommandHandler)handlerCreator.Invoke(commandLine)
+            : null;
     }
 }

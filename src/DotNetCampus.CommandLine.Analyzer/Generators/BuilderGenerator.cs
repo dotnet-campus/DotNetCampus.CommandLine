@@ -173,12 +173,14 @@ namespace {{model.Namespace}};
         var toMethod = GetCommandLinePropertyValueToMethodName(property.Type) is { } tm ? $"?.{tm}()" : "";
         var indexLengthCode = (property.Index, property.Length) switch
         {
-            (null, null) => null,
+            (null, null) => "0, 1",
+            (null, { } length) when length == int.MaxValue => "0, int.MaxValue",
             (null, { } length) => $"0, {length}",
             ({ } index, null) => $"{index}, 1",
+            ({ } index, { } length) when length == int.MaxValue => $"{index}, int.MaxValue",
             ({ } index, { } length) => $"{index}, {length}",
         };
-        var verbText = model.VerbName is { } verbName ? $"\"{verbName}\"" : "null";
+        var commandText = model.CommandNames is { } commandNames ? $"\"{commandNames}\"" : "null";
         var exception = property.IsRequired
             ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : (property.IsNullable, property.IsValueType) switch
@@ -190,13 +192,13 @@ namespace {{model.Namespace}};
         if (property.IsRequired || property.IsInitOnly)
         {
             return $"""
-            {property.PropertyName} = commandLine.GetPositionalArgument({(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}){toMethod} ?? {exception},
+            {property.PropertyName} = commandLine.GetPositionalArgument({$"{indexLengthCode}, {commandText}"}){toMethod} ?? {exception},
 """;
         }
         else
         {
             return $$"""
-        if (commandLine.GetPositionalArgument({{(indexLengthCode is not null ? $"{indexLengthCode}, {verbText}" : verbText)}}){{toMethod}} is { } p{{modelIndex}})
+        if (commandLine.GetPositionalArgument({{$"{indexLengthCode}, {commandText}"}}){{toMethod}} is { } p{{modelIndex}})
         {
             result.{{property.PropertyName}} = p{{modelIndex}};
         }
@@ -278,11 +280,11 @@ internal static class CommandLineModuleInitializer
 
     private string GenerateCommandRunnerRegisterCode(CommandObjectGeneratingModel model)
     {
-        var verbCode = model.VerbName is { } vn ? $"\"{vn}\"" : "null";
+        var commandCode = model.CommandNames is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
-        // {{model.CommandObjectType.Name}} { VerbName = {{verbCode}} }
+        // {{model.CommandObjectType.Name}} { VerbName = {{commandCode}} }
         global::DotNetCampus.Cli.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
-            {{verbCode}},
+            {{commandCode}},
             global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
 """;
     }
@@ -300,7 +302,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
 {
     public global::DotNetCampus.Cli.ICommandHandler? TryMatch(string? verb, global::DotNetCampus.Cli.CommandLine cl) => verb switch
     {
-{{string.Join("\n", models.GroupBy(x => x.VerbName).Select(GenerateAssemblyCommandHandlerMatchCode))}}
+{{string.Join("\n", models.GroupBy(x => x.CommandNames).Select(GenerateAssemblyCommandHandlerMatchCode))}}
         _ => null,
     };
 }

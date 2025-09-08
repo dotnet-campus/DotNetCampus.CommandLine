@@ -1,15 +1,22 @@
 ﻿namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
-/// 管理一组命令处理器的集合，在谓词匹配的情况下辅助执行对应的命令处理器。
+/// 管理一组命令处理器的集合，在命令匹配的情况下辅助执行对应的命令处理器。
 /// </summary>
 public interface ICommandHandlerCollection
 {
     /// <summary>
     /// 尝试匹配一个命令处理器。
     /// </summary>
-    /// <param name="verb">要匹配的谓词。</param>
+    /// <param name="commandNames">
+    /// 可能的命令名称。
+    /// <list type="bullet">
+    /// <item>可能是空字符串，表示只匹配默认命令。</item>
+    /// <item>可能包含无空格的名称，表示只匹配主命令。</item>
+    /// <item>可能包含有空格的名称，表示匹配多级命令。</item>
+    /// </list>
+    /// </param>
     /// <param name="commandLine">已解析的命令行参数。</param>
     /// <returns>匹配的命令处理器，如果没有匹配的命令处理器，则返回 <see langword="null"/>。</returns>
-    ICommandHandler? TryMatch(string? verb, CommandLine commandLine);
+    ICommandHandler? TryMatch(string commandNames, CommandLine commandLine);
 }
