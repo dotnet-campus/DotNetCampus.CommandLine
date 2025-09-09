@@ -26,7 +26,9 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     ];
 
     private readonly HashSet<string> _twoGenericTypeNames =
-        ["ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair"];
+    [
+        "ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair",
+    ];
 
     private readonly HashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
     private readonly HashSet<string> _genericArgumentTypeNames = ["String", "string"];
@@ -265,20 +267,20 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     }
 
     private bool IsNonGenericType(string typeName)
-        => _nonGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _nonGenericTypeNames.Contains(typeName);
 
     private bool IsOneGenericType(string typeName)
-        => _oneGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _oneGenericTypeNames.Contains(typeName);
 
     private bool IsRawArgumentsGenericType(string typeName)
-        => _rawArgumentsGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _rawArgumentsGenericTypeNames.Contains(typeName);
 
     private bool IsTwoGenericType(string typeName)
-        => _twoGenericTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _twoGenericTypeNames.Contains(typeName);
 
     private bool IsGenericKeyArgumentType(string typeName)
-        => _genericKeyArgumentTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _genericKeyArgumentTypeNames.Contains(typeName);
 
     private bool IsGenericArgumentType(string typeName)
-        => _genericArgumentTypeNames.Contains(typeName, StringComparer.Ordinal);
+        => _genericArgumentTypeNames.Contains(typeName);
 }
