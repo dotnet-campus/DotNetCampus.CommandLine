@@ -153,10 +153,10 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
     private ICommandHandler? MatchHandler()
     {
-        var guessedCommandNames = _commandLine.PossibleCommandNames;
+        var possibleCommandNames = _commandLine.PossibleCommandNames;
 
         // 优先寻找单独添加的处理器。
-        if (_dictionaryCommandHandlers.TryMatch(guessedCommandNames, _commandLine) is { } h1)
+        if (_dictionaryCommandHandlers.TryMatch(possibleCommandNames, _commandLine) is { } h1)
         {
             return h1;
         }
@@ -164,7 +164,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         // 其次寻找程序集中自动搜集到的处理器。
         foreach (var handler in _assemblyCommandHandlers)
         {
-            if (handler.Value.TryMatch(guessedCommandNames, _commandLine) is { } h2)
+            if (handler.Value.TryMatch(possibleCommandNames, _commandLine) is { } h2)
             {
                 return h2;
             }

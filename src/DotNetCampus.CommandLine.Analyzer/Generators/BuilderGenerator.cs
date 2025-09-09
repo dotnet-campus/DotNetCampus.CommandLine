@@ -322,7 +322,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             var model = models[0];
             if (model.IsHandler)
             {
-                var assignment = group.Key is { } commandName ? $"CommandHandlers[\"{commandName}\"]" : "DefaultHandlerCreator";
+                var assignment = group.Key is { } commandName ? $"Creators[\"{commandName}\"]" : "Default";
                 return $"""
         {assignment} = cl => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl);
 """;

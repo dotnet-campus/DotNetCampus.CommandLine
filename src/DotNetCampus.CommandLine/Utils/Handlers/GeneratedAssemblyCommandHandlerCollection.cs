@@ -10,16 +10,16 @@ public abstract class GeneratedAssemblyCommandHandlerCollection : ICommandHandle
     /// <summary>
     /// 源生成器在构造函数中，为没有命令名称的命令处理器赋值。
     /// </summary>
-    protected CommandObjectCreator? DefaultHandlerCreator { get; init; }
+    protected CommandObjectCreator? Default { get; init; }
 
     /// <summary>
     /// 源生成器在构造函数中，为有命令名称的命令处理器赋值。
     /// </summary>
-    protected Dictionary<string, CommandObjectCreator> CommandHandlers { get; init; } = [];
+    protected Dictionary<string, CommandObjectCreator> Creators { get; init; } = [];
 
     /// <inheritdoc />
-    public ICommandHandler? TryMatch(string commandNames, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string possibleCommandNames, CommandLine commandLine)
     {
-        return commandLine.TryMatch(commandNames, DefaultHandlerCreator, CommandHandlers);
+        return commandLine.TryMatch(possibleCommandNames, Default, Creators);
     }
 }

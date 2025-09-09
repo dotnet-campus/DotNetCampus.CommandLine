@@ -6,7 +6,7 @@ namespace DotNetCampus.Cli.Utils.Handlers;
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
     private CommandObjectCreator? _defaultHandlerCreator;
-    private readonly ConcurrentDictionary<string, CommandObjectCreator> _commandHandlers = [];
+    private readonly ConcurrentDictionary<string, CommandObjectCreator> _commandHandlerCreators = [];
 
     public void AddHandler(string? commandNames, CommandObjectCreator handlerCreator)
     {
@@ -24,15 +24,15 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         }
         else
         {
-            if (!_commandHandlers.TryAdd(commandNames, handlerCreator))
+            if (!_commandHandlerCreators.TryAdd(commandNames, handlerCreator))
             {
-                throw new InvalidOperationException($"Duplicate handler with command {commandNames}. Existed: {_commandHandlers}, new: {handlerCreator}");
+                throw new InvalidOperationException($"Duplicate handler with command {commandNames}. Existed: {_commandHandlerCreators}, new: {handlerCreator}");
             }
         }
     }
 
-    public ICommandHandler? TryMatch(string commandNames, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string possibleCommandNames, CommandLine commandLine)
     {
-        return commandLine.TryMatch(commandNames, _defaultHandlerCreator, _commandHandlers);
+        return commandLine.TryMatch(possibleCommandNames, _defaultHandlerCreator, _commandHandlerCreators);
     }
 }
