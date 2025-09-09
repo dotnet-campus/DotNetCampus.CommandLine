@@ -302,7 +302,7 @@ public class NamingConventionTests
         // Act - 大小写不敏感模式（默认）
         bool verboseFlexible = false;
         CommandLine.Parse(args, Flexible)
-            .AddHandler<CaseSensitiveOptionsCommand>(o =>
+            .AddHandler<DefaultCaseSensitiveOptionsCommand>(o =>
             {
                 verboseFlexible = o.Verbose;
             })
@@ -315,7 +315,7 @@ public class NamingConventionTests
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
             CommandLine.Parse(args, CaseSensitive)
-                .AddHandler<CaseSensitiveOptionsCommand>(_ => { })
+                .AddHandler<DefaultCaseSensitiveOptionsCommand>(_ => { })
                 .Run();
         });
     }
@@ -623,10 +623,10 @@ internal class ExactSpellingCommand
     public required string SampleProperty { get; init; }
 }
 
-internal class CaseSensitiveOptionsCommand
+internal class DefaultCaseSensitiveOptionsCommand
 {
-    [Option("verbose", CaseSensitive = true)]
-    public bool Verbose { get; init; }
+    [Option("verbose")]
+    public required bool Verbose { get; init; }
 }
 
 // 3. ValueAttribute 测试类
