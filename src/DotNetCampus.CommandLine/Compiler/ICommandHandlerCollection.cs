@@ -41,8 +41,27 @@ internal static class CommandHandlerCollectionMatcher
         {
             var names = pair.Key;
             var creator = pair.Value;
-            if (names.Length > bestMatchLength
-                && commandNames.StartsWith(names, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            
+            // 检查是否为精确匹配或完整的前缀匹配（后面跟空格或结束）
+            var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            bool isMatch = false;
+            
+            if (string.Equals(commandNames, names, comparison))
+            {
+                // 完全匹配
+                isMatch = true;
+            }
+            else if (commandNames.StartsWith(names, comparison))
+            {
+                // 前缀匹配，但需要确保是完整单词匹配
+                // 即命令名称后面必须是空格或字符串结束
+                if (commandNames.Length > names.Length && commandNames[names.Length] == ' ')
+                {
+                    isMatch = true;
+                }
+            }
+            
+            if (isMatch && names.Length > bestMatchLength)
             {
                 bestMatchLength = names.Length;
                 bestMatch = new KeyValuePair<string, CommandObjectCreator?>(names, creator);
