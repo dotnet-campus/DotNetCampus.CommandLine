@@ -11,6 +11,7 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// </summary>
 internal sealed class UrlStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = false;
     private const string FragmentName = "fragment";
     private readonly string _scheme;
 
@@ -89,7 +90,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames),
+            CommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());

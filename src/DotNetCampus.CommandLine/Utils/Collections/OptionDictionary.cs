@@ -290,6 +290,12 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
         return true;
     }
 
+    public static OptionName MakeKebabCase(ReadOnlySpan<char> span, bool isUpperSeparator)
+    {
+        var name = NamingHelper.MakeKebabCase(span.ToString(), isUpperSeparator, false);
+        return new OptionName(name, Range.All);
+    }
+
     public static string MakeKebabCase(ReadOnlySpan<char> span)
     {
         Span<char> builder = stackalloc char[span.Length * 2];

@@ -6,6 +6,8 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.Posix"/>
 internal sealed class PosixStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = false;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var shortOptions = new OptionDictionary(true);
@@ -79,7 +81,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             OptionDictionary.Empty, // POSIX 风格不支持长选项
             shortOptions,
             arguments.ToReadOnlyList());

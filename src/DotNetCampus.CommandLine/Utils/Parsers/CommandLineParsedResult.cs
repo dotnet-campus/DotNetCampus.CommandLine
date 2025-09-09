@@ -8,13 +8,13 @@ internal readonly record struct CommandLineParsedResult(
     OptionDictionary ShortOptions,
     ReadOnlyListRange<string> Arguments)
 {
-    public static string MakePossibleCommandNames(IEnumerable<string> possibleCommandNames)
+    public static string MakePossibleCommandNames(IEnumerable<string> possibleCommandNames, bool isUpperSeparator)
     {
-        return string.Join(" ", possibleCommandNames.Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+        return string.Join(" ", possibleCommandNames.Select(x => NamingHelper.MakeKebabCase(x, isUpperSeparator, false)));
     }
 
-    public static string MakePossibleCommandNames(IEnumerable<string> commandLineArguments, int possibleCommandNamesLength)
+    public static string MakePossibleCommandNames(IEnumerable<string> commandLineArguments, int possibleCommandNamesLength, bool isUpperSeparator)
     {
-        return string.Join(" ", commandLineArguments.Take(possibleCommandNamesLength).Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+        return string.Join(" ", commandLineArguments.Take(possibleCommandNamesLength).Select(x => NamingHelper.MakeKebabCase(x, isUpperSeparator, false)));
     }
 }

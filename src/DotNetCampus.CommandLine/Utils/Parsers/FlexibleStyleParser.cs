@@ -7,6 +7,8 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.Flexible"/>
 internal sealed class FlexibleStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = true;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
@@ -93,7 +95,7 @@ internal sealed class FlexibleStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -165,7 +167,7 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
                     {
                         Option = isKebabCase
                             ? new OptionName(argument, new Range(wordStartIndex, i + wordStartIndex))
-                            : new OptionName(OptionName.MakeKebabCase(spans[..i]), Range.All),
+                            : OptionName.MakeKebabCase(spans[..i], FlexibleStyleParser.ConvertPascalCaseToKebabCase),
                         Value = spans[(i + 1)..],
                     };
                 }
@@ -175,7 +177,7 @@ internal readonly ref struct FlexibleArgument(FlexibleParsedType type)
             {
                 Option = isKebabCase
                     ? new OptionName(argument, Range.StartAt(wordStartIndex))
-                    : new OptionName(OptionName.MakeKebabCase(spans), Range.All),
+                    : OptionName.MakeKebabCase(spans, FlexibleStyleParser.ConvertPascalCaseToKebabCase),
             };
         }
 

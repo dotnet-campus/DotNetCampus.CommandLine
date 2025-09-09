@@ -5,6 +5,8 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.PowerShell"/>
 internal sealed class PowerShellStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = true;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
@@ -61,7 +63,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
             OptionDictionary.Empty,
@@ -97,7 +99,7 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
             var optionSpan = argument.AsSpan(1);
             return new PowerShellArgument(PowerShellParsedType.Option)
             {
-                Option = new OptionName(OptionName.MakeKebabCase(optionSpan), Range.All),
+                Option = OptionName.MakeKebabCase(optionSpan, PowerShellStyleParser.ConvertPascalCaseToKebabCase),
             };
         }
 
