@@ -165,7 +165,7 @@ namespace System.Runtime.CompilerServices
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.CommandName is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
         }
 """;
     }
@@ -184,7 +184,7 @@ namespace System.Runtime.CompilerServices
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.CommandName is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
+            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
         }
 """;
     }

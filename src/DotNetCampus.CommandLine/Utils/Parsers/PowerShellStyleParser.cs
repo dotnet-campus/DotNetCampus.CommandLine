@@ -61,7 +61,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength).Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
             longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
             OptionDictionary.Empty,

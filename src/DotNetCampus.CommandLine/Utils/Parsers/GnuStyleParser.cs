@@ -122,7 +122,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength).Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());

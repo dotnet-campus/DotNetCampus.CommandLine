@@ -1,6 +1,7 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Text.RegularExpressions;
 using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -102,7 +103,7 @@ internal static class InterceptorModelProvider
                                 ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
 #pragma warning restore CS0618 // 类型或成员已过时
                     ;
-                var commandName = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
+                var commandNames = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
                     ? commandArgument.Value?.ToString()
                     : null;
                 // 获取调用代码所在的类和方法。
@@ -111,7 +112,7 @@ internal static class InterceptorModelProvider
                 var invocationFileName = Path.GetFileName(node.SyntaxTree.FilePath);
                 var invocationInfo = $"{classDeclaration?.Identifier.ToString()}.{methodDeclaration?.Identifier.ToString()} @{invocationFileName}";
 
-                return new InterceptorGeneratingModel(interceptableLocation, symbol, commandName, invocationInfo);
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, commandNames, invocationInfo);
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -121,11 +122,21 @@ internal static class InterceptorModelProvider
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
     INamedTypeSymbol CommandObjectType,
-    string? CommandName,
+    string? CommandNames,
     string InvocationInfo
 )
 {
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
+
+    public string? GetKebabCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+    }
 
     internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =
         new PrivateTypeSymbolEqualityComparer();

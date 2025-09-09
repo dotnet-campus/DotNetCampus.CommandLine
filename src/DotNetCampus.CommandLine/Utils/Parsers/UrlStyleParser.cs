@@ -89,7 +89,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            string.Join(" ", possibleCommandNames.Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
+            CommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());

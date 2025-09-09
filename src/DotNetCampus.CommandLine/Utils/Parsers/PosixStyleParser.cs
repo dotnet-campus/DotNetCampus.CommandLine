@@ -79,7 +79,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
         }
 
         return new CommandLineParsedResult(
-            string.Join(" ", commandLineArguments.Slice(0, possibleCommandNamesLength).Select(x => OptionName.MakeKebabCase(x.AsSpan()))),
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength),
             OptionDictionary.Empty, // POSIX 风格不支持长选项
             shortOptions,
             arguments.ToReadOnlyList());
