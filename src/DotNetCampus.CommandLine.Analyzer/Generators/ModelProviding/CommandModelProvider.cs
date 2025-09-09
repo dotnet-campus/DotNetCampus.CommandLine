@@ -332,7 +332,12 @@ internal record ValuePropertyGeneratingModel
         }
 
         var index = valueAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        var length = valueAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(ValueAttribute.Length)).Value.Value?.ToString();
+        var length =
+            // 优先从命名属性中拿。
+            valueAttribute.NamedArguments
+                .FirstOrDefault(a => a.Key == nameof(ValueAttribute.Length)).Value.Value?.ToString()
+            // 其次从构造函数参数中拿。
+            ?? valueAttribute.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
 
         return new ValuePropertyGeneratingModel
         {
