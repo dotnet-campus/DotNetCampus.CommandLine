@@ -271,7 +271,7 @@ public class NamingConventionTests
         string? capturedValue = null;
 
         // Act
-        CommandLine.Parse(exactArgs, Flexible)
+        CommandLine.Parse(exactArgs, CommandLineParsingOptions.Gnu)
             .AddHandler<ExactSpellingCommand>(o =>
             {
                 capturedValue = o.SampleProperty;
@@ -287,7 +287,7 @@ public class NamingConventionTests
         // Act & Assert
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(kebabArgs, Flexible)
+            CommandLine.Parse(kebabArgs, CommandLineParsingOptions.Gnu)
                 .AddHandler<ExactSpellingCommand>(_ => { })
                 .Run();
         });
