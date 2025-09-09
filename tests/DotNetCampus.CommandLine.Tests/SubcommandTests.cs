@@ -350,19 +350,15 @@ public class SubcommandTests
         bool remoteHandlerCalled = false;
         bool remoteAddHandlerCalled = false;
 
-        // Act & Assert - 应该抛出 CommandNameNotFoundException 因为没有精确匹配
-        var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() =>
-        {
-            CommandLine.Parse(args, Flexible)
-                .AddHandler<GitRemoteOptions>(_ => remoteHandlerCalled = true)
-                .AddHandler<GitRemoteNullableAddOptions>(_ => remoteAddHandlerCalled = true)
-                .Run();
-        });
+        // Act
+        CommandLine.Parse(args, Flexible)
+            .AddHandler<GitRemoteOptions>(_ => remoteHandlerCalled = true)
+            .AddHandler<GitRemoteNullableAddOptions>(_ => remoteAddHandlerCalled = true)
+            .Run();
 
-        // 确认没有处理器被调用
-        Assert.IsFalse(remoteHandlerCalled);
+        // Assert - addx 不能匹配 add，所以只有 remote 是匹配的
+        Assert.IsTrue(remoteHandlerCalled);
         Assert.IsFalse(remoteAddHandlerCalled);
-        Assert.IsTrue(exception.Message.Contains("remote"));
     }
 
     [TestMethod("3.7. 最长路径匹配 - 大小写不敏感")]
