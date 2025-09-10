@@ -11,12 +11,6 @@ public class CommandNameAmbiguityException : CommandLineException
     public string? CommandName { get; }
 
     /// <summary>
-    /// 获取命令行的命令名称。
-    /// </summary>
-    [Obsolete("请使用 CommandName 属性。")]
-    public string? VerbName => CommandName;
-
-    /// <summary>
     /// 初始化 <see cref="CommandNameAmbiguityException"/> 类的新实例。
     /// </summary>
     /// <param name="message">异常提示信息。</param>

@@ -11,11 +11,6 @@ public class CommandNameNotFoundException : CommandLineException
     public string? CommandNames { get; }
 
     /// <summary>
-    /// 获取命令行的命令（主命令和子命令）。
-    /// </summary>
-    public string? VerbName => CommandNames;
-
-    /// <summary>
     /// 初始化 <see cref="CommandNameNotFoundException"/> 类的新实例。
     /// </summary>
     /// <param name="message">异常提示信息。</param>
