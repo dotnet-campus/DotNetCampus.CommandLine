@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Utils.Handlers;
 
 namespace DotNetCampus.Cli;
 
@@ -17,127 +19,43 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder)
         where T : class, ICommandHandler
     {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>();
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>命令行执行器构造的链式调用。</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator)
-        where T : class, ICommandHandler
-    {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(command, creator);
+        throw MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler)
         where T : class
     {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(t =>
-            {
-                handler(t);
-                return Task.FromResult(0);
-            });
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Action<T> handler)
-        where T : class
-    {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(command, creator, t =>
-            {
-                handler(t);
-                return Task.FromResult(0);
-            });
+        throw MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
         where T : class
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler);
+        throw MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Action<T> handler)
-        where T : class
-    {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(command, creator, handler);
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler)
         where T : class
     {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(t => Task.FromResult(handler(t)));
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Func<T, int> handler)
-        where T : class
-    {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(command, creator, t => Task.FromResult(handler(t)));
+        throw MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
         where T : class
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler);
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Func<T, int> handler)
-        where T : class
-    {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(command, creator, handler);
+        throw MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler)
         where T : class
     {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(async t =>
-            {
-                await handler(t);
-                return 0;
-            });
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Func<T, Task> handler)
-        where T : class
-    {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(command, creator, async t =>
-            {
-                await handler(t);
-                return 0;
-            });
+        throw MethodShouldBeInspected();
     }
 
     /// <summary>
@@ -150,26 +68,106 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler)
         where T : class
     {
-        return builder.GetOrCreateRunner()
-            .AddHandler<T>(handler);
+        throw MethodShouldBeInspected();
     }
 
     /// <summary>
-    /// 添加一个命令处理器。
+    /// 由拦截器调用，用于添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
+    /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator, Func<T, Task<int>> handler)
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class, ICommandHandler
+    {
+        return builder.GetOrCreateRunner()
+            .AddHandlerCore(command, creator, commandAliases);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
         where T : class
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(command, creator, handler);
+            .AddHandlerCore(command, cl => new AnonymousCommandHandler<T>(cl, creator, handler), commandAliases);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,ExperimentalCommandObjectCreator,IReadOnlyList{string})" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class
+    {
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, creator, commandAliases);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,ExperimentalCommandObjectCreator,IReadOnlyList{string})" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class
+    {
+        return builder.GetOrCreateRunner()
+            .AddHandlerCore(command, cl => new AnonymousInt32CommandHandler<T>(cl, creator, handler), commandAliases);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,ExperimentalCommandObjectCreator,IReadOnlyList{string})" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class
+    {
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, creator, commandAliases);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,ExperimentalCommandObjectCreator,IReadOnlyList{string})" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class
+    {
+        return builder.GetOrCreateRunner()
+            .AddHandlerCore(command, cl => new AnonymousTaskCommandHandler<T>(cl, creator, handler), commandAliases);
+    }
+
+    /// <summary>
+    /// 由拦截器调用，用于添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
+    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler,
+        string? command, ExperimentalCommandObjectCreator creator,
+        IReadOnlyList<string>? commandAliases = null
+    )
+        where T : class
+    {
+        return builder.GetOrCreateRunner()
+            .AddHandlerCore(command, cl => new AnonymousTaskInt32CommandHandler<T>(cl, creator, handler), commandAliases);
     }
 
     /// <summary>
@@ -181,6 +179,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandlers<T>(this ICoreCommandRunnerBuilder builder)
         where T : ICommandHandlerCollection, new()
     {
+        throw new NotImplementedException();
         return builder.GetOrCreateRunner()
             .AddHandlers<T>();
     }
@@ -196,5 +195,11 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddStandardHandlers(this ICoreCommandRunnerBuilder builder)
     {
         throw new NotSupportedException("Considering that almost no developer thinks the behavior of this method meets expectations, we removed this feature.");
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static InvalidOperationException MethodShouldBeInspected()
+    {
+        return new InvalidOperationException("源生成器本应该在编译时拦截了此方法的调用。请检查编译警告，查看 DotNetCampus.CommandLine 的源生成器是否正常工作。");
     }
 }

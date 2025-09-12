@@ -18,7 +18,7 @@ public interface ICommandHandlerCollection
     /// </param>
     /// <param name="commandLine">已解析的命令行参数。</param>
     /// <returns>匹配的命令处理器，如果没有匹配的命令处理器，则返回 <see langword="null"/>。</returns>
-    ICommandHandler? TryMatch(string possibleCommandNames, CommandLine commandLine);
+    ICommandHandler? TryMatch(string possibleCommandNames, LegacyCommandLine commandLine);
 }
 
 internal static class CommandHandlerCollectionMatcher
@@ -34,10 +34,10 @@ internal static class CommandHandlerCollectionMatcher
     /// <param name="commandHandlerCreators">尝试匹配命令时，使用此集合中的命令处理器创建器。</param>
     /// <returns>匹配的命令处理器，如果没有匹配的命令处理器，则返回 <see langword="null"/>。</returns>
     internal static ICommandHandler? TryMatch(
-        this CommandLine commandLine,
+        this LegacyCommandLine commandLine,
         string possibleCommandNames,
-        CommandObjectCreator? defaultHandlerCreator,
-        IReadOnlyDictionary<string, CommandObjectCreator> commandHandlerCreators)
+        LegacyCommandObjectCreator? defaultHandlerCreator,
+        IReadOnlyDictionary<string, LegacyCommandObjectCreator> commandHandlerCreators)
     {
         var caseSensitive = commandLine.ParsingOptions.CaseSensitive;
         if (string.IsNullOrEmpty(possibleCommandNames))
@@ -46,7 +46,7 @@ internal static class CommandHandlerCollectionMatcher
         }
 
         var bestMatchLength = -1;
-        var bestMatch = new KeyValuePair<string, CommandObjectCreator?>("", null!);
+        var bestMatch = new KeyValuePair<string, LegacyCommandObjectCreator?>("", null!);
         foreach (var pair in commandHandlerCreators)
         {
             var names = pair.Key;
@@ -74,7 +74,7 @@ internal static class CommandHandlerCollectionMatcher
             if (isMatch && names.Length > bestMatchLength)
             {
                 bestMatchLength = names.Length;
-                bestMatch = new KeyValuePair<string, CommandObjectCreator?>(names, creator);
+                bestMatch = new KeyValuePair<string, LegacyCommandObjectCreator?>(names, creator);
             }
         }
         return bestMatch.Value is { } handlerCreator

@@ -5,10 +5,10 @@ namespace DotNetCampus.Cli.Utils.Handlers;
 
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
-    private CommandObjectCreator? _defaultHandlerCreator;
-    private readonly ConcurrentDictionary<string, CommandObjectCreator> _commandHandlerCreators = [];
+    private LegacyCommandObjectCreator? _defaultHandlerCreator;
+    private readonly ConcurrentDictionary<string, LegacyCommandObjectCreator> _commandHandlerCreators = [];
 
-    public void AddHandler(string? commandNames, CommandObjectCreator handlerCreator)
+    public void AddHandler(string? commandNames, LegacyCommandObjectCreator handlerCreator)
     {
         if (
 #if !NETCOREAPP3_1_OR_GREATER
@@ -31,7 +31,7 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         }
     }
 
-    public ICommandHandler? TryMatch(string possibleCommandNames, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string possibleCommandNames, LegacyCommandLine commandLine)
     {
         return commandLine.TryMatch(possibleCommandNames, _defaultHandlerCreator, _commandHandlerCreators);
     }

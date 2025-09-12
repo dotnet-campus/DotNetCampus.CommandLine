@@ -12,7 +12,7 @@ internal static class CommandLineConverter
     /// </summary>
     /// <param name="singleLineCommandLineArgs">一整行命令。</param>
     /// <returns>命令行参数数组。</returns>
-    internal static IReadOnlyList<string> SingleLineCommandLineArgsToArrayCommandLineArgs(string singleLineCommandLineArgs)
+    internal static IReadOnlyList<string> SingleLineToList(string singleLineCommandLineArgs)
     {
         if (string.IsNullOrWhiteSpace(singleLineCommandLineArgs))
         {

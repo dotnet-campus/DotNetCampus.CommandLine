@@ -3,6 +3,42 @@
 /// <summary>
 /// 命令行执行器构造器，用于链式创建命令行执行器。
 /// </summary>
+public interface ILegacyCoreCommandRunnerBuilder
+{
+    /// <summary>
+    /// 获取或创建一个命令行执行器。
+    /// </summary>
+    /// <returns>命令行执行器。</returns>
+    internal LegacyCommandRunner GetOrCreateRunner();
+}
+
+/// <summary>
+/// 命令行执行器构造器，用于链式创建命令行执行器。
+/// </summary>
+public interface ILegacyCommandRunnerBuilder : ILegacyCoreCommandRunnerBuilder
+{
+    /// <summary>
+    /// 以同步方式运行命令行处理器。
+    /// </summary>
+    /// <returns>将被执行的命令行处理器的返回值。</returns>
+    int Run();
+}
+
+/// <summary>
+/// 命令行执行器构造器，用于链式创建命令行执行器。
+/// </summary>
+public interface ILegacyAsyncCommandRunnerBuilder : ILegacyCoreCommandRunnerBuilder
+{
+    /// <summary>
+    /// 以异步方式运行命令行处理器。
+    /// </summary>
+    /// <returns>将被执行的命令行处理器的返回值。</returns>
+    Task<int> RunAsync();
+}
+
+/// <summary>
+/// 命令行执行器构造器，用于链式创建命令行执行器。
+/// </summary>
 public interface ICoreCommandRunnerBuilder
 {
     /// <summary>
