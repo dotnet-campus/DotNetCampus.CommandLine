@@ -4,7 +4,8 @@ using System.Runtime.CompilerServices;
 namespace DotNetCampus.Cli;
 
 /// <summary>
-/// 允许用户在命令行中使用的分隔符字符集合。
+/// 允许用户在命令行中使用的分隔符字符集合。<br/>
+/// 用节省空间的方式存储不小于长度 4 的多个字符。
 /// </summary>
 #if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(CommandSeparatorChars), nameof(Create))]
@@ -22,9 +23,9 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <summary>
     /// 最多支持 4 个分隔符字符。
     /// </summary>
-    private readonly int _chars;
+    private readonly ushort _chars;
 
-    private CommandSeparatorChars(int packedChars)
+    private CommandSeparatorChars(ushort packedChars)
     {
         _chars = packedChars;
     }
@@ -35,18 +36,23 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <returns>分隔符字符集合。</returns>
     public void CopyTo(Span<char> buffer, out int length)
     {
-        var chars = _chars;
         length = 0;
-        for (var i = 0; i < 4; i++)
+        var packed = _chars;
+        while (packed != 0)
         {
-            var c = (char)(chars & 0xFF);
-            if (c == 0)
+            var c = (char)(packed & 0xF);
+            if (c == Null)
             {
-                break;
+                c = '\0';
             }
 
-            buffer[length++] = c is Null ? (char)0 : c;
-            chars >>= 8;
+            if (length < buffer.Length)
+            {
+                buffer[length] = c;
+            }
+
+            length++;
+            packed >>= 4;
         }
     }
 
@@ -56,17 +62,17 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <returns>一个可用于遍历 <see cref="CommandSeparatorChars"/> 中字符的枚举器。</returns>
     public IEnumerator<char> GetEnumerator()
     {
-        var chars = _chars;
-        for (var i = 0; i < 4; i++)
+        var packed = _chars;
+        while (packed != 0)
         {
-            var c = (char)(chars & 0xFF);
-            if (c == 0)
+            var c = (char)(packed & 0xF);
+            if (c == Null)
             {
-                yield break;
+                c = '\0';
             }
 
-            yield return c is Null ? (char)0 : c;
-            chars >>= 8;
+            yield return c;
+            packed >>= 4;
         }
     }
 
@@ -87,7 +93,7 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
             throw new ArgumentOutOfRangeException(nameof(chars), "最多只能指定 4 个分隔符字符。");
         }
 
-        var packed = 0;
+        ushort packed = 0;
         for (var i = chars.Length - 1; i >= 0; i--)
         {
             var c = chars[i];
@@ -96,7 +102,7 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
                 c = Null;
             }
 
-            packed = (packed << 8) | c;
+            packed = (ushort)((packed << 4) | c);
         }
 
         return new CommandSeparatorChars(packed);

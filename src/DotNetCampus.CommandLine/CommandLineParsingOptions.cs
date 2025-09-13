@@ -98,15 +98,15 @@ public readonly record struct CommandLineParsingOptions
 /// </summary>
 public readonly record struct CommandLineStyleDetails()
 {
-    private readonly BooleanValues32 _booleans;
+    private readonly BooleanValues16 _booleans;
 
     /// <summary>
     /// 直接由程序员提前算好各种属性赋值完成后的魔数，节省应用程序启动期间的额外计算。
     /// </summary>
     /// <param name="magic">魔数。</param>
-    internal CommandLineStyleDetails(int magic) : this()
+    internal CommandLineStyleDetails(ushort magic) : this()
     {
-        _booleans = new BooleanValues32(magic);
+        _booleans = new BooleanValues16(magic);
     }
 
     /// <summary>
