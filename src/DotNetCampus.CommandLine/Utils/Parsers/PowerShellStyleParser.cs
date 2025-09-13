@@ -2,7 +2,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-/// <inheritdoc cref="CommandLineStyle.PowerShell"/>
+/// <inheritdoc cref="LegacyCommandLineStyle.PowerShell"/>
 internal sealed class PowerShellStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = true;

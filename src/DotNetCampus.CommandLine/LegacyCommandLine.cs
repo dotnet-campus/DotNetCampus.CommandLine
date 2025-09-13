@@ -20,7 +20,7 @@ public class LegacyCommandLine : ILegacyCoreCommandRunnerBuilder
     /// <summary>
     /// 获取解析此命令行时所使用的各种选项。
     /// </summary>
-    internal CommandLineParsingOptions ParsingOptions { get; }
+    internal LegacyCommandLineParsingOptions ParsingOptions { get; }
 
     /// <summary>
     /// 在特定的属性不指定时，默认应使用的大小写敏感性。
@@ -116,7 +116,7 @@ public class LegacyCommandLine : ILegacyCoreCommandRunnerBuilder
         var options = OptionDictionary.Empty;
         var arguments = new ReadOnlyListRange<string>();
         CommandLineArguments = arguments;
-        ParsingOptions = CommandLineParsingOptions.Flexible;
+        ParsingOptions = LegacyCommandLineParsingOptions.Flexible;
         DefaultCaseSensitive = false;
         PossibleCommandNames = "";
         MatchedUrlScheme = null;
@@ -131,10 +131,10 @@ public class LegacyCommandLine : ILegacyCoreCommandRunnerBuilder
         PositionalArguments = arguments;
     }
 
-    private LegacyCommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
+    private LegacyCommandLine(IReadOnlyList<string> arguments, LegacyCommandLineParsingOptions? parsingOptions = null)
     {
         CommandLineArguments = arguments;
-        ParsingOptions = parsingOptions ?? CommandLineParsingOptions.Flexible;
+        ParsingOptions = parsingOptions ?? LegacyCommandLineParsingOptions.Flexible;
         DefaultCaseSensitive = parsingOptions?.CaseSensitive ?? false;
         (MatchedUrlScheme, var result) = CommandLineConverter.ParseCommandLineArguments(arguments, parsingOptions);
         PossibleCommandNames = result.PossibleCommandNames;
@@ -156,7 +156,7 @@ public class LegacyCommandLine : ILegacyCoreCommandRunnerBuilder
     /// <param name="parsingOptions">以此方式解析命令行参数。</param>
     /// <returns>统一的命令行参数解析中间类型。</returns>
     [Pure]
-    public static LegacyCommandLine Parse(IReadOnlyList<string> args, CommandLineParsingOptions? parsingOptions = null)
+    public static LegacyCommandLine Parse(IReadOnlyList<string> args, LegacyCommandLineParsingOptions? parsingOptions = null)
     {
 #if NET6_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(args);
@@ -178,7 +178,7 @@ public class LegacyCommandLine : ILegacyCoreCommandRunnerBuilder
     /// <param name="parsingOptions">以此方式解析命令行参数。</param>
     /// <returns>统一的命令行参数解析中间类型。</returns>
     [Pure]
-    public static LegacyCommandLine Parse(string singleLineCommandLineArgs, CommandLineParsingOptions? parsingOptions = null)
+    public static LegacyCommandLine Parse(string singleLineCommandLineArgs, LegacyCommandLineParsingOptions? parsingOptions = null)
     {
         var args = CommandLineConverter.SingleLineToList(singleLineCommandLineArgs);
         return new LegacyCommandLine(args, parsingOptions);

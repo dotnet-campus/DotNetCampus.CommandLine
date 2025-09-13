@@ -22,9 +22,9 @@ internal sealed class TaskCommandHandler<TOptions>(
 
 internal sealed class AnonymousCommandHandler<T>(
     CommandLine commandLine,
-    ExperimentalCommandObjectCreator creator,
+    CommandObjectCreator creator,
     Action<T> handler) : ICommandHandler
-    where T : class
+    where T : notnull
 {
     private T? _options;
 
@@ -42,9 +42,9 @@ internal sealed class AnonymousCommandHandler<T>(
 
 internal sealed class AnonymousInt32CommandHandler<T>(
     CommandLine commandLine,
-    ExperimentalCommandObjectCreator creator,
+    CommandObjectCreator creator,
     Func<T, int> handler) : ICommandHandler
-    where T : class
+    where T : notnull
 {
     private T? _options;
 
@@ -62,9 +62,9 @@ internal sealed class AnonymousInt32CommandHandler<T>(
 
 internal sealed class AnonymousTaskCommandHandler<T>(
     CommandLine commandLine,
-    ExperimentalCommandObjectCreator creator,
+    CommandObjectCreator creator,
     Func<T, Task> handler) : ICommandHandler
-    where T : class
+    where T : notnull
 {
     private T? _options;
 
@@ -82,9 +82,9 @@ internal sealed class AnonymousTaskCommandHandler<T>(
 
 internal sealed class AnonymousTaskInt32CommandHandler<T>(
     CommandLine commandLine,
-    ExperimentalCommandObjectCreator creator,
+    CommandObjectCreator creator,
     Func<T, Task<int>> handler) : ICommandHandler
-    where T : class
+    where T : notnull
 {
     private T? _options;
 

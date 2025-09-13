@@ -1,4 +1,7 @@
+using System.ComponentModel;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
+using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 
 namespace DotNetCampus.Cli;
@@ -16,12 +19,12 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 获取解析此命令行时所使用的各种选项。
     /// </summary>
-    internal CommandLineParsingOptions ParsingOptions { get; }
+    public CommandLineParsingOptions ParsingOptions { get; }
 
     /// <summary>
     /// 在特定的属性不指定时，默认应使用的大小写敏感性。
     /// </summary>
-    public bool DefaultCaseSensitive => ParsingOptions.CaseSensitive;
+    public bool DefaultCaseSensitive => ParsingOptions.Style.CaseSensitive;
 
     private CommandLine()
     {
@@ -70,5 +73,34 @@ public class CommandLine : ICoreCommandRunnerBuilder
         return new CommandLine(args, parsingOptions);
     }
 
+    /// <summary>
+    /// 尝试将命令行参数转换为指定类型的实例。
+    /// </summary>
+    /// <typeparam name="T">要转换的类型。</typeparam>
+    /// <returns>转换后的实例。</returns>
+    [Pure]
+    public T As<T>() where T : notnull => throw MethodShouldBeInspected();
+
+    /// <summary>
+    /// 尝试将命令行参数转换为指定类型的实例。
+    /// </summary>
+    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
+    /// <typeparam name="T">要转换的类型。</typeparam>
+    /// <returns>转换后的实例。</returns>
+    [Pure, EditorBrowsable(EditorBrowsableState.Never)]
+    public T As<T>(CommandObjectCreator creator) where T : notnull
+    {
+        return (T)creator(this);
+    }
+
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);
+
+    /// <summary>
+    /// 当某个方法本应该被源生成器拦截时，却仍然被调用了，就调用此方法抛出异常。
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static InvalidOperationException MethodShouldBeInspected()
+    {
+        return new InvalidOperationException("源生成器本应该在编译时拦截了此方法的调用。请检查编译警告，查看 DotNetCampus.CommandLine 的源生成器是否正常工作。");
+    }
 }

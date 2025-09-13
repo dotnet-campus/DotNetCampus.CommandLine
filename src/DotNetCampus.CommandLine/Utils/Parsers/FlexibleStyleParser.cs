@@ -4,7 +4,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-/// <inheritdoc cref="CommandLineStyle.Flexible"/>
+/// <inheritdoc cref="LegacyCommandLineStyle.Flexible"/>
 internal sealed class FlexibleStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = true;

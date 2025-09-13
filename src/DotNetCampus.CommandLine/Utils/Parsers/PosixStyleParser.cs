@@ -3,7 +3,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-/// <inheritdoc cref="CommandLineStyle.Posix"/>
+/// <inheritdoc cref="LegacyCommandLineStyle.Posix"/>
 internal sealed class PosixStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = false;

@@ -42,7 +42,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return handler.RunAsync();
     }
 
-    private (string PossibleCommandNames, ExperimentalCommandObjectCreator? Creator) MatchCreator()
+    private (string PossibleCommandNames, CommandObjectCreator? Creator) MatchCreator()
     {
         if (_creators.Count is 0)
         {
@@ -75,7 +75,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
     /// <returns>返回一个命令处理器构建器。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandlerCore(string? command, ExperimentalCommandObjectCreator creator,
+    internal CommandRunner AddHandlerCore(string? command, CommandObjectCreator creator,
         IReadOnlyList<string>? commandAliases
     )
     {
@@ -93,7 +93,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
     private readonly record struct CommandObjectCreationInfo
     {
-        public required ExperimentalCommandObjectCreator Creator { get; init; }
+        public required CommandObjectCreator Creator { get; init; }
 
         public required IReadOnlyList<string> CommandAliases { get; init; }
     }

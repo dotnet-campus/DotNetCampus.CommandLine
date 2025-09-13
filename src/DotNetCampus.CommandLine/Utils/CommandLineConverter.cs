@@ -66,7 +66,7 @@ internal static class CommandLineConverter
     }
 
     public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
-        IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions)
+        IReadOnlyList<string> arguments, LegacyCommandLineParsingOptions? parsingOptions)
     {
         var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Count: > 0 } schemeNames
             ? schemeNames.FirstOrDefault(x => arguments[0].StartsWith($"{x}://", StringComparison.OrdinalIgnoreCase))
@@ -75,11 +75,11 @@ internal static class CommandLineConverter
         ICommandLineParser parser = (matchUrlScheme: matchedUrlScheme, parsingOptions?.Style) switch
         {
             ({ } scheme, _) => new UrlStyleParser(scheme),
-            (_, CommandLineStyle.Flexible) => new FlexibleStyleParser(),
-            (_, CommandLineStyle.Gnu) => new GnuStyleParser(),
-            (_, CommandLineStyle.Posix) => new PosixStyleParser(),
-            (_, CommandLineStyle.DotNet) => new DotNetStyleParser(),
-            (_, CommandLineStyle.PowerShell) => new PowerShellStyleParser(),
+            (_, LegacyCommandLineStyle.Flexible) => new FlexibleStyleParser(),
+            (_, LegacyCommandLineStyle.Gnu) => new GnuStyleParser(),
+            (_, LegacyCommandLineStyle.Posix) => new PosixStyleParser(),
+            (_, LegacyCommandLineStyle.DotNet) => new DotNetStyleParser(),
+            (_, LegacyCommandLineStyle.PowerShell) => new PowerShellStyleParser(),
             _ => new FlexibleStyleParser(),
         };
         return (matchedUrlScheme, parser.Parse(arguments));
