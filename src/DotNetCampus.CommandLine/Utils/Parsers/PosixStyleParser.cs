@@ -8,13 +8,13 @@ internal sealed class PosixStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = false;
 
-    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
+    public LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var shortOptions = new OptionDictionary(true);
         var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
-        OptionName? lastOption = null;
+        LegacyOptionName? lastOption = null;
         var lastType = PosixParsedType.Start;
 
         for (var i = 0; i < commandLineArguments.Count; i++)
@@ -80,8 +80,8 @@ internal sealed class PosixStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
+        return new LegacyCommandLineParsedResult(
+            LegacyCommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             OptionDictionary.Empty, // POSIX 风格不支持长选项
             shortOptions,
             arguments.ToReadOnlyList());
@@ -91,7 +91,7 @@ internal sealed class PosixStyleParser : ICommandLineParser
 internal readonly ref struct PosixArgument(PosixParsedType type)
 {
     public PosixParsedType Type { get; } = type;
-    public OptionName Option { get; private init; }
+    public LegacyOptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
     public static PosixArgument Parse(string argument, PosixParsedType lastType)
@@ -120,7 +120,7 @@ internal readonly ref struct PosixArgument(PosixParsedType type)
                     throw new CommandLineParseException($"Invalid option format at index [{argument.Length}, 1]: {argument}");
                 }
                 // 单独的短选项。
-                return new PosixArgument(PosixParsedType.ShortOption) { Option = new OptionName(argument, Range.StartAt(1)) };
+                return new PosixArgument(PosixParsedType.ShortOption) { Option = new LegacyOptionName(argument, Range.StartAt(1)) };
             }
 
             // 检查所有字符是否都是有效的选项字符
@@ -133,14 +133,14 @@ internal readonly ref struct PosixArgument(PosixParsedType type)
             }
 
             // 多个短选项，如 -abc
-            return new PosixArgument(PosixParsedType.MultiShortOptions) { Option = new OptionName(argument, Range.StartAt(1)) };
+            return new PosixArgument(PosixParsedType.MultiShortOptions) { Option = new LegacyOptionName(argument, Range.StartAt(1)) };
         }
 
         if (lastType is PosixParsedType.Start or PosixParsedType.CommandNameOrPositionalArgument)
         {
             // 如果是第一个参数，则后续可能是命令名或位置参数。
             // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
-            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            var isValidName = LegacyOptionName.IsValidOptionName(argument.AsSpan());
             return new PosixArgument(isValidName ? PosixParsedType.CommandNameOrPositionalArgument : PosixParsedType.PositionalArgument)
             {
                 Value = argument.AsSpan(),

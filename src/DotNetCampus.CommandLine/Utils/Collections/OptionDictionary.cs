@@ -93,7 +93,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string
         return false;
     }
 
-    public void AddOption(OptionName optionName)
+    public void AddOption(LegacyOptionName optionName)
     {
         var optionNameText = optionName.ToString();
         var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
@@ -103,7 +103,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string
         }
     }
 
-    public void AddValue(OptionName optionName, string value)
+    public void AddValue(LegacyOptionName optionName, string value)
     {
         var optionNameText = optionName.ToString();
         var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
@@ -117,7 +117,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string
         }
     }
 
-    public void AddValues(OptionName optionName, IReadOnlyList<string> values)
+    public void AddValues(LegacyOptionName optionName, IReadOnlyList<string> values)
     {
         var optionNameText = optionName.ToString();
         var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
@@ -131,7 +131,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string
         }
     }
 
-    public void UpdateValue(OptionName optionName, string value)
+    public void UpdateValue(LegacyOptionName optionName, string value)
     {
         var optionNameText = optionName.ToString();
         var index = _optionValues.FindIndex(p => string.Equals(p.Key, optionNameText, _stringComparer));
@@ -172,7 +172,7 @@ internal class OptionDictionary(bool caseSensitive) : IReadOnlyDictionary<string
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-internal readonly record struct OptionName(string Argument, Range Range) : IEnumerable<char>
+internal readonly record struct LegacyOptionName(string Argument, Range Range) : IEnumerable<char>
 {
     public char this[int index]
     {
@@ -198,7 +198,7 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
     }
 #endif
 
-    public bool Equals(OptionName? other)
+    public bool Equals(LegacyOptionName? other)
     {
         if (other is null)
         {
@@ -223,7 +223,7 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
         return true;
     }
 
-    public bool Equals(OptionName other, bool caseSensitive)
+    public bool Equals(LegacyOptionName other, bool caseSensitive)
     {
         var (thisOffset, thisLength) = Range.GetOffsetAndLength(Argument.Length);
         var (thatOffset, thatLength) = other.Range.GetOffsetAndLength(other.Argument.Length);
@@ -265,9 +265,9 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
 
     public override string ToString() => AsSpan().ToString();
 
-    public static implicit operator OptionName(string optionName) => new OptionName(optionName, Range.All);
+    public static implicit operator LegacyOptionName(string optionName) => new LegacyOptionName(optionName, Range.All);
 
-    public static implicit operator OptionName(char optionName) => new OptionName(optionName.ToString(), Range.All);
+    public static implicit operator LegacyOptionName(char optionName) => new LegacyOptionName(optionName.ToString(), Range.All);
 
     public static bool IsValidOptionName(ReadOnlySpan<char> span)
     {
@@ -290,10 +290,10 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
         return true;
     }
 
-    public static OptionName MakeKebabCase(ReadOnlySpan<char> span, bool isUpperSeparator)
+    public static LegacyOptionName MakeKebabCase(ReadOnlySpan<char> span, bool isUpperSeparator)
     {
         var name = NamingHelper.MakeKebabCase(span.ToString(), isUpperSeparator, false);
-        return new OptionName(name, Range.All);
+        return new LegacyOptionName(name, Range.All);
     }
 
     public static string MakeKebabCase(ReadOnlySpan<char> span)

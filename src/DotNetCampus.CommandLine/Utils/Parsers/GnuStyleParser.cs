@@ -8,14 +8,14 @@ internal sealed class GnuStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = false;
 
-    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
+    public LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
         var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
-        OptionName? lastOption = null;
+        LegacyOptionName? lastOption = null;
         var lastType = GnuParsedType.Start;
         var shortLowPriorityOptions = new Dictionary<string, string>();
 
@@ -123,8 +123,8 @@ internal sealed class GnuStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
+        return new LegacyCommandLineParsedResult(
+            LegacyCommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -134,7 +134,7 @@ internal sealed class GnuStyleParser : ICommandLineParser
 internal readonly ref struct GnuArgument(GnuParsedType type)
 {
     public GnuParsedType Type { get; } = type;
-    public OptionName Option { get; private init; }
+    public LegacyOptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
     public static GnuArgument Parse(string argument, GnuParsedType lastType)
@@ -162,11 +162,11 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                 {
                     // 带值的长选项。--option=value
                     return new GnuArgument(GnuParsedType.LongOptionWithValue)
-                        { Option = new OptionName(argument, new Range(2, i + 2)), Value = spans[(i + 1)..] };
+                        { Option = new LegacyOptionName(argument, new Range(2, i + 2)), Value = spans[(i + 1)..] };
                 }
             }
             // 单独的长选项。--option
-            return new GnuArgument(GnuParsedType.LongOption) { Option = new OptionName(argument, Range.StartAt(2)) };
+            return new GnuArgument(GnuParsedType.LongOption) { Option = new LegacyOptionName(argument, Range.StartAt(2)) };
         }
 
         if (!isPostPositionalArgument && argument is ['-', _, ..])
@@ -179,7 +179,7 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                     throw new CommandLineParseException($"Invalid option format at index [{argument.Length}, 1]: {argument}");
                 }
                 // 单独的短选项。
-                return new GnuArgument(GnuParsedType.ShortOption) { Option = new OptionName(argument, Range.StartAt(1)) };
+                return new GnuArgument(GnuParsedType.ShortOption) { Option = new LegacyOptionName(argument, Range.StartAt(1)) };
             }
 
             var spans = argument.AsSpan(1);
@@ -194,24 +194,24 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                 {
                     // 带值的短选项。
                     return new GnuArgument(GnuParsedType.ShortOptionWithValue)
-                        { Option = new OptionName(argument, new Range(1, 2)), Value = spans[2..] };
+                        { Option = new LegacyOptionName(argument, new Range(1, 2)), Value = spans[2..] };
                 }
                 if (!char.IsLetterOrDigit(spans[i]))
                 {
                     // 包含非字母或数字，说明必定是带值的短选项。-o1.txt
-                    return new GnuArgument(GnuParsedType.ShortOptionWithValue) { Option = new OptionName(argument, new Range(1, 2)), Value = spans[1..] };
+                    return new GnuArgument(GnuParsedType.ShortOptionWithValue) { Option = new LegacyOptionName(argument, new Range(1, 2)), Value = spans[1..] };
                 }
             }
             // 多个短选项，或者带值的短选项。
             return new GnuArgument(GnuParsedType.MultiShortOptionsOrShortOptionWithValue)
-                { Option = new OptionName(argument, Range.StartAt(1)), Value = spans[1..] };
+                { Option = new LegacyOptionName(argument, Range.StartAt(1)), Value = spans[1..] };
         }
 
         if (lastType is GnuParsedType.Start or GnuParsedType.CommandNameOrPositionalArgument)
         {
             // 如果是第一个参数，则后续可能是命令名或位置参数。
             // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
-            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            var isValidName = LegacyOptionName.IsValidOptionName(argument.AsSpan());
             return new GnuArgument(isValidName ? GnuParsedType.CommandNameOrPositionalArgument : GnuParsedType.PositionalArgument)
             {
                 Value = argument.AsSpan(),

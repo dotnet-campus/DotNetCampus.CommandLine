@@ -24,7 +24,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         _scheme = scheme;
     }
 
-    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
+    public LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         if (commandLineArguments.Count is not 1)
         {
@@ -89,8 +89,8 @@ internal sealed class UrlStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames, ConvertPascalCaseToKebabCase),
+        return new LegacyCommandLineParsedResult(
+            LegacyCommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -135,7 +135,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
                 }
 
                 var value = HttpUtility.UrlDecode(url.AsSpan(startIndex, endIndex - startIndex).ToString());
-                var isValidName = OptionName.IsValidOptionName(value.AsSpan());
+                var isValidName = LegacyOptionName.IsValidOptionName(value.AsSpan());
                 return new UrlPart(isValidName ? UrlParsedType.CommandNameOrPositionalArgument : UrlParsedType.PositionalArgument)
                 {
                     Value = value,
@@ -214,7 +214,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
                 index = endIndex;
             }
             var value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1, endIndex - startIndex - 1).ToString());
-            var isValidName = OptionName.IsValidOptionName(value.AsSpan());
+            var isValidName = LegacyOptionName.IsValidOptionName(value.AsSpan());
             var type = lastType is UrlParsedType.PositionalArgument
                 ? UrlParsedType.PositionalArgument
                 : UrlParsedType.CommandNameOrPositionalArgument;
@@ -243,7 +243,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
             index = endIndex;
             return new UrlPart(UrlParsedType.ParameterName)
             {
-                Name = OptionName.MakeKebabCase(value
+                Name = LegacyOptionName.MakeKebabCase(value
 #if !NETCOREAPP3_1_OR_GREATER
                         .AsSpan()
 #endif

@@ -7,13 +7,13 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = true;
 
-    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
+    public LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
         var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
-        OptionName? lastOption = null;
+        LegacyOptionName? lastOption = null;
         var lastType = PowerShellParsedType.Start;
 
         for (var i = 0; i < commandLineArguments.Count; i++)
@@ -62,8 +62,8 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
+        return new LegacyCommandLineParsedResult(
+            LegacyCommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
             OptionDictionary.Empty,
@@ -74,7 +74,7 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
 internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
 {
     public PowerShellParsedType Type { get; } = type;
-    public OptionName Option { get; private init; }
+    public LegacyOptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
     public static PowerShellArgument Parse(string argument, PowerShellParsedType lastType)
@@ -99,7 +99,7 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
             var optionSpan = argument.AsSpan(1);
             return new PowerShellArgument(PowerShellParsedType.Option)
             {
-                Option = OptionName.MakeKebabCase(optionSpan, PowerShellStyleParser.ConvertPascalCaseToKebabCase),
+                Option = LegacyOptionName.MakeKebabCase(optionSpan, PowerShellStyleParser.ConvertPascalCaseToKebabCase),
             };
         }
 
@@ -108,7 +108,7 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
         {
             // 如果是第一个参数，则后续可能是命令名或位置参数。
             // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
-            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            var isValidName = LegacyOptionName.IsValidOptionName(argument.AsSpan());
             return new PowerShellArgument(isValidName ? PowerShellParsedType.CommandNameOrPositionalArgument : PowerShellParsedType.PositionalArgument)
             {
                 Value = argument.AsSpan(),

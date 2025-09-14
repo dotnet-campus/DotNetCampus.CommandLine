@@ -15,8 +15,10 @@ public readonly record struct CommandLineParsingOptions
             CaseSensitive = false,
             SupportsLongOption = true,
             SupportsShortOption = true,
+            SupportsShortOptionCombination = false,
+            SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.Both,
-            OptionPrefix = CommandOptionPrefix.DoubleDash,
+            OptionPrefix = CommandOptionPrefix.Any,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
             DictionaryValueSeparators = CommandSeparatorChars.Create('='),
@@ -31,6 +33,8 @@ public readonly record struct CommandLineParsingOptions
             CaseSensitive = true,
             SupportsLongOption = true,
             SupportsShortOption = true,
+            SupportsShortOptionCombination = false,
+            SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
@@ -47,6 +51,8 @@ public readonly record struct CommandLineParsingOptions
             CaseSensitive = true,
             SupportsLongOption = true,
             SupportsShortOption = true,
+            SupportsShortOptionCombination = true,
+            SupportsShortOptionValueWithoutSeparator = true,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create('=', ' '),
@@ -63,6 +69,8 @@ public readonly record struct CommandLineParsingOptions
             CaseSensitive = true,
             SupportsLongOption = false,
             SupportsShortOption = true,
+            SupportsShortOptionCombination = false,
+            SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.CamelCase,
             OptionPrefix = CommandOptionPrefix.SingleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(' '),
@@ -79,6 +87,8 @@ public readonly record struct CommandLineParsingOptions
             CaseSensitive = false,
             SupportsLongOption = true,
             SupportsShortOption = true,
+            SupportsShortOptionCombination = false,
+            SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.PascalCase,
             OptionPrefix = CommandOptionPrefix.Slash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
@@ -189,6 +199,29 @@ public readonly record struct CommandLineStyleDetails()
     }
 
     /// <summary>
+    /// 当支持短选项时，是否支持将多个短选项组合在一起使用（短选项捆绑）。<br/>
+    /// 例如 -abc 等同于 -a -b -c。<br/>
+    /// 如果为 <see langword="false"/>，则 -abc 会被视为一个名为 "abc" 的短选项。
+    /// </summary>
+    public bool SupportsShortOptionCombination
+    {
+        get => _booleans[8];
+        init => _booleans[8] = value;
+    }
+
+    /// <summary>
+    /// 当支持短选项时，是否支持短选项直接跟值（不使用分隔符）。<br/>
+    /// 例如 -abc 会被视为短选项 -a，值为 "bc"。<br/>
+    /// 如果为 <see langword="false"/>，则会根据 <see cref="SupportsShortOptionCombination"/> 的值来决定
+    /// -abc 是一个名为 "abc" 的短选项，还是 -a -b -c 三个短选项。
+    /// </summary>
+    public bool SupportsShortOptionValueWithoutSeparator
+    {
+        get => _booleans[9];
+        init => _booleans[9] = value;
+    }
+
+    /// <summary>
     /// 允许用户使用哪些分隔符来分隔选项名和选项值。<br/>
     /// 如 ':', '=', ' ' 分别对应: --option:value, --option=value, --option value。
     /// </summary>
@@ -220,7 +253,7 @@ public readonly record struct CommandLineStyleDetails()
 /// <remarks>
 /// 虽然在不区分大小写时，<see cref="PascalCase"/> 和 <see cref="CamelCase"/> 看起来是一样的，但在输出帮助文档时会以设定的为准。
 /// </remarks>
-public enum CommandNamingPolicy
+public enum CommandNamingPolicy : byte
 {
     /// <summary>
     /// PascalCase 风格命名。
@@ -256,7 +289,7 @@ public enum CommandNamingPolicy
 /// <summary>
 /// 指定命令行选项前缀的风格。
 /// </summary>
-public enum CommandOptionPrefix
+public enum CommandOptionPrefix : byte
 {
     /// <summary>
     /// 使用双短横线（--）作为长选项前缀，使用单个短横线（-）作为短选项前缀。
@@ -264,12 +297,46 @@ public enum CommandOptionPrefix
     DoubleDash,
 
     /// <summary>
-    /// 使用单个短横线（-）作为长选项和短选项前缀。
+    /// 使用单个短横线（-）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
     /// </summary>
     SingleDash,
 
     /// <summary>
-    /// 使用斜杠（/）作为长选项和短选项前缀。
+    /// 使用斜杠（/）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
     /// </summary>
     Slash,
+
+    /// <summary>
+    /// 允许使用任意一种前缀风格（-、--、/）。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
+    /// </summary>
+    Any,
+}
+
+/// <summary>
+/// 选项值的类型。此枚举中的选项值类型会影响到选项值的解析方式。
+/// </summary>
+public enum OptionValueType : byte
+{
+    /// <summary>
+    /// 普通值。只解析一个参数。
+    /// </summary>
+    Normal,
+
+    /// <summary>
+    /// 布尔值。会尝试解析一个参数，如果无法解析，则视为 <see langword="true"/>。
+    /// </summary>
+    Boolean,
+
+    /// <summary>
+    /// 集合值。会尝试解析多个参数，直到遇到下一个选项或位置参数分隔符为止。
+    /// </summary>
+    Collection,
+
+    /// <summary>
+    /// 用户输入的选项没有命中到任何已知的选项。
+    /// </summary>
+    NotExist,
 }

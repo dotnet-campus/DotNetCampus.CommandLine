@@ -65,7 +65,7 @@ internal static class CommandLineConverter
         return [..parts.Select(part => singleLineCommandLineArgs[part])];
     }
 
-    public static (string? MatchedUrlScheme, CommandLineParsedResult Result) ParseCommandLineArguments(
+    public static (string? MatchedUrlScheme, LegacyCommandLineParsedResult Result) ParseCommandLineArguments(
         IReadOnlyList<string> arguments, LegacyCommandLineParsingOptions? parsingOptions)
     {
         var matchedUrlScheme = arguments.Count is 1 && parsingOptions?.SchemeNames is { Count: > 0 } schemeNames

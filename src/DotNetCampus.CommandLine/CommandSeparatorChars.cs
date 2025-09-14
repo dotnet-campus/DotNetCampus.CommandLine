@@ -13,14 +13,6 @@ namespace DotNetCampus.Cli;
 public readonly record struct CommandSeparatorChars : IEnumerable<char>
 {
     /// <summary>
-    /// 一个特殊的字符（不能是 0），用来表示有分隔，但没有符。<br/>
-    /// 例如，一般的分隔符是这样：-o:1.txt；<br/>
-    /// 但有部分风格的分隔符是这样：-o1.txt。<br/>
-    /// 这时，我们需要一个特殊的字符来表示这种情况。
-    /// </summary>
-    private const char Null = '\x1E';
-
-    /// <summary>
     /// 最多支持 4 个分隔符字符。
     /// </summary>
     private readonly ushort _chars;
@@ -41,11 +33,6 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
         while (packed != 0)
         {
             var c = (char)(packed & 0xF);
-            if (c == Null)
-            {
-                c = '\0';
-            }
-
             if (length < buffer.Length)
             {
                 buffer[length] = c;
@@ -66,11 +53,6 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
         while (packed != 0)
         {
             var c = (char)(packed & 0xF);
-            if (c == Null)
-            {
-                c = '\0';
-            }
-
             yield return c;
             packed >>= 4;
         }
@@ -99,7 +81,7 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
             var c = chars[i];
             if (c == 0)
             {
-                c = Null;
+                throw new ArgumentException("不支持 null 字符作为分隔符。", nameof(chars));
             }
 
             packed = (ushort)((packed << 4) | c);

@@ -2,7 +2,7 @@ using DotNetCampus.Cli.Utils.Collections;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-internal readonly record struct CommandLineParsedResult(
+internal readonly record struct LegacyCommandLineParsedResult(
     string PossibleCommandNames,
     OptionDictionary LongOptions,
     OptionDictionary ShortOptions,

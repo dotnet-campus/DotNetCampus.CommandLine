@@ -79,7 +79,9 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <typeparam name="T">要转换的类型。</typeparam>
     /// <returns>转换后的实例。</returns>
     [Pure]
+#pragma warning disable CA1822
     public T As<T>() where T : notnull => throw MethodShouldBeInspected();
+#pragma warning restore CA1822
 
     /// <summary>
     /// 尝试将命令行参数转换为指定类型的实例。
@@ -91,6 +93,16 @@ public class CommandLine : ICoreCommandRunnerBuilder
     public T As<T>(CommandObjectCreator creator) where T : notnull
     {
         return (T)creator(this);
+    }
+
+    /// <summary>
+    /// 输出传入的命令行参数字符串。
+    /// </summary>
+    /// <returns>传入的命令行参数字符串。</returns>
+    [Pure]
+    public override string ToString()
+    {
+        return string.Join(" ", CommandLineArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);

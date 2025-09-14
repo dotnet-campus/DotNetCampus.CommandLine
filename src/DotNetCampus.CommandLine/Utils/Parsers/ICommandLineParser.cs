@@ -2,5 +2,5 @@
 
 internal interface ICommandLineParser
 {
-    CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments);
+    LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments);
 }

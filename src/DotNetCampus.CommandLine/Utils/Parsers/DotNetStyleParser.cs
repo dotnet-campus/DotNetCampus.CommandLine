@@ -10,14 +10,14 @@ internal sealed class DotNetStyleParser : ICommandLineParser
 {
     internal static bool ConvertPascalCaseToKebabCase { get; } = true;
 
-    public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
+    public LegacyCommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
         var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
-        OptionName? lastOption = null;
+        LegacyOptionName? lastOption = null;
         var lastType = DotNetParsedType.Start;
 
         for (var i = 0; i < commandLineArguments.Count; i++)
@@ -94,8 +94,8 @@ internal sealed class DotNetStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(
-            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
+        return new LegacyCommandLineParsedResult(
+            LegacyCommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -105,7 +105,7 @@ internal sealed class DotNetStyleParser : ICommandLineParser
 internal readonly ref struct DotNetArgument(DotNetParsedType type)
 {
     public DotNetParsedType Type { get; } = type;
-    public OptionName Option { get; private init; }
+    public LegacyOptionName Option { get; private init; }
     public ReadOnlySpan<char> Value { get; private init; }
 
     public static DotNetArgument Parse(string argument, DotNetParsedType lastType)
@@ -138,7 +138,7 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
                 if (char.IsLetterOrDigit(argument[1]))
                 {
                     // 短选项。
-                    return new DotNetArgument(DotNetParsedType.ShortOption) { Option = new OptionName(argument, Range.StartAt(1)) };
+                    return new DotNetArgument(DotNetParsedType.ShortOption) { Option = new LegacyOptionName(argument, Range.StartAt(1)) };
                 }
                 throw new CommandLineParseException($"Invalid option format at index [0, 1]: {argument}");
             }
@@ -166,8 +166,8 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
                     return new DotNetArgument(DotNetParsedType.LongOptionWithValue)
                     {
                         Option = isKebabCase
-                            ? new OptionName(argument, new Range(wordStartIndex, i + wordStartIndex))
-                            : OptionName.MakeKebabCase(spans[..i], DotNetStyleParser.ConvertPascalCaseToKebabCase),
+                            ? new LegacyOptionName(argument, new Range(wordStartIndex, i + wordStartIndex))
+                            : LegacyOptionName.MakeKebabCase(spans[..i], DotNetStyleParser.ConvertPascalCaseToKebabCase),
                         Value = spans[(i + 1)..],
                     };
                 }
@@ -176,8 +176,8 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
             return new DotNetArgument(DotNetParsedType.LongOption)
             {
                 Option = isKebabCase
-                    ? new OptionName(argument, Range.StartAt(wordStartIndex))
-                    : OptionName.MakeKebabCase(spans, DotNetStyleParser.ConvertPascalCaseToKebabCase),
+                    ? new LegacyOptionName(argument, Range.StartAt(wordStartIndex))
+                    : LegacyOptionName.MakeKebabCase(spans, DotNetStyleParser.ConvertPascalCaseToKebabCase),
             };
         }
 
@@ -185,7 +185,7 @@ internal readonly ref struct DotNetArgument(DotNetParsedType type)
         {
             // 如果是第一个参数，则后续可能是命令名或位置参数。
             // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
-            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            var isValidName = LegacyOptionName.IsValidOptionName(argument.AsSpan());
             return new DotNetArgument(isValidName ? DotNetParsedType.CommandNameOrPositionalArgument : DotNetParsedType.PositionalArgument)
             {
                 Value = argument.AsSpan(),

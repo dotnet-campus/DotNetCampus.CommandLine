@@ -1,37 +1,8 @@
-using DotNetCampus.Cli.Utils.Collections;
-
 namespace DotNetCampus.Cli.Utils.Parsers;
 
-public class GenericStyleParser
-{
-    public void Parse(ReadOnlySpan<string> arguments)
-    {
-        OptionName? lastOption = null;
-        var lastType = CommandArgumentType.Start;
-
-        for (var i = 0; i < arguments.Length; i++)
-        {
-            var argument = arguments[i];
-            var result = CommandArgumentType.Parse(argument, lastType);
-
-        }
-    }
-}
-
-internal readonly ref struct CommandArgumentParser(CommandArgumentType type)
-{
-    public CommandArgumentType Type { get; } = type;
-    public OptionName Option { get; private init; }
-    public ReadOnlySpan<char> Value { get; private init; }
-
-    public static CommandArgumentParser Parse(string argument, CommandArgumentType lastType)
-    {
-
-    }
-}
-
-
-
+/// <summary>
+/// 命令行参数的类型。
+/// </summary>
 internal enum CommandArgumentType
 {
     /// <summary>
@@ -70,9 +41,24 @@ internal enum CommandArgumentType
     ShortOptionWithValue,
 
     /// <summary>
+    /// 无法确定长还是短的选项。-o /o /option -tl /tl -Option
+    /// </summary>
+    Option,
+
+    /// <summary>
+    /// 带值的无法确定长还是短的选项。-o:value /o:value /option:value -tl:off /tl:off -Option:value
+    /// </summary>
+    OptionWithValue,
+
+    /// <summary>
     /// 多个短选项。-abc
     /// </summary>
     MultiShortOptions,
+
+    /// <summary>
+    /// 不确定是多个短选项，还是一个无分隔符的带值短选项。-a1.txt
+    /// </summary>
+    MultiShortOptionsOrShortOptionConcatWithValue,
 
     /// <summary>
     /// 选项值。value
