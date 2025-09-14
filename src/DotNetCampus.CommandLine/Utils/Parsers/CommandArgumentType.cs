@@ -51,6 +51,11 @@ internal enum CommandArgumentType
     OptionWithValue,
 
     /// <summary>
+    /// 无法解析的选项。
+    /// </summary>
+    ErrorOption,
+
+    /// <summary>
     /// 多个短选项。-abc
     /// </summary>
     MultiShortOptions,

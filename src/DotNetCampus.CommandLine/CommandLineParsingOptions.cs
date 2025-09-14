@@ -21,7 +21,6 @@ public readonly record struct CommandLineParsingOptions
             OptionPrefix = CommandOptionPrefix.Any,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
-            DictionaryValueSeparators = CommandSeparatorChars.Create('='),
         },
     };
 
@@ -39,7 +38,6 @@ public readonly record struct CommandLineParsingOptions
             OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
-            DictionaryValueSeparators = CommandSeparatorChars.Create('='),
         },
     };
 
@@ -57,7 +55,6 @@ public readonly record struct CommandLineParsingOptions
             OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create('=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
-            DictionaryValueSeparators = CommandSeparatorChars.Create('='),
         },
     };
 
@@ -75,7 +72,6 @@ public readonly record struct CommandLineParsingOptions
             OptionPrefix = CommandOptionPrefix.SingleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
-            DictionaryValueSeparators = CommandSeparatorChars.Create('='),
         },
     };
 
@@ -93,7 +89,6 @@ public readonly record struct CommandLineParsingOptions
             OptionPrefix = CommandOptionPrefix.Slash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
-            DictionaryValueSeparators = CommandSeparatorChars.Create('='),
         },
     };
 
@@ -239,12 +234,6 @@ public readonly record struct CommandLineStyleDetails()
     /// 如 ',', ';', ' ' 分别对应: --option value1,value2, --option value1;value2, --option value1 value2。
     /// </summary>
     public CommandSeparatorChars CollectionValueSeparators { get; init; }
-
-    /// <summary>
-    /// 允许用户使用哪些分隔符来分隔字典类型的选项值中的键和值。<br/>
-    /// 如 '=', ':' 分别对应: --option key=value, --option key:value。
-    /// </summary>
-    public CommandSeparatorChars DictionaryValueSeparators { get; init; }
 }
 
 /// <summary>
@@ -337,6 +326,22 @@ public enum OptionValueType : byte
 
     /// <summary>
     /// 用户输入的选项没有命中到任何已知的选项。
+    /// </summary>
+    NotExist,
+}
+
+/// <summary>
+/// 位置参数值的类型。此枚举中的位置参数值类型会影响到位置参数值的解析方式。
+/// </summary>
+public enum PositionalArgumentValueType : byte
+{
+    /// <summary>
+    /// 正常的位置参数。
+    /// </summary>
+    Normal,
+
+    /// <summary>
+    /// 指定位置处的位置参数没有匹配到任何位置参数范围。
     /// </summary>
     NotExist,
 }

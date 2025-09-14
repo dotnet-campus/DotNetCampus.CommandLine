@@ -12,6 +12,11 @@ public readonly record struct CommandLineParsingResult(string? ErrorMessage)
     public bool IsSuccess => ErrorMessage is null;
 
     /// <summary>
+    /// 获取一个表示成功的解析结果。
+    /// </summary>
+    public static CommandLineParsingResult Success => new(null);
+
+    /// <summary>
     /// 创建一个表示选项未找到的解析结果。
     /// </summary>
     /// <param name="commandLine">整个命令行参数列表。</param>
@@ -23,6 +28,32 @@ public readonly record struct CommandLineParsingResult(string? ErrorMessage)
         string commandObjectName, ReadOnlySpan<char> optionName)
     {
         var message = $"命令行对象 {commandObjectName} 不包含选项 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+        return new CommandLineParsingResult(message);
+    }
+
+    /// <summary>
+    /// 创建一个表示选项未找到的解析结果。
+    /// </summary>
+    /// <param name="commandLine">整个命令行参数列表。</param>
+    /// <param name="index">当前正在解析的参数索引。</param>
+    /// <returns>表示选项未找到的解析结果。</returns>
+    public static CommandLineParsingResult OptionParseError(CommandLine commandLine, int index)
+    {
+        var message = $"参数 {commandLine.CommandLineArguments[index]} 未能解析出选项名。参数列表：{commandLine}，索引 {index}。";
+        return new CommandLineParsingResult(message);
+    }
+
+    /// <summary>
+    /// 创建一个表示位置参数未找到的解析结果。
+    /// </summary>
+    /// <param name="commandLine">整个命令行参数列表。</param>
+    /// <param name="index">当前正在解析的参数索引。</param>
+    /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
+    /// <param name="positionalArgumentIndex">要查找的位置参数的索引。</param>
+    /// <returns>表示位置参数未找到的解析结果。</returns>
+    public static CommandLineParsingResult PositionalArgumentNotFound(CommandLine commandLine, int index, string commandObjectName, int positionalArgumentIndex)
+    {
+        var message = $"命令行对象 {commandObjectName} 位置参数范围不包含索引 {positionalArgumentIndex}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
         return new CommandLineParsingResult(message);
     }
 }

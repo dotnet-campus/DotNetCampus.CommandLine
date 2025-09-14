@@ -9,6 +9,8 @@ public readonly ref struct CommandLineParser
 {
     private readonly CommandLine _commandLine;
     private readonly string _commandObjectName;
+    private readonly bool _caseSensitive;
+    private readonly CommandNamingPolicy _namingPolicy;
 
     /// <summary>
     /// 通用的命令行参数解析器。（此解析器不可解析 URL 类型的参数。）
@@ -20,29 +22,33 @@ public readonly ref struct CommandLineParser
         _commandLine = commandLine;
         _commandObjectName = commandObjectName;
         Style = commandLine.ParsingOptions.Style;
-        NamingPolicy = Style.NamingPolicy;
+        _namingPolicy = Style.NamingPolicy;
         OptionPrefix = Style.OptionPrefix;
-        CaseSensitive = Style.CaseSensitive;
+        _caseSensitive = Style.CaseSensitive;
         SupportsLongOption = Style.SupportsLongOption;
         SupportsShortOption = Style.SupportsShortOption;
         SupportsShortOptionCombination = Style.SupportsShortOptionCombination;
         SupportsShortOptionValueWithoutSeparator = Style.SupportsShortOptionValueWithoutSeparator;
     }
 
+    /// <summary>
+    /// 获取解析命令行时所使用的各种选项。
+    /// </summary>
     internal CommandLineStyleDetails Style { get; }
 
-    internal CommandNamingPolicy NamingPolicy { get; }
-
+    /// <inheritdoc cref="CommandLineStyleDetails.OptionPrefix"/>
     internal CommandOptionPrefix OptionPrefix { get; }
 
-    internal bool CaseSensitive { get; }
-
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsLongOption"/>
     internal bool SupportsLongOption { get; }
 
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOption"/>
     internal bool SupportsShortOption { get; }
 
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOptionCombination"/>
     internal bool SupportsShortOptionCombination { get; }
 
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOptionValueWithoutSeparator"/>
     internal bool SupportsShortOptionValueWithoutSeparator { get; }
 
     /// <summary>
@@ -60,12 +66,23 @@ public readonly ref struct CommandLineParser
     /// </summary>
     public required ShortOptionMatchingCallback MatchShortOption { get; init; }
 
+    /// <summary>
+    /// 要求源生成器匹配位置参数，返回位置参数的范围。
+    /// </summary>
+    public required PositionalArgumentMatchingCallback MatchPositionalArguments { get; init; }
+
+    /// <summary>
+    /// 解析命令行参数，并返回解析结果。
+    /// </summary>
+    /// <returns>命令行参数解析结果。</returns>
     public CommandLineParsingResult Parse()
     {
         var arguments = _commandLine.CommandLineArguments;
-        var lastOptionName = new OptionName(false, []);
-        var lastOptionType = OptionValueType.Normal;
-        var lastType = Cat.Start;
+        var currentOptionName = new OptionName(false, []);
+        var currentOptionType = OptionValueType.Normal;
+        AppendValueCallback currentOptionAppender = DefaultAppender;
+        var currentPositionArgumentIndex = 0;
+        var lastState = Cat.Start;
 
         for (var index = 0; index < arguments.Count; index++)
         {
@@ -76,57 +93,131 @@ public readonly ref struct CommandLineParser
                 continue;
             }
 
-            // 解析当前参数。
-            var part = new CommandArgumentPart(this, index, argument, lastType, lastOptionType);
+            // 状态机状态转移。
+            var part = new CommandArgumentPart(this, argument, lastState, currentOptionType);
             part.Parse();
-            var (currentType, optionName, value) = part;
+            var (state, optionName, value) = part;
+            lastState = state;
 
-            // 更新状态。
-            lastType = currentType;
-            if (currentType is Cat.LongOption or Cat.ShortOption or Cat.Option)
+            // 应用新状态下的值。
+            switch (state)
             {
-                // 如果当前是一个选项，则记录下来，供后面解析选项值时使用。
-                lastOptionName = optionName;
-                var optionType = currentType switch
+                case Cat.LongOption or Cat.ShortOption or Cat.Option:
                 {
-                    Cat.LongOption => MatchLongOption(optionName.Name, CaseSensitive, NamingPolicy),
-                    Cat.ShortOption => MatchShortOption(optionName.Name, CaseSensitive),
-                    _ => MatchLongOption(optionName.Name, CaseSensitive, NamingPolicy) switch
+                    // 如果当前是一个选项，则记录下来，供后面解析选项值时使用。
+                    currentOptionName = optionName;
+                    var (optionType, appender) = state switch
                     {
-                        OptionValueType.NotExist => MatchShortOption(optionName.Name, CaseSensitive),
-                        var t => t,
-                    },
-                };
-                if (optionType is OptionValueType.NotExist)
-                {
-                    // 如果选项不存在，则报告错误。
-                    return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                        Cat.LongOption => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy),
+                        Cat.ShortOption => MatchShortOption(optionName.Name, _caseSensitive),
+                        _ => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy) switch
+                        {
+                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName.Name, _caseSensitive),
+                            var t => t,
+                        },
+                    };
+                    if (optionType is OptionValueType.NotExist)
+                    {
+                        // 如果选项不存在，则报告错误。
+                        return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                    }
+                    currentOptionType = optionType;
+                    currentOptionAppender = appender;
+                    break;
                 }
-                lastOptionType = optionType;
+                case Cat.OptionValue:
+                {
+                    currentOptionAppender(value);
+                    if (currentOptionType is not OptionValueType.Collection)
+                    {
+                        // 如果不是集合，那么此选项已经结束。
+                        // 清空上一个选项，避免误用。
+                        currentOptionName = new OptionName(false, []);
+                        currentOptionType = OptionValueType.Normal;
+                        currentOptionAppender = DefaultAppender;
+                    }
+                    break;
+                }
+                case Cat.PositionalArgument or Cat.PostPositionalArgument:
+                {
+                    var (positionalArgumentType, appender) = MatchPositionalArguments(value, currentPositionArgumentIndex);
+                    if (positionalArgumentType is PositionalArgumentValueType.NotExist)
+                    {
+                        // 如果位置参数不存在，则报告错误。
+                        return CommandLineParsingResult.PositionalArgumentNotFound(_commandLine, index, _commandObjectName, currentPositionArgumentIndex);
+                    }
+                    currentPositionArgumentIndex++;
+                    appender(value);
+                    break;
+                }
+                case Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue:
+                {
+                    currentOptionAppender(value);
+                    break;
+                }
+                case Cat.ErrorOption:
+                    // 如果当前参数疑似选项但解析失败，则报告错误。
+                    return CommandLineParsingResult.OptionParseError(_commandLine, index);
+                case Cat.MultiShortOptions:
+                {
+                    // 逐个处理多个短选项。
+                    for (var i = 0; i < optionName.Name.Length; i++)
+                    {
+                        var n = optionName.Name[i..(i + 1)];
+                        var (optionType, appender) = MatchShortOption(n, _caseSensitive);
+                        if (optionType is OptionValueType.NotExist)
+                        {
+                            // 如果选项不存在，则报告错误。
+                            return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, n);
+                        }
+                        appender([]);
+                    }
+                    break;
+                }
+                case Cat.MultiShortOptionsOrShortOptionConcatWithValue:
+                {
+                    // 先看看是否是一个多字符短选项，如果不是，再看看是否是单个字符无分隔符带值的短选项。
+                    var m = optionName.Name;
+                    var (optionType, appender) = MatchShortOption(m, _caseSensitive);
+                    if (optionType is not OptionValueType.NotExist)
+                    {
+                        // 是一个多字符短选项。
+                        appender([]);
+                        break;
+                    }
+                    // 不是一个多字符短选项，尝试解析为单个字符无分隔符带值的短选项。
+                    var n = m[..1];
+                    var v = m[1..];
+                    (optionType, appender) = MatchShortOption(n, _caseSensitive);
+                    if (optionType is OptionValueType.NotExist)
+                    {
+                        // 如果选项不存在，则报告错误。
+                        return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, n);
+                    }
+                    appender(v);
+                    break;
+                }
+                default:
+                    // 其他状态要么已经处理过了，要不还未处理，要么不需要处理，所以不需要做任何事情。
+                    break;
             }
-            else if (currentType is Cat.OptionValue && lastOptionType is OptionValueType.Collection)
-            {
-                // 如果当前是选项值，且上个选项是一个集合值，则继续使用上个选项。
-            }
-            else
-            {
-                // 其他情况，都需要清空上一个选项，避免误用。
-                lastOptionName = new OptionName(false, []);
-                lastOptionType = OptionValueType.Normal;
-            }
-
-            // 处理解析结果。
         }
+
+        return CommandLineParsingResult.Success;
+    }
+
+    private static void DefaultAppender(ReadOnlySpan<char> value)
+    {
+        throw new InvalidOperationException("不可能有机会调用到这个默认的追加值回调。");
     }
 }
 
 /// <summary>
-/// 辅助解析命令行参数中的其中一个参数。
+/// 这是命令行解析状态机中的其中一个状态。当调用 <see cref="Parse"/> 方法后，此对象会被修改以转移到新的状态。
 /// </summary>
 internal ref struct CommandArgumentPart
 {
     private readonly CommandLineParser _parser;
-    private readonly int _index;
     private readonly string _argument;
     private readonly Cat _lastType;
     private readonly OptionValueType _lastOptionType;
@@ -135,14 +226,12 @@ internal ref struct CommandArgumentPart
     /// 辅助解析命令行参数中的其中一个参数。
     /// </summary>
     /// <param name="parser">正在使用的命令行参数解析器。</param>
-    /// <param name="index">正在解析的参数的索引。</param>
     /// <param name="argument">要解析的参数。</param>
     /// <param name="lastType">上一个参数的类型，初始为 <see cref="CommandArgumentType.Start"/>。</param>
     /// <param name="lastOptionType">上一个参数的选项值类型，如果上一个参数不是选项，则为默认值。</param>
-    public CommandArgumentPart(CommandLineParser parser, int index, string argument, Cat lastType, OptionValueType lastOptionType)
+    public CommandArgumentPart(CommandLineParser parser, string argument, Cat lastType, OptionValueType lastOptionType)
     {
         _parser = parser;
-        _index = index;
         _argument = argument;
         _lastType = lastType;
         _lastOptionType = lastOptionType;
@@ -177,12 +266,12 @@ internal ref struct CommandArgumentPart
     }
 
     /// <summary>
-    /// 开始解析这个参数，可通过解构获得解析结果。
+    /// 以上一个状态为基准，解析当前参数，并转移到新的状态。
     /// </summary>
     /// <returns>
     /// 返回值没有意义，纯粹为了使用 switch 表达式。
     /// </returns>
-    public bool Parse() => _lastType switch
+    public void Parse() => _ = _lastType switch
     {
         Cat.Start or Cat.Command => ParseCommandRegion(),
         Cat.PositionalArgumentSeparator or Cat.PostPositionalArgument => ParsePostPositionalArgumentRegion(),
@@ -296,9 +385,8 @@ internal ref struct CommandArgumentPart
         var index = argument.IndexOfAny(separators);
         if (index is 0)
         {
-            // 没有选项名，视为位置参数。
-            Type = Cat.PositionalArgument;
-            Value = argument;
+            // 没有选项名，报告错误。
+            Type = Cat.ErrorOption;
             return true;
         }
         if (index > 0)
@@ -327,9 +415,8 @@ internal ref struct CommandArgumentPart
         var index = argument.IndexOfAny(separators);
         if (index is 0)
         {
-            // 没有选项名，视为位置参数。
-            Type = Cat.PositionalArgument;
-            Value = argument;
+            // 没有选项名，报告错误。
+            Type = Cat.ErrorOption;
             return true;
         }
         if (index > 0)
@@ -362,7 +449,29 @@ internal ref struct CommandArgumentPart
 
     private bool ParseLongShortOptionOrLongShortOptionWithValue(ReadOnlySpan<char> argument)
     {
+        Span<char> separators = stackalloc char[4];
+        _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
+        separators = separators[..length];
 
+        var index = argument.IndexOfAny(separators);
+        if (index is 0)
+        {
+            // 没有选项名，报告错误。
+            Type = Cat.ErrorOption;
+            return true;
+        }
+        if (index > 0)
+        {
+            // 带值的选项。
+            Type = Cat.OptionWithValue;
+            Option = new OptionName(true, argument[..index]);
+            Value = argument[(index + 1)..];
+            return true;
+        }
+        // 不带值的选项。
+        Type = Cat.Option;
+        Option = new OptionName(true, argument);
+        return true;
     }
 
     /// <summary>
@@ -380,7 +489,7 @@ internal ref struct CommandArgumentPart
                 argument is ""))
         {
             Type = Cat.OptionValue;
-            Value = "true";
+            Value = "true".AsSpan();
             return true;
         }
         if (argument.Length is > 0 and <= 5 && (
@@ -390,7 +499,7 @@ internal ref struct CommandArgumentPart
                 argument.Equals("0", StringComparison.OrdinalIgnoreCase)))
         {
             Type = Cat.OptionValue;
-            Value = "false";
+            Value = "false".AsSpan();
             return true;
         }
         return ParseOptionOrPositionalArgument();
