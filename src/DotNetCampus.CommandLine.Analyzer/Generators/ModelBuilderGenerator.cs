@@ -48,9 +48,21 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 """)
                 .AddRawMembers(model.OptionProperties.Select(x => GenerateOptionPropertyCode(model.Namespace, x)))
                 .AddRawText(GenerateBuildCode(model))
-                .AddRawText(GenerateMatchLongOptionCode(model))
-                .AddRawText(GenerateMatchShortOptionCode(model))
-                .AddRawText(GenerateMatchPositionalArgumentsCode(model))
+                .AddMethodDeclaration(
+                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)",
+                    m => m
+                        .AddRawStatements(GenerateMatchLongOptionCode(model))
+                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;"))
+                .AddMethodDeclaration(
+                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
+                    m => m
+                        .AddRawStatements(GenerateMatchShortOptionCode(model))
+                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;"))
+                .AddMethodDeclaration(
+                    "private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
+                    m => m
+                        .AddRawStatements(GenerateMatchPositionalArgumentsCode(model))
+                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;"))
                 .AddRawText(GenerateAssignPropertyValueCode(model))
                 .AddRawText(GenerateBuildCoreCode(model))
             );
@@ -86,26 +98,23 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private string GenerateMatchLongOptionCode(CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return $$"""
-    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)
-    {
+        return optionProperties.Length is 0
+            ? "// 没有长名称选项，无需匹配。"
+            : $$"""
         var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
-    
+
         // 先原样匹配一遍。
         if (namingPolicy.SupportsOrdinal())
         {
-    {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetOrdinalLongNames())))}}
+        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetOrdinalLongNames())))}}
         }
 
         // 再根据命名法匹配一遍（只匹配与上述名称不同的名称）。
         if (namingPolicy.SupportsPascalCase())
         {
-    {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetPascalCaseLongNames().Except(x.GetOrdinalLongNames()).ToList())))}}
+        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetPascalCaseLongNames().Except(x.GetOrdinalLongNames()).ToList())))}}
         }
-
-        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
-    }
-    """;
+        """;
 
         static string GenerateOptionMatchCode(OptionPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
@@ -113,7 +122,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             {
                 return $"""
             // 属性 {model.PropertyName} 在此命名法下的所有名称均已在前面匹配过，无需重复匹配。
-    """;
+        """;
             }
             var comparison = model.CaseSensitive switch
             {
@@ -126,23 +135,20 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             {
                 return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandPropertyType().ToOptionValueTypeName()}});
             }
-    """));
+        """));
         }
     }
 
     private string GenerateMatchShortOptionCode(CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return $$"""
-    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)
-    {
+        return optionProperties.Length is 0
+            ? "// 没有短名称选项，无需匹配。"
+            : $$"""
         var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
     
-    {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetShortNames())))}}
-
-        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
-    }
-    """;
+        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetShortNames())))}}
+        """;
 
         static string GenerateOptionMatchCode(OptionPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
@@ -150,7 +156,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             {
                 return $"""
             // 属性 {model.PropertyName} 没有短名称，无需匹配。
-        """;
+            """;
             }
             var comparison = model.CaseSensitive switch
             {
@@ -163,16 +169,34 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             {
                 return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandPropertyType().ToOptionValueTypeName()}});
             }
-        """));
+            """));
         }
     }
 
     private string GenerateMatchPositionalArgumentsCode(CommandObjectGeneratingModel model)
     {
-        return $$"""
-    private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)
-    {
+        var positionalArgumentProperties = model.PositionalArgumentProperties;
+        return positionalArgumentProperties.Length is 0
+            ? "// 没有位置参数，无需匹配。"
+            : $$"""
+        {{string.Join("\n", positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))}}
+        """;
     }
+
+    private string GenerateMatchPositionalArgumentCode(ValuePropertyGeneratingModel valuePropertyGeneratingModel, int index, int length)
+    {
+        return length == 1
+            ? $$"""
+        if (argumentIndex is {{index}})
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{valuePropertyGeneratingModel.PropertyName}}", {{valuePropertyGeneratingModel.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+        }
+    """
+            : $$"""
+        if (argumentIndex is >= {{index}} and < {{index + length}})
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{valuePropertyGeneratingModel.PropertyName}}", {{valuePropertyGeneratingModel.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+        }
     """;
     }
 

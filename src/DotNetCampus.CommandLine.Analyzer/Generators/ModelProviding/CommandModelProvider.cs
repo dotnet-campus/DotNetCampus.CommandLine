@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Globalization;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
@@ -91,7 +90,7 @@ internal static class CommandModelProvider
                     CommandNames = commandNames,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
-                    ValueProperties = valueProperties,
+                    PositionalArgumentProperties = valueProperties,
                     RawArgumentsProperties = rawArgumentsProperties,
                 };
             })
@@ -143,7 +142,7 @@ internal record CommandObjectGeneratingModel
 
     public required ImmutableArray<OptionPropertyGeneratingModel> OptionProperties { get; init; }
 
-    public required ImmutableArray<ValuePropertyGeneratingModel> ValueProperties { get; init; }
+    public required ImmutableArray<ValuePropertyGeneratingModel> PositionalArgumentProperties { get; init; }
 
     public required ImmutableArray<RawArgumentsPropertyGeneratingModel> RawArgumentsProperties { get; init; }
 
@@ -377,9 +376,9 @@ internal record ValuePropertyGeneratingModel
 
     public required bool IsValueType { get; init; }
 
-    public required int? Index { get; init; }
+    public required int Index { get; init; }
 
-    public required int? Length { get; init; }
+    public required int Length { get; init; }
 
     public int PropertyIndex { get; set; } = -1;
 
@@ -407,8 +406,8 @@ internal record ValuePropertyGeneratingModel
             IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
             IsValueType = propertySymbol.Type.IsValueType,
-            Index = index is not null && int.TryParse(index, out var result) ? result : null,
-            Length = length is not null && int.TryParse(length, out var result2) ? result2 : null,
+            Index = index is not null && int.TryParse(index, out var result) ? result : 0,
+            Length = length is not null && int.TryParse(length, out var result2) ? result2 : 1,
         };
     }
 }
