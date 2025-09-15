@@ -226,26 +226,73 @@ public readonly ref struct CommandLineParser
 
     private void AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
     {
-        SplitKeyValue(match.ValueType is OptionValueType.Dictionary, value, out var k, out var v);
-        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+        if (match.ValueType is OptionValueType.Collection)
+        {
+            Span<char> separators = stackalloc char[4];
+            Style.CollectionValueSeparators.CopyTo(separators, out var length);
+            separators = separators[..length];
+
+            var start = 0;
+            while (start < value.Length)
+            {
+                var index = value[start..].IndexOfAny(separators);
+                if (index < 0)
+                {
+                    // 剩余部分没有分隔符，全部作为一个值。
+                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value[start..]);
+                    break;
+                }
+                if (index > 0)
+                {
+                    // 截取分隔符前的部分作为一个值。
+                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value.Slice(start, index));
+                }
+                // 跳过分隔符，继续处理后续部分。
+                start += index + 1;
+            }
+        }
+        else if (match.ValueType is OptionValueType.Dictionary)
+        {
+            Span<char> separators = stackalloc char[4];
+            Style.CollectionValueSeparators.CopyTo(separators, out var length);
+            separators = separators[..length];
+
+            var start = 0;
+            while (start < value.Length)
+            {
+                var index = value[start..].IndexOfAny(separators);
+                if (index < 0)
+                {
+                    // 剩余部分没有分隔符，全部作为一个值。
+                    SplitKeyValue(value[start..], out var k, out var v);
+                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+                    break;
+                }
+                if (index > 0)
+                {
+                    // 截取分隔符前的部分作为一个值。
+                    SplitKeyValue(value.Slice(start, index), out var k, out var v);
+                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+                }
+                // 跳过分隔符，继续处理后续部分。
+                start += index + 1;
+            }
+        }
+        else
+        {
+            // 普通值。
+            AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
+        }
     }
 
     private void AssignPositionalArgumentValue(PositionalArgumentValueMatch match, ReadOnlySpan<char> value)
     {
-        SplitKeyValue(false, value, out var k, out var v);
-        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+        AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
     }
 
-    private static void SplitKeyValue(bool isDictionary, ReadOnlySpan<char> item,
+    private static void SplitKeyValue(ReadOnlySpan<char> item,
         out ReadOnlySpan<char> key, out ReadOnlySpan<char> value)
     {
-        if (!isDictionary)
-        {
-            key = [];
-            value = item;
-            return;
-        }
-
         // 截至目前，所有的字典类型都使用 key=value 形式，如果将来新增的风格有其他符号，我们再用一样的分隔符方式来配置。
         var index = item.IndexOf('=');
         if (index < 0)
@@ -577,7 +624,7 @@ internal ref struct CommandArgumentPart
                 argument is ""))
         {
             Type = Cat.OptionValue;
-            Value = "true".AsSpan();
+            Value = "1".AsSpan();
             return true;
         }
         if (argument.Length is > 0 and <= 5 && (
@@ -587,7 +634,7 @@ internal ref struct CommandArgumentPart
                 argument.Equals("0", StringComparison.OrdinalIgnoreCase)))
         {
             Type = Cat.OptionValue;
-            Value = "false".AsSpan();
+            Value = "0".AsSpan();
             return true;
         }
         return ParseOptionOrPositionalArgument();
