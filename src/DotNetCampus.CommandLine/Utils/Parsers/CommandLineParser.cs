@@ -489,10 +489,16 @@ internal ref struct CommandArgumentPart
         }
         if (index > 0)
         {
-            // 带值的短选项。
-            Type = Cat.ShortOptionWithValue;
-            Option = new OptionName(false, argument[..index]);
-            Value = argument[(index + 1)..];
+            if (index is 1 || _parser.SupportsMultiCharShortOption)
+            {
+                // 带值的短选项。
+                Type = Cat.ShortOptionWithValue;
+                Option = new OptionName(false, argument[..index]);
+                Value = argument[(index + 1)..];
+                return true;
+            }
+            // 分隔符出现在第二个字符之后，但不支持多字符短选项，报告错误。
+            Type = Cat.ErrorOption;
             return true;
         }
 
