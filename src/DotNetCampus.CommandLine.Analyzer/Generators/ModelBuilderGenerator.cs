@@ -30,8 +30,8 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .Using("DotNetCampus.Cli.Compiler")
             .AddTypeDeclaration($"{modifier} sealed class {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)", t => t
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToGlobalDisplayString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
-                .AddRawMembers(model.OptionProperties.Select(x => GenerateOptionPropertyCode(model.Namespace, x)))
-                .AddRawMembers(model.PositionalArgumentProperties.Select(x => GenerateOptionPropertyCode(model.Namespace, x)))
+                .AddRawMembers(model.OptionProperties.Select(GenerateOptionPropertyCode))
+                .AddRawMembers(model.PositionalArgumentProperties.Select(GenerateOptionPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)",
@@ -58,15 +58,16 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     $"private {model.CommandObjectType.ToUsingString()} BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => m
                         .AddRawStatements(GenerateBuildCoreCode(model)))
+                .AddRawMembers(model.EnumerateEnumPropertyTypes().Select(GenerateEnumDeclarationCode))
             );
         return builder.ToString();
     }
 
-    private string GenerateOptionPropertyCode(string @namespace, PropertyGeneratingModel model) => model.Type.AsCommandPropertyType() switch
+    private string GenerateOptionPropertyCode(PropertyGeneratingModel model) => model.Type.AsCommandPropertyType() switch
     {
         CommandPropertyType.Boolean => $"private global::DotNetCampus.Cli.Compiler.BooleanArgument {model.PropertyName} {{ get; }} = new();",
         CommandPropertyType.Number => $"private global::DotNetCampus.Cli.Compiler.NumberArgument {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.Enum => $"private global::{@namespace}.{model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} {{ get; }} = new();",
+        CommandPropertyType.Enum => $"private {model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} {{ get; }} = new();",
         CommandPropertyType.String => $"private global::DotNetCampus.Cli.Compiler.StringArgument {model.PropertyName} {{ get; }} = new();",
         CommandPropertyType.List => $"private global::DotNetCampus.Cli.Compiler.StringListArgument {model.PropertyName} {{ get; }} = new();",
         CommandPropertyType.Dictionary => $"private global::DotNetCampus.Cli.Compiler.StringDictionaryArgument {model.PropertyName} {{ get; }} = new();",
@@ -139,7 +140,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             ? "// 没有短名称选项，无需匹配。"
             : $$"""
         var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
-    
+
         {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetShortNames())))}}
         """;
 
@@ -253,7 +254,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             ? "    // There is no [Option] property to be initialized."
             : string.Join("\n", initOptionProperties.Select(GenerateInitProperty))
     )}}
-        
+
         // 3. [Value]
     {{(
         initPositionalArgumentProperties.Count is 0
@@ -329,6 +330,52 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private string GenerateSetRawArgumentProperty(RawArgumentsPropertyGeneratingModel model)
     {
         return $"result.{model.PropertyName} = commandLine.CommandLineArguments;";
+    }
+
+    private string GenerateEnumDeclarationCode(ITypeSymbol enumType)
+    {
+        var enumNames = enumType.GetMembers().OfType<IFieldSymbol>().Select(x => x.Name);
+        return $$"""
+/// <summary>
+/// Provides parsing and assignment for the enum type <see cref="{{enumType.ToGlobalDisplayString()}}"/>.
+/// </summary>
+private struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
+{
+    /// <summary>
+    /// Indicates whether to ignore exceptions when parsing fails.
+    /// </summary>
+    public bool IgnoreExceptions { get; init; }
+
+    /// <summary>
+    /// Stores the parsed enum value.
+    /// </summary>
+    private {{enumType.ToUsingString()}}? _value;
+
+    /// <summary>
+    /// Assigns a value when a command line input is parsed.
+    /// </summary>
+    /// <param name="value">The parsed string value.</param>
+    public void Assign(ReadOnlySpan<char> value)
+    {
+        Span<char> lowerValue = stackalloc char[value.Length];
+        for (var i = 0; i < value.Length; i++)
+        {
+            lowerValue[i] = char.ToLowerInvariant(value[i]);
+        }
+        _value = lowerValue switch
+        {
+    {{string.Join("\n    ", enumNames.Select(x => $"        \"{x.ToLowerInvariant()}\" => {enumType.ToUsingString()}.{x},"))}}
+            _ when IgnoreExceptions => null,
+            _ => throw new global::System.ArgumentOutOfRangeException(nameof(value), value.ToString(), $"Cannot convert '{value.ToString()}' to enum type '{{enumType.ToDisplayString()}}'."),
+        };
+    }
+
+    /// <summary>
+    /// Converts the parsed value to the enum type.
+    /// </summary>
+    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandTargetMethodName()}}() => _value;
+}
+""";
     }
 }
 

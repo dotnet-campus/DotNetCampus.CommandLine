@@ -168,6 +168,26 @@ internal record CommandObjectGeneratingModel
     {
         return $"{commandObjectType.Name}Builder";
     }
+
+    public IEnumerable<ITypeSymbol> EnumerateEnumPropertyTypes()
+    {
+        var enums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+        foreach (var option in OptionProperties)
+        {
+            if (option.Type.TypeKind is TypeKind.Enum)
+            {
+                enums.Add(option.Type);
+            }
+        }
+        foreach (var value in PositionalArgumentProperties)
+        {
+            if (value.Type.TypeKind is TypeKind.Enum)
+            {
+                enums.Add(value.Type);
+            }
+        }
+        return enums;
+    }
 }
 
 internal abstract record PropertyGeneratingModel
