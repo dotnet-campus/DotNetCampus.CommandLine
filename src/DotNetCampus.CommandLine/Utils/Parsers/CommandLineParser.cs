@@ -128,7 +128,7 @@ public readonly ref struct CommandLineParser
                 }
                 case Cat.OptionValue:
                 {
-                    AssignPropertyValue(currentOption.PropertyName, currentOption.PropertyIndex, [], value);
+                    AssignOptionValue(currentOption, value);
                     if (currentOption.ValueType is not OptionValueType.Collection)
                     {
                         // 如果不是集合，那么此选项已经结束。
@@ -147,12 +147,12 @@ public readonly ref struct CommandLineParser
                         return CommandLineParsingResult.PositionalArgumentNotFound(_commandLine, index, _commandObjectName, currentPositionArgumentIndex);
                     }
                     currentPositionArgumentIndex++;
-                    AssignPropertyValue(positionalArgumentMatch.PropertyName, positionalArgumentMatch.PropertyIndex, [], value);
+                    AssignPositionalArgumentValue(positionalArgumentMatch, value);
                     break;
                 }
                 case Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue:
                 {
-                    AssignPropertyValue(currentOption.PropertyName, currentOption.PropertyIndex, [], value);
+                    AssignOptionValue(currentOption, value);
                     break;
                 }
                 case Cat.ErrorOption:
@@ -172,7 +172,7 @@ public readonly ref struct CommandLineParser
                             // 如果选项不存在，则报告错误。
                             return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, n);
                         }
-                        AssignPropertyValue(optionMatch.PropertyName, optionMatch.PropertyIndex, [], []);
+                        AssignOptionValue(optionMatch, []);
                     }
                     break;
                 }
@@ -184,7 +184,7 @@ public readonly ref struct CommandLineParser
                     if (optionMatch.ValueType is not OptionValueType.NotExist)
                     {
                         // 是一个多字符短选项。
-                        AssignPropertyValue(optionMatch.PropertyName, optionMatch.PropertyIndex, [], []);
+                        AssignOptionValue(optionMatch, []);
                         break;
                     }
                     // 不是一个多字符短选项，尝试解析为单个字符无分隔符带值的短选项。
@@ -196,7 +196,7 @@ public readonly ref struct CommandLineParser
                         // 如果选项不存在，则报告错误。
                         return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, n);
                     }
-                    AssignPropertyValue(optionMatch.PropertyName, optionMatch.PropertyIndex, [], v);
+                    AssignOptionValue(optionMatch, v);
                     break;
                 }
                 default:
@@ -208,6 +208,40 @@ public readonly ref struct CommandLineParser
         }
 
         return CommandLineParsingResult.Success;
+    }
+
+    private void AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
+    {
+        SplitKeyValue(match.ValueType is OptionValueType.Dictionary, value, out var k, out var v);
+        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+    }
+
+    private void AssignPositionalArgumentValue(PositionalArgumentValueMatch match, ReadOnlySpan<char> value)
+    {
+        SplitKeyValue(false, value, out var k, out var v);
+        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+    }
+
+    private static void SplitKeyValue(bool isDictionary, ReadOnlySpan<char> item,
+        out ReadOnlySpan<char> key, out ReadOnlySpan<char> value)
+    {
+        if (!isDictionary)
+        {
+            key = [];
+            value = item;
+            return;
+        }
+
+        // 截至目前，所有的字典类型都使用 key=value 形式，如果将来新增的风格有其他符号，我们再用一样的分隔符方式来配置。
+        var index = item.IndexOf('=');
+        if (index < 0)
+        {
+            key = item;
+            value = [];
+            return;
+        }
+        key = item[..index];
+        value = item[(index + 1)..];
     }
 }
 
