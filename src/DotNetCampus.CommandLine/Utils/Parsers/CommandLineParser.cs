@@ -90,7 +90,6 @@ public readonly ref struct CommandLineParser
     public CommandLineParsingResult Parse()
     {
         var arguments = _commandLine.CommandLineArguments;
-        var currentOptionName = new OptionName(false, []);
         var currentOption = OptionValueMatch.NotMatch;
         var currentPositionArgumentIndex = 0;
         var lastState = Cat.Start;
@@ -111,7 +110,6 @@ public readonly ref struct CommandLineParser
                 case Cat.LongOption or Cat.ShortOption or Cat.Option:
                 {
                     // 如果当前是一个选项，则记录下来，供后面解析选项值时使用。
-                    currentOptionName = optionName;
                     var optionMatch = state switch
                     {
                         Cat.LongOption => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy),
@@ -137,7 +135,6 @@ public readonly ref struct CommandLineParser
                     {
                         // 如果不是集合，那么此选项已经结束。
                         // 清空上一个选项，避免误用。
-                        currentOptionName = new OptionName(false, []);
                         currentOption = DefaultOptionValueHandler;
                     }
                     break;
