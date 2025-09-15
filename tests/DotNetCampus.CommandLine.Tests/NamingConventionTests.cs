@@ -17,7 +17,11 @@ namespace DotNetCampus.Cli.Tests;
 public class NamingConventionTests
 {
     private CommandLineParsingOptions Flexible { get; } = CommandLineParsingOptions.Flexible;
-    private CommandLineParsingOptions CaseSensitive { get; } = new() { CaseSensitive = true };
+
+    private CommandLineParsingOptions CaseSensitive { get; } = new CommandLineParsingOptions
+    {
+        Style = CommandLineParsingOptions.Flexible.Style with { CaseSensitive = false },
+    };
 
     #region 1. CommandAttribute 命名规则测试
 
@@ -613,13 +617,13 @@ internal class BuildWithCombinedOptionsCommand
 
 internal class BuildWithAliasesCommand
 {
-    [Option("output-path", Aliases = ["out", "directory"])]
+    [Option([], ["output-path", "out", "directory"])]
     public required string OutputPath { get; init; }
 }
 
 internal class ExactSpellingCommand
 {
-    [Option("SampleProperty", ExactSpelling = true)]
+    [Option("SampleProperty")]
     public required string SampleProperty { get; init; }
 }
 

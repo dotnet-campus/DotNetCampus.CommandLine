@@ -58,7 +58,7 @@ internal static class CommandModelProvider
                     .GetAttributedProperties(OptionPropertyGeneratingModel.TryParse);
                 // 5. 拥有 [Value] 特性的属性。
                 var valueProperties = typeSymbol
-                    .GetAttributedProperties(ValuePropertyGeneratingModel.TryParse);
+                    .GetAttributedProperties(PositionalArgumentPropertyGeneratingModel.TryParse);
                 // 6. 拥有 [RawArguments] 特性的属性。
                 var rawArgumentsProperties = typeSymbol
                     .GetAttributedProperties(RawArgumentsPropertyGeneratingModel.TryParse);
@@ -142,7 +142,7 @@ internal record CommandObjectGeneratingModel
 
     public required ImmutableArray<OptionPropertyGeneratingModel> OptionProperties { get; init; }
 
-    public required ImmutableArray<ValuePropertyGeneratingModel> PositionalArgumentProperties { get; init; }
+    public required ImmutableArray<PositionalArgumentPropertyGeneratingModel> PositionalArgumentProperties { get; init; }
 
     public required ImmutableArray<RawArgumentsPropertyGeneratingModel> RawArgumentsProperties { get; init; }
 
@@ -170,7 +170,7 @@ internal record CommandObjectGeneratingModel
     }
 }
 
-internal record OptionPropertyGeneratingModel
+internal abstract record PropertyGeneratingModel
 {
     public required string PropertyName { get; init; }
 
@@ -181,7 +181,10 @@ internal record OptionPropertyGeneratingModel
     public required bool IsInitOnly { get; init; }
 
     public required bool IsNullable { get; init; }
+}
 
+internal record OptionPropertyGeneratingModel : PropertyGeneratingModel
+{
     public required bool IsValueType { get; init; }
 
     public required IReadOnlyList<string> ShortNames { get; init; }
@@ -362,18 +365,8 @@ internal record OptionPropertyGeneratingModel
     }
 }
 
-internal record ValuePropertyGeneratingModel
+internal record PositionalArgumentPropertyGeneratingModel : PropertyGeneratingModel
 {
-    public required string PropertyName { get; init; }
-
-    public required ITypeSymbol Type { get; init; }
-
-    public required bool IsRequired { get; init; }
-
-    public required bool IsInitOnly { get; init; }
-
-    public required bool IsNullable { get; init; }
-
     public required bool IsValueType { get; init; }
 
     public required int Index { get; init; }
@@ -382,7 +375,7 @@ internal record ValuePropertyGeneratingModel
 
     public int PropertyIndex { get; set; } = -1;
 
-    public static ValuePropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
+    public static PositionalArgumentPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
     {
         var valueAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<ValueAttribute>());
         if (valueAttribute is null)
@@ -398,7 +391,7 @@ internal record ValuePropertyGeneratingModel
             // 其次从构造函数参数中拿。
             ?? valueAttribute.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
 
-        return new ValuePropertyGeneratingModel
+        return new PositionalArgumentPropertyGeneratingModel
         {
             PropertyName = propertySymbol.Name,
             Type = propertySymbol.Type,
@@ -412,18 +405,8 @@ internal record ValuePropertyGeneratingModel
     }
 }
 
-internal record RawArgumentsPropertyGeneratingModel
+internal record RawArgumentsPropertyGeneratingModel : PropertyGeneratingModel
 {
-    public required string PropertyName { get; init; }
-
-    public required ITypeSymbol Type { get; init; }
-
-    public required bool IsRequired { get; init; }
-
-    public required bool IsInitOnly { get; init; }
-
-    public required bool IsNullable { get; init; }
-
     public static RawArgumentsPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
     {
         var rawArgumentsAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<RawArgumentsAttribute>());
@@ -452,6 +435,25 @@ internal record AssemblyCommandsGeneratingModel
 
 internal static class CommandModelExtensions
 {
+    private static readonly SymbolDisplayFormat ToTargetTypeFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        kindOptions: SymbolDisplayKindOptions.None
+    );
+
+    public static string ToCommandTargetMethodName(this ITypeSymbol type)
+    {
+        // 取出类型的 .NET 类名称，不含泛型。如 bool 返回 Boolean，Dictionary<string, string> 返回 Dictionary。
+        return type.ToDisplayString(ToTargetTypeFormat) switch
+        {
+            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
+                or "IImmutableSet" or "IImmutableList" => "List",
+            "IDictionary" or "IReadOnlyDictionary" => "Dictionary",
+            var name => name,
+        };
+    }
+
     public static CommandPropertyType AsCommandPropertyType(this ITypeSymbol typeSymbol)
     {
         if (typeSymbol.SpecialType is SpecialType.System_Boolean)
@@ -474,6 +476,11 @@ internal static class CommandModelExtensions
             return CommandPropertyType.Number;
         }
 
+        if (typeSymbol.SpecialType is SpecialType.System_Array)
+        {
+            return CommandPropertyType.List;
+        }
+
         if (typeSymbol.TypeKind is TypeKind.Enum)
         {
             return CommandPropertyType.Enum;
@@ -484,52 +491,15 @@ internal static class CommandModelExtensions
             return CommandPropertyType.String;
         }
 
-        if (typeSymbol is INamedTypeSymbol
-            {
-                IsGenericType: true, TypeArguments:
-                [
-                    { SpecialType: SpecialType.System_String },
-                ],
-            } namedTypeSymbol)
+        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
         {
-            var genericTypeName = namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            if (genericTypeName
-                is "System.Collections.Generic.IList<>"
-                or "System.Collections.Generic.IReadOnlyList<>"
-                or "System.Collections.Generic.ICollection<>"
-                or "System.Collections.Generic.IReadOnlyCollection<>"
-                or "System.Collections.Generic.IEnumerable<>"
-                or "System.Collections.Immutable.ImmutableArray<>"
-                or "System.Collections.Immutable.ImmutableHashSet<>"
-                or "System.Collections.ObjectModel.Collection<>"
-                or "System.Collections.Generic.List<>")
-            {
-                return CommandPropertyType.List;
-            }
-        }
-
-        if (typeSymbol is INamedTypeSymbol
-            {
-                IsGenericType: true, TypeArguments:
-                [
-                    { SpecialType: SpecialType.System_String },
-                    { SpecialType: SpecialType.System_String },
-                ],
-            } namedTypeSymbol2)
-        {
-            var genericTypeName = namedTypeSymbol2.ConstructUnboundGenericType().ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
-            if (genericTypeName
-                is "System.Collections.Generic.IDictionary<,>"
-                or "System.Collections.Generic.IReadOnlyDictionary<,>"
-                or "System.Collections.Immutable.ImmutableDictionary<,>"
-                or "System.Collections.Generic.Dictionary<,>"
-                or "System.Collections.Generic.KeyValuePair<,>")
-            {
-                return CommandPropertyType.Dictionary;
-            }
-        }
-
-        return CommandPropertyType.String;
+            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
+                or "IImmutableSet" or "IImmutableList" => CommandPropertyType.List,
+            "ImmutableArray" or "List" or "ImmutableHashSet" or "Collection" or "HashSet" => CommandPropertyType.List,
+            "IDictionary" or "IReadOnlyDictionary" => CommandPropertyType.Dictionary,
+            "ImmutableDictionary" or "Dictionary" => CommandPropertyType.Dictionary,
+            _ => CommandPropertyType.String,
+        };
     }
 }
 

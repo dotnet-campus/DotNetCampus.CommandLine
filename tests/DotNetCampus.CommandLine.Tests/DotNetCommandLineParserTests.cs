@@ -1015,7 +1015,7 @@ internal record DotNet11_CaseInsensitiveOptions
 
 internal record DotNet12_AliasOptions
 {
-    [Option("option-with-alias", Aliases = ["alt", "alternate"])]
+    [Option([], ["option-with-alias", "alt", "alternate"])]
     public string OptionWithAlias { get; init; } = string.Empty;
 }
 

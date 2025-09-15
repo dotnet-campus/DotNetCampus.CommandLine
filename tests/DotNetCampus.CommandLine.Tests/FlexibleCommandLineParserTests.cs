@@ -896,7 +896,7 @@ internal record Flexible07_BooleanOptions
 
 internal record Flexible08_NegatedBooleanOptions
 {
-    [Option("feature", Aliases = ["no-feature"])]
+    [Option([], ["feature", "no-feature"])]
     public bool Feature { get; init; } = true;
 }
 

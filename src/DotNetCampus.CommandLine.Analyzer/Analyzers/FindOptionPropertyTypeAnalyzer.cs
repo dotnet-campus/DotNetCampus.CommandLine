@@ -17,7 +17,9 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 
     private readonly HashSet<string> _oneGenericTypeNames =
     [
-        "[]", "ImmutableArray", "List", "IList", "IReadOnlyList", "ImmutableHashSet", "Collection", "ICollection", "IReadOnlyCollection", "IEnumerable",
+        "[]",
+        "IList", "ICollection", "IEnumerable", "IReadOnlyList", "IReadOnlyCollection", "ISet", "IImmutableSet", "IImmutableList",
+        "ImmutableArray", "List", "ImmutableHashSet", "Collection", "HashSet",
     ];
 
     private readonly HashSet<string> _rawArgumentsGenericTypeNames =

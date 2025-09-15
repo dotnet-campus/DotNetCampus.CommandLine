@@ -634,7 +634,7 @@ internal record PS17_QuotedValueOptions
 
 internal record PS18_AliasOptions
 {
-    [Option("ParameterWithAlias", Aliases = ["Alias", "Alt"])]
+    [Option([], ["ParameterWithAlias", "Alias", "Alt"])]
     public string ParameterWithAlias { get; init; } = string.Empty;
 }
 
