@@ -16,6 +16,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsLongOption = true,
             SupportsShortOption = true,
             SupportsShortOptionCombination = false,
+            SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.Both,
             OptionPrefix = CommandOptionPrefix.Any,
@@ -33,6 +34,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsLongOption = true,
             SupportsShortOption = true,
             SupportsShortOptionCombination = false,
+            SupportsMultiCharShortOption = true,
             SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -50,6 +52,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsLongOption = true,
             SupportsShortOption = true,
             SupportsShortOptionCombination = true,
+            SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = true,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -67,6 +70,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsLongOption = false,
             SupportsShortOption = true,
             SupportsShortOptionCombination = false,
+            SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = false,
             NamingPolicy = CommandNamingPolicy.CamelCase,
             OptionPrefix = CommandOptionPrefix.SingleDash,
@@ -84,8 +88,9 @@ public readonly record struct CommandLineParsingOptions
             SupportsLongOption = true,
             SupportsShortOption = true,
             SupportsShortOptionCombination = false,
+            SupportsMultiCharShortOption = true,
             SupportsShortOptionValueWithoutSeparator = false,
-            NamingPolicy = CommandNamingPolicy.PascalCase,
+            NamingPolicy = CommandNamingPolicy.CamelCase,
             OptionPrefix = CommandOptionPrefix.Slash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
@@ -120,26 +125,20 @@ public readonly record struct CommandLineStyleDetails()
     public CommandNamingPolicy NamingPolicy
     {
         // [0] 表示是否额外编译时转换以支持 PascalCase/CamelCase 命名法
-        // [1] 表示原样大小写，还是编译时按命名法转小写
-        // [2] 表示是否同时支持 kebab-case 和 PascalCase/CamelCase 命名法
-        get => _booleans[0, 1, 2] switch
+        // [1] 表示视选项上定义的命名法为 kebab-case，并允许用户使用此 kebab-case 命名法输入命令
+        get => _booleans[0, 1] switch
         {
-            (true, true, false) => CommandNamingPolicy.PascalCase,
-            (true, false, false) => CommandNamingPolicy.CamelCase,
-            (false, true, false) => CommandNamingPolicy.KebabCase,
-            (false, false, false) => CommandNamingPolicy.KebabCaseLower,
-            (true, true, true) => CommandNamingPolicy.Both,
-            (true, false, true) => CommandNamingPolicy.BothLower,
-            _ => throw new InvalidOperationException("Invalid naming policy."),
+            (true, true) => CommandNamingPolicy.Both,
+            (true, false) => CommandNamingPolicy.KebabCase,
+            (false, true) => CommandNamingPolicy.CamelCase,
+            (false, false) => CommandNamingPolicy.Ordinal,
         };
-        init => _booleans[0, 1, 2] = value switch
+        init => _booleans[0, 1] = value switch
         {
-            CommandNamingPolicy.PascalCase => (true, true, false),
-            CommandNamingPolicy.CamelCase => (true, false, false),
-            CommandNamingPolicy.KebabCase => (false, true, false),
-            CommandNamingPolicy.KebabCaseLower => (false, false, false),
-            CommandNamingPolicy.Both => (true, true, true),
-            CommandNamingPolicy.BothLower => (true, false, true),
+            CommandNamingPolicy.Both => (true, true),
+            CommandNamingPolicy.KebabCase => (true, false),
+            CommandNamingPolicy.CamelCase => (false, true),
+            CommandNamingPolicy.Ordinal => (false, false),
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
         };
     }
@@ -149,15 +148,15 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public CommandOptionPrefix OptionPrefix
     {
-        // [3] 表示是否使用短横线（-）作为选项前缀
-        // [4] 表示长选项是否使用双短横线（--）
-        get => _booleans[3, 4]switch
+        // [2] 表示是否使用短横线（-）作为选项前缀
+        // [3] 表示长选项是否使用双短横线（--）
+        get => _booleans[2, 3]switch
         {
             (true, true) => CommandOptionPrefix.DoubleDash,
             (true, false) => CommandOptionPrefix.SingleDash,
             (false, _) => CommandOptionPrefix.Slash,
         };
-        init => _booleans[3, 4] = value switch
+        init => _booleans[2, 3] = value switch
         {
             CommandOptionPrefix.DoubleDash => (true, true),
             CommandOptionPrefix.SingleDash => (true, false),
@@ -171,8 +170,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool CaseSensitive
     {
-        get => _booleans[5];
-        init => _booleans[5] = value;
+        get => _booleans[4];
+        init => _booleans[4] = value;
     }
 
     /// <summary>
@@ -180,8 +179,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsLongOption
     {
-        get => _booleans[6];
-        init => _booleans[6] = value;
+        get => _booleans[5];
+        init => _booleans[5] = value;
     }
 
     /// <summary>
@@ -189,8 +188,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsShortOption
     {
-        get => _booleans[7];
-        init => _booleans[7] = value;
+        get => _booleans[6];
+        init => _booleans[6] = value;
     }
 
     /// <summary>
@@ -198,7 +197,23 @@ public readonly record struct CommandLineStyleDetails()
     /// 例如 -abc 等同于 -a -b -c。<br/>
     /// 如果为 <see langword="false"/>，则 -abc 会被视为一个名为 "abc" 的短选项。
     /// </summary>
+    /// <remarks>
+    /// 此选项与 <see cref="SupportsMultiCharShortOption"/> 互斥。
+    /// </remarks>
     public bool SupportsShortOptionCombination
+    {
+        get => _booleans[7];
+        init => _booleans[7] = value;
+    }
+
+    /// <summary>
+    /// 当支持短选项时，是否支持多字符短选项名称。<br/>
+    /// 例如 -tl 作为 --terminal-logger 的短选项。
+    /// </summary>
+    /// <remarks>
+    /// 此选项与 <see cref="SupportsShortOptionCombination"/> 互斥。
+    /// </remarks>
+    public bool SupportsMultiCharShortOption
     {
         get => _booleans[8];
         init => _booleans[8] = value;
@@ -239,40 +254,31 @@ public readonly record struct CommandLineStyleDetails()
 /// <summary>
 /// 允许用户在命令行中使用的命令和选项的命名风格。
 /// </summary>
-/// <remarks>
-/// 虽然在不区分大小写时，<see cref="PascalCase"/> 和 <see cref="CamelCase"/> 看起来是一样的，但在输出帮助文档时会以设定的为准。
-/// </remarks>
+[Flags]
 public enum CommandNamingPolicy : byte
 {
     /// <summary>
-    /// PascalCase 风格命名。
+    /// 无视明明风格，属性上定义的字符串必须与用户输入的命令或选项名称完全匹配。
     /// </summary>
-    PascalCase,
+    Ordinal = 0,
 
     /// <summary>
-    /// camelCase 风格命名。
+    /// PascalCase/camelCase 风格命名。
     /// </summary>
-    CamelCase,
+    CamelCase = 1,
 
     /// <summary>
-    /// kebab-case 风格命名，保持原样大小写。
+    /// kebab-case 风格命名。
     /// </summary>
-    KebabCase,
+    /// <remarks>
+    /// 由于我们已经约定在定义属性时，属性已经用 kebab-case 命名风格标记了名字，所以此选项实际上含义与 <see cref="Ordinal"/> 是等同的。
+    /// </remarks>
+    KebabCase = 1 << 1,
 
     /// <summary>
-    /// kebab-case 风格命名，且所有字母均为小写。
+    /// 以 kebab-case 命名风格为主，兼顾支持 PascalCase/camelCase。
     /// </summary>
-    KebabCaseLower,
-
-    /// <summary>
-    /// 以 kebab-case 命名风格为主，兼顾支持 PascalCase。
-    /// </summary>
-    Both,
-
-    /// <summary>
-    /// 以 kebab-case 命名风格为主（所有字母均为小写），兼顾支持 PascalCase 和 camelCase。
-    /// </summary>
-    BothLower,
+    Both = CamelCase | KebabCase,
 }
 
 /// <summary>

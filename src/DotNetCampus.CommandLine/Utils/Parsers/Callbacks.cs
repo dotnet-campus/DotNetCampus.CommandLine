@@ -47,7 +47,13 @@ public delegate void AssignPropertyValueCallback(string propertyName, int proper
 /// <param name="PropertyName">此选项对应的属性名称。</param>
 /// <param name="PropertyIndex">此选项对应的属性索引。</param>
 /// <param name="ValueType">此选项的值类型。</param>
-public readonly record struct OptionValueMatch(string PropertyName, int PropertyIndex, OptionValueType ValueType);
+public readonly record struct OptionValueMatch(string PropertyName, int PropertyIndex, OptionValueType ValueType)
+{
+    /// <summary>
+    /// 获取一个表示未匹配任何选项的匹配结果。
+    /// </summary>
+    public static OptionValueMatch NotMatch => new("", -1, OptionValueType.NotExist);
+}
 
 /// <summary>
 /// 源生成器匹配位置参数的匹配结果。
@@ -55,4 +61,10 @@ public readonly record struct OptionValueMatch(string PropertyName, int Property
 /// <param name="PropertyName">此选项对应的属性名称。</param>
 /// <param name="PropertyIndex">此选项对应的属性索引。</param>
 /// <param name="ValueType">此位置参数的值类型。</param>
-public readonly record struct PositionalArgumentValueMatch(string PropertyName, int PropertyIndex, PositionalArgumentValueType ValueType);
+public readonly record struct PositionalArgumentValueMatch(string PropertyName, int PropertyIndex, PositionalArgumentValueType ValueType)
+{
+    /// <summary>
+    /// 获取一个表示未匹配任何位置参数的匹配结果。
+    /// </summary>
+    public static PositionalArgumentValueMatch NotMatch => new("", -1, PositionalArgumentValueType.NotExist);
+}
