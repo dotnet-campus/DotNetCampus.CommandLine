@@ -71,7 +71,7 @@ internal static class CommandModelProvider
                 }
 
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
-                var commandNames = attribute?.ConstructorArguments[0].Value?.ToString();
+                var commandNames = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
                 var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
 
                 return new CommandObjectGeneratingModel

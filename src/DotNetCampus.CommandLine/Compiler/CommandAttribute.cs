@@ -24,7 +24,7 @@
 /// </list>
 /// </param>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
-public sealed class CommandAttribute(string? names) : CommandLineAttribute
+public sealed class CommandAttribute(string? names = null) : CommandLineAttribute
 {
     /// <summary>
     /// 获取命令行的命令，可以是单个词组的主命令（Main Command），也可以是多个词组的子命令或多级子命令（Sub Command）。
