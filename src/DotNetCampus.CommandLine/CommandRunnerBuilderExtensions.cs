@@ -179,8 +179,6 @@ public static class CommandRunnerBuilderExtensions
         where T : notnull, ICommandHandlerCollection, new()
     {
         throw new NotImplementedException();
-        return builder.GetOrCreateRunner()
-            .AddHandlers<T>();
     }
 
     /// <summary>
