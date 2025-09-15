@@ -325,6 +325,11 @@ public enum OptionValueType : byte
     Collection,
 
     /// <summary>
+    /// 字典值。会尝试解析多个键值对，直到遇到下一个选项或位置参数分隔符为止。
+    /// </summary>
+    Dictionary,
+
+    /// <summary>
     /// 用户输入的选项没有命中到任何已知的选项。
     /// </summary>
     NotExist,
