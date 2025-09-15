@@ -74,6 +74,15 @@ internal static class CommandModelProvider
                 var commandNames = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
                 var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
 
+                for (var i = 0; i < optionProperties.Length; i++)
+                {
+                    optionProperties[i].PropertyIndex = i;
+                }
+                for (var i = 0; i < valueProperties.Length; i++)
+                {
+                    valueProperties[i].PropertyIndex = i + optionProperties.Length;
+                }
+
                 return new CommandObjectGeneratingModel
                 {
                     Namespace = @namespace,
@@ -176,94 +185,73 @@ internal record OptionPropertyGeneratingModel
 
     public required bool IsValueType { get; init; }
 
-    public required char? ShortName { get; init; }
+    public required IReadOnlyList<string> ShortNames { get; init; }
 
-    public required string? LongName { get; init; }
+    public required IReadOnlyList<string> LongNames { get; init; }
 
     public required bool? CaseSensitive { get; init; }
 
-    public required bool ExactSpelling { get; init; }
+    public int PropertyIndex { get; set; } = -1;
 
-    public required ImmutableArray<string> Aliases { get; init; }
-
-    public ImmutableArray<string> GetNormalizedLongNames()
+    /// <summary>
+    /// 返回开发者定义的长选项名称列表，按定义顺序返回。<br/>
+    /// 如果没有定义，则返回 kebab-case 风格的属性名作为默认名称；
+    /// 如果有定义，无论定义了什么，都视其为 kebab-case 风格的名称。
+    /// </summary>
+    public IReadOnlyList<string> GetOrdinalLongNames()
     {
-        if (ExactSpelling)
+        List<string> list = [];
+        if (LongNames.Count is 0)
         {
-            return [LongName ?? PropertyName];
+            list.Add(NamingHelper.MakeKebabCase(PropertyName));
         }
-
-        return (CaseSensitive, LongName) switch
+        else
         {
-            // 如果没有指定长名称，那么长名称就是根据属性名推测的，这时一定自动将其转换为 kebab-case 小写风格。
-            (_, null) => [NamingHelper.MakeKebabCase(LongName ?? PropertyName, true, true)],
-
-            // 如果指定了大小写敏感，那么在转换为 kebab-case 时，不转换大小写。
-            (true, _) => [NamingHelper.MakeKebabCase(LongName, true, false)],
-
-            // 如果指定了大小写不敏感，那么在转换为 kebab-case 时，统一转换为小写。
-            (false, _) => [NamingHelper.MakeKebabCase(LongName, true, true)],
-
-            // 如果没有在属性处指定大小写敏感，那么给出两个转换的候选，延迟到运行时再决定。
-            (null, _) =>
-            [
-                ..new List<string>
-                {
-                    NamingHelper.MakeKebabCase(LongName, true, false),
-                    NamingHelper.MakeKebabCase(LongName, true, true),
-                }.Distinct(StringComparer.Ordinal),
-            ],
-        };
-    }
-
-    public string GetDisplayCommandOption()
-    {
-        var caseSensitive = CaseSensitive is true;
-
-        if (LongName is { } longName)
-        {
-            return $"--{NamingHelper.MakeKebabCase(longName, !caseSensitive, !caseSensitive)}";
-        }
-
-        if (ShortName is { } shortName)
-        {
-            return $"-{shortName}";
-        }
-
-        return $"--{NamingHelper.MakeKebabCase(PropertyName, !caseSensitive, !caseSensitive)}";
-    }
-
-    public IReadOnlyList<string> GenerateAllNames(
-        Func<string, string> shortNameCreator,
-        Func<string, string> longNameCreator,
-        Func<string, string, string> caseLongNameCreator,
-        Func<string, string> aliasCreator)
-    {
-        var list = new List<string>();
-
-        if (ShortName is { } shortName)
-        {
-            list.Add(shortNameCreator(shortName.ToString(CultureInfo.InvariantCulture)));
-        }
-
-        var longNames = GetNormalizedLongNames();
-        if (longNames.Length is 1)
-        {
-            list.Add(longNameCreator(longNames[0]));
-        }
-        else if (longNames.Length is 2)
-        {
-            list.Add(caseLongNameCreator(longNames[0], longNames[1]));
-        }
-
-        if (Aliases is { Length: > 0 } aliases)
-        {
-            foreach (var alias in aliases)
+            foreach (var longName in LongNames)
             {
-                list.Add(aliasCreator(alias));
+                if (!string.IsNullOrEmpty(longName) && !list.Contains(longName, StringComparer.Ordinal))
+                {
+                    list.Add(longName);
+                }
             }
         }
+        return list;
+    }
 
+    public IReadOnlyList<string> GetPascalCaseLongNames()
+    {
+        List<string> list = [];
+        if (LongNames.Count is 0)
+        {
+            list.Add(PropertyName);
+        }
+        else
+        {
+            foreach (var longName in LongNames)
+            {
+                if (!string.IsNullOrEmpty(longName))
+                {
+                    var pascalCase = NamingHelper.MakePascalCase(longName);
+                    if (!list.Contains(pascalCase, StringComparer.Ordinal))
+                    {
+                        list.Add(pascalCase);
+                    }
+                }
+            }
+        }
+        return list;
+    }
+
+    public IReadOnlyList<string> GetShortNames()
+    {
+        List<string> list = [];
+        foreach (var shortName in ShortNames)
+        {
+            if (!string.IsNullOrEmpty(shortName) && !list.Contains(shortName, StringComparer.Ordinal))
+            {
+                list.Add(shortName);
+            }
+        }
         return list;
     }
 
@@ -275,18 +263,90 @@ internal record OptionPropertyGeneratingModel
             return null;
         }
 
-        var longName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_String).Value?.ToString();
-        var shortName = optionAttribute.ConstructorArguments.FirstOrDefault(x => x.Type?.SpecialType is SpecialType.System_Char).Value?.ToString();
-        var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
-        var exactSpelling = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.ExactSpelling)).Value.Value is true;
-        var aliases = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.Aliases)).Value switch
+        if (optionAttribute.ConstructorArguments.Length is 0)
         {
-            { Kind: TypedConstantKind.Array } typedConstant => typedConstant.Values.Select(a => a.Value?.ToString())
-                .Where(a => !string.IsNullOrEmpty(a))
-                .OfType<string>()
-                .ToImmutableArray(),
-            _ => [],
-        };
+            // 必须至少有一个构造函数参数。
+            return null;
+        }
+
+        List<string> shortNames = [];
+        List<string> longNames = [];
+
+        if (optionAttribute.ConstructorArguments.Length is 1)
+        {
+            // 只有一个构造函数参数时，要么是短名称（一定是字符），要么是长名称（一定是字符串）。
+            var arg = optionAttribute.ConstructorArguments[0];
+            if (arg.Type?.SpecialType is SpecialType.System_Char)
+            {
+                var shortName = arg.Value?.ToString();
+                if (!string.IsNullOrEmpty(shortName))
+                {
+                    shortNames.Add(shortName!);
+                }
+            }
+            else if (arg.Type?.SpecialType is SpecialType.System_String)
+            {
+                var longName = arg.Value?.ToString();
+                if (!string.IsNullOrEmpty(longName))
+                {
+                    longNames.Add(longName!);
+                }
+            }
+        }
+        else if (optionAttribute.ConstructorArguments.Length is 2)
+        {
+            // 有两个构造函数参数时，第一个参数是短名称（字符、字符串、字符串数组），第二个参数是长名称（字符串、字符串数组）。
+            var shortArg = optionAttribute.ConstructorArguments[0];
+            if (shortArg.Type?.SpecialType is SpecialType.System_Char)
+            {
+                var shortName = shortArg.Value?.ToString();
+                if (!string.IsNullOrEmpty(shortName))
+                {
+                    shortNames.Add(shortName!);
+                }
+            }
+            else if (shortArg.Type?.SpecialType is SpecialType.System_String)
+            {
+                var shortName = shortArg.Value?.ToString();
+                if (!string.IsNullOrEmpty(shortName))
+                {
+                    shortNames.Add(shortName!);
+                }
+            }
+            else if (shortArg.Kind is TypedConstantKind.Array)
+            {
+                foreach (var value in shortArg.Values)
+                {
+                    var shortName = value.Value?.ToString();
+                    if (!string.IsNullOrEmpty(shortName) && !shortNames.Contains(shortName, StringComparer.Ordinal))
+                    {
+                        shortNames.Add(shortName!);
+                    }
+                }
+            }
+            var longArg = optionAttribute.ConstructorArguments[1];
+            if (longArg.Type?.SpecialType is SpecialType.System_String)
+            {
+                var longName = longArg.Value?.ToString();
+                if (!string.IsNullOrEmpty(longName))
+                {
+                    longNames.Add(longName!);
+                }
+            }
+            else if (longArg.Kind is TypedConstantKind.Array)
+            {
+                foreach (var value in longArg.Values)
+                {
+                    var longName = value.Value?.ToString();
+                    if (!string.IsNullOrEmpty(longName) && !longNames.Contains(longName, StringComparer.Ordinal))
+                    {
+                        longNames.Add(longName!);
+                    }
+                }
+            }
+        }
+
+        var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
 
         return new OptionPropertyGeneratingModel
         {
@@ -296,11 +356,9 @@ internal record OptionPropertyGeneratingModel
             IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
             IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
             IsValueType = propertySymbol.Type.IsValueType,
-            ShortName = shortName?.Length == 1 ? shortName[0] : null,
-            LongName = longName,
+            ShortNames = shortNames,
+            LongNames = longNames,
             CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
-            ExactSpelling = exactSpelling,
-            Aliases = aliases,
         };
     }
 }
@@ -322,6 +380,8 @@ internal record ValuePropertyGeneratingModel
     public required int? Index { get; init; }
 
     public required int? Length { get; init; }
+
+    public int PropertyIndex { get; set; } = -1;
 
     public static ValuePropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
     {
@@ -389,6 +449,99 @@ internal record AssemblyCommandsGeneratingModel
     public required string Namespace { get; init; }
 
     public required INamedTypeSymbol AssemblyCommandHandlerType { get; init; }
+}
+
+internal static class CommandModelExtensions
+{
+    public static CommandPropertyType AsCommandPropertyType(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.SpecialType is SpecialType.System_Boolean)
+        {
+            return CommandPropertyType.Boolean;
+        }
+
+        if (typeSymbol.SpecialType is SpecialType.System_Byte or
+            SpecialType.System_SByte or
+            SpecialType.System_Int16 or
+            SpecialType.System_UInt16 or
+            SpecialType.System_Int32 or
+            SpecialType.System_UInt32 or
+            SpecialType.System_Int64 or
+            SpecialType.System_UInt64 or
+            SpecialType.System_Single or
+            SpecialType.System_Double or
+            SpecialType.System_Decimal)
+        {
+            return CommandPropertyType.Number;
+        }
+
+        if (typeSymbol.TypeKind is TypeKind.Enum)
+        {
+            return CommandPropertyType.Enum;
+        }
+
+        if (typeSymbol.SpecialType is SpecialType.System_String)
+        {
+            return CommandPropertyType.String;
+        }
+
+        if (typeSymbol is INamedTypeSymbol
+            {
+                IsGenericType: true, TypeArguments:
+                [
+                    { SpecialType: SpecialType.System_String },
+                ],
+            } namedTypeSymbol)
+        {
+            var genericTypeName = namedTypeSymbol.ConstructUnboundGenericType().ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            if (genericTypeName
+                is "System.Collections.Generic.IList<>"
+                or "System.Collections.Generic.IReadOnlyList<>"
+                or "System.Collections.Generic.ICollection<>"
+                or "System.Collections.Generic.IReadOnlyCollection<>"
+                or "System.Collections.Generic.IEnumerable<>"
+                or "System.Collections.Immutable.ImmutableArray<>"
+                or "System.Collections.Immutable.ImmutableHashSet<>"
+                or "System.Collections.ObjectModel.Collection<>"
+                or "System.Collections.Generic.List<>")
+            {
+                return CommandPropertyType.List;
+            }
+        }
+
+        if (typeSymbol is INamedTypeSymbol
+            {
+                IsGenericType: true, TypeArguments:
+                [
+                    { SpecialType: SpecialType.System_String },
+                    { SpecialType: SpecialType.System_String },
+                ],
+            } namedTypeSymbol2)
+        {
+            var genericTypeName = namedTypeSymbol2.ConstructUnboundGenericType().ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            if (genericTypeName
+                is "System.Collections.Generic.IDictionary<,>"
+                or "System.Collections.Generic.IReadOnlyDictionary<,>"
+                or "System.Collections.Immutable.ImmutableDictionary<,>"
+                or "System.Collections.Generic.Dictionary<,>"
+                or "System.Collections.Generic.KeyValuePair<,>")
+            {
+                return CommandPropertyType.Dictionary;
+            }
+        }
+
+        return CommandPropertyType.String;
+    }
+}
+
+internal enum CommandPropertyType
+{
+    Boolean,
+    Number,
+    Enum,
+    String,
+    List,
+    Dictionary,
 }
 
 file static class Extensions

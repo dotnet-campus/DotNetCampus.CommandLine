@@ -261,7 +261,7 @@ public struct StringListArgument
 /// <summary>
 /// 专门解析来自命令行的字典类型，并辅助赋值给属性。
 /// </summary>
-public struct DictionaryArgument
+public struct StringDictionaryArgument
 {
     /// <summary>
     /// 存储解析到的字符串字典。

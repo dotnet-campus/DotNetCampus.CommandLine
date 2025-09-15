@@ -72,7 +72,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = false,
-            NamingPolicy = CommandNamingPolicy.CamelCase,
+            NamingPolicy = CommandNamingPolicy.PascalCase,
             OptionPrefix = CommandOptionPrefix.SingleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
@@ -90,7 +90,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = true,
             SupportsShortOptionValueWithoutSeparator = false,
-            NamingPolicy = CommandNamingPolicy.CamelCase,
+            NamingPolicy = CommandNamingPolicy.PascalCase,
             OptionPrefix = CommandOptionPrefix.Slash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
@@ -130,14 +130,14 @@ public readonly record struct CommandLineStyleDetails()
         {
             (true, true) => CommandNamingPolicy.Both,
             (true, false) => CommandNamingPolicy.KebabCase,
-            (false, true) => CommandNamingPolicy.CamelCase,
+            (false, true) => CommandNamingPolicy.PascalCase,
             (false, false) => CommandNamingPolicy.Ordinal,
         };
         init => _booleans[0, 1] = value switch
         {
             CommandNamingPolicy.Both => (true, true),
             CommandNamingPolicy.KebabCase => (true, false),
-            CommandNamingPolicy.CamelCase => (false, true),
+            CommandNamingPolicy.PascalCase => (false, true),
             CommandNamingPolicy.Ordinal => (false, false),
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
         };
@@ -265,7 +265,7 @@ public enum CommandNamingPolicy : byte
     /// <summary>
     /// PascalCase/camelCase 风格命名。
     /// </summary>
-    CamelCase = 1,
+    PascalCase = 1,
 
     /// <summary>
     /// kebab-case 风格命名。
@@ -278,7 +278,7 @@ public enum CommandNamingPolicy : byte
     /// <summary>
     /// 以 kebab-case 命名风格为主，兼顾支持 PascalCase/camelCase。
     /// </summary>
-    Both = CamelCase | KebabCase,
+    Both = PascalCase | KebabCase,
 }
 
 /// <summary>
@@ -328,7 +328,7 @@ public enum OptionValueType : byte
     /// <summary>
     /// 集合值。会尝试解析多个参数，直到遇到下一个选项或位置参数分隔符为止。
     /// </summary>
-    Collection,
+    List,
 
     /// <summary>
     /// 字典值。会尝试解析多个键值对，直到遇到下一个选项或位置参数分隔符为止。

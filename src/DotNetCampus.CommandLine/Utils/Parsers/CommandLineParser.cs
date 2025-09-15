@@ -131,7 +131,7 @@ public readonly ref struct CommandLineParser
                 case Cat.OptionValue:
                 {
                     AssignOptionValue(currentOption, value);
-                    if (currentOption.ValueType is not OptionValueType.Collection)
+                    if (currentOption.ValueType is not OptionValueType.List)
                     {
                         // 如果不是集合，那么此选项已经结束。
                         // 清空上一个选项，避免误用。
@@ -226,7 +226,7 @@ public readonly ref struct CommandLineParser
 
     private void AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
     {
-        if (match.ValueType is OptionValueType.Collection)
+        if (match.ValueType is OptionValueType.List)
         {
             Span<char> separators = stackalloc char[4];
             Style.CollectionValueSeparators.CopyTo(separators, out var length);
@@ -407,7 +407,7 @@ internal ref struct CommandArgumentPart
                 // 如果是布尔选项，则后面只能跟布尔值，否则只能是新的选项或位置参数。
                 OptionValueType.Boolean => ParseBooleanOptionValueOrNewOptionOrPositionalArgument(),
                 // 如果是集合选项，则后面可以跟多个值，直到遇到新的选项或位置参数分隔符为止。
-                OptionValueType.Collection or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                OptionValueType.List or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
                 // 如果是普通选项，则后面只能是选项值。
                 _ => ParseOptionValue(_argument.AsSpan()),
             }),

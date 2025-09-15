@@ -29,11 +29,11 @@ public static class CommandLineParsingExtensions
     /// </summary>
     /// <param name="namingPolicy">命名风格。</param>
     /// <returns>如果支持 PascalCase/camelCase 命名法，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
-    public static bool SupportsCamelCase(this CommandNamingPolicy namingPolicy)
+    public static bool SupportsPascalCase(this CommandNamingPolicy namingPolicy)
     {
         return namingPolicy switch
         {
-            CommandNamingPolicy.CamelCase => true,
+            CommandNamingPolicy.PascalCase => true,
             CommandNamingPolicy.Both => true,
             _ => false,
         };

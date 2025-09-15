@@ -43,69 +43,105 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// </summary>
     public OptionAttribute()
     {
+        ShortNames = [];
+        LongNames = [];
     }
 
     /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称。
+    /// 标记一个属性为命令行选项，并具有指定的短名称。
     /// </summary>
     /// <param name="shortName">选项的短名称。必须是单个字符。</param>
     public OptionAttribute(char shortName)
     {
-        if (!char.IsLetter(shortName))
-        {
-            throw new ArgumentException($"选项的短名称必须是字母字符，但实际为 '{shortName}'。", nameof(shortName));
-        }
-
-        ShortName = shortName;
+        ShortNames = [shortName.ToString()];
+        LongNames = [];
     }
 
     /// <summary>
     /// 标记一个属性为命令行选项，并具有指定的长名称。
     /// </summary>
-    /// <param name="longName">
-    /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
-    /// </param>
+    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
     public OptionAttribute(string longName)
     {
-        LongName = longName;
+        ShortNames = [];
+        LongNames = [longName];
     }
 
     /// <summary>
     /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
     /// </summary>
     /// <param name="shortName">选项的短名称。必须是单个字符。</param>
-    /// <param name="longName">
-    /// 选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。
-    /// </param>
+    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
     public OptionAttribute(char shortName, string longName)
     {
-        if (!char.IsLetter(shortName))
-        {
-            throw new ArgumentException($"选项的短名称必须是字母字符，但实际为 '{shortName}'。", nameof(shortName));
-        }
+        ShortNames = [shortName.ToString()];
+        LongNames = [longName];
+    }
 
-        LongName = longName;
-        ShortName = shortName;
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortName">选项的短名称。必须是单个字符。</param>
+    /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    public OptionAttribute(char shortName, string[] longNames)
+    {
+        ShortNames = [shortName.ToString()];
+        LongNames = longNames;
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortName">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
+    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    public OptionAttribute(string shortName, string longName)
+    {
+        ShortNames = [shortName];
+        LongNames = [longName];
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortName">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
+    /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    public OptionAttribute(string shortName, string[] longNames)
+    {
+        ShortNames = [shortName];
+        LongNames = longNames;
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortNames">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
+    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    public OptionAttribute(string[] shortNames, string longName)
+    {
+        ShortNames = shortNames;
+        LongNames = [longName];
+    }
+
+    /// <summary>
+    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// </summary>
+    /// <param name="shortNames">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
+    /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    public OptionAttribute(string[] shortNames, string[] longNames)
+    {
+        ShortNames = shortNames;
+        LongNames = longNames;
     }
 
     /// <summary>
     /// 获取或初始化选项的短名称。
     /// </summary>
-    public char ShortName { get; } = '\0';
+    public string[] ShortNames { get; }
 
     /// <summary>
     /// 获取选项的长名称。
     /// </summary>
-    public string? LongName { get; }
-
-    /// <summary>
-    /// 获取或设置选项的别名。
-    /// </summary>
-    /// <remarks>
-    /// 可以指定短名称（如 `v`）或长名称（如 `verbose`）。单个字符的别名会被视为短名称。<br/>
-    /// 如果指定区分大小写，但期望允许部分单词使用多种大小写，则应该在别名中指定多个大小写形式。如将 `verbose` 的别名指定为 `verbose Verbose VERBOSE`。
-    /// </remarks>
-    public string[] Aliases { get; init; } = [];
+    public string[] LongNames { get; }
 
     /// <summary>
     /// 获取或设置是否大小写敏感。
@@ -114,21 +150,4 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性（而 <see cref="CommandLine"/> 默认为大小写不敏感）。
     /// </remarks>
     public bool CaseSensitive { get; init; }
-
-    /// <summary>
-    /// 命令行参数中传入的选项名称必须严格保持与此属性中指定的长名称一致。
-    /// </summary>
-    /// <remarks>
-    /// 默认情况下，我们会为了支持多种不同的命令行风格而自动识别选项的长名称，例如：
-    /// <list type="bullet">
-    /// <item>属性名 SampleProperty 可匹配：--Sample-Property --sample-property -SampleProperty</item>
-    /// <item>属性名 sample-property 可匹配：--Sample-Property --sample-property -SampleProperty</item>
-    /// </list>
-    /// 但设置了此属性为 <see langword="true"/> 后，命令行中传入的选项名称必须完全一致：
-    /// <list type="bullet">
-    /// <item>属性名 SampleProperty 可匹配：--SampleProperty --sampleproperty -SampleProperty</item>
-    /// <item>属性名 sample-property 可匹配：--Sample-Property --sample-property -Sample-Property</item>
-    /// </list>
-    /// </remarks>
-    public bool ExactSpelling { get; init; }
 }
