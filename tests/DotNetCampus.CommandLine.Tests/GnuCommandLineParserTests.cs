@@ -276,7 +276,7 @@ public class GnuCommandLineParserTests
     {
         // Arrange
         string[] args = ["--files", "\"file with spaces.txt\"", "--files", "normal.txt", "--files", "\"another file.txt\""];
-        string[]? files = null;        // Act
+        string[]? files = null; // Act
         CommandLine.Parse(args, GNU)
             .AddHandler<GNU14_QuotedArrayOptions>(o =>
             {
@@ -296,7 +296,7 @@ public class GnuCommandLineParserTests
     {
         // Arrange
         string[] args = ["--paths=\"path with spaces\",regular-path,\"another path\""];
-        string[]? paths = null;        // Act
+        string[]? paths = null; // Act
         CommandLine.Parse(args, GNU)
             .AddHandler<GNU14_QuotedArrayOptions>(o =>
             {
@@ -369,7 +369,7 @@ public class GnuCommandLineParserTests
         string? upperValue = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = true } })
             .AddHandler<GNU10_CaseSensitiveOptions>(o =>
             {
                 lowerValue = o.CaseSensitive;
@@ -390,7 +390,7 @@ public class GnuCommandLineParserTests
         string? value = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = false })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = false } })
             .AddHandler<GNU11_CaseInsensitiveOptions>(o => value = o.IgnoreCase)
             .Run();
 
@@ -429,7 +429,7 @@ public class GnuCommandLineParserTests
         string? option2Value = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = true } })
             .AddHandler<GNU24_OverrideCaseOptions>(o =>
             {
                 option1Value = o.OptionOne;
@@ -450,7 +450,7 @@ public class GnuCommandLineParserTests
         string? globalSensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = true } })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 globalSensitiveValue = o.GlobalSensitive;
@@ -469,7 +469,7 @@ public class GnuCommandLineParserTests
         string? localSensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = true } })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 localSensitiveValue = o.LocalSensitive;
@@ -488,7 +488,7 @@ public class GnuCommandLineParserTests
         string? localInsensitiveValue = null;
 
         // Act
-        CommandLine.Parse(args, GNU with { CaseSensitive = true })
+        CommandLine.Parse(args, GNU with { Style = GNU.Style with { CaseSensitive = true } })
             .AddHandler<GNU25_ComplexCaseOptions>(o =>
             {
                 localInsensitiveValue = o.LocalInsensitive;

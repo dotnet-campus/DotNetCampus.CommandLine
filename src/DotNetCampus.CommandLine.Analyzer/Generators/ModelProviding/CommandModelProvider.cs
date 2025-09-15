@@ -156,10 +156,10 @@ internal record CommandObjectGeneratingModel
 
     public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentPropertiesExcludingSameNameOptions()
     {
-        var optionNames = OptionProperties.Select(x => x.Type.Name).ToList();
+        var optionNames = OptionProperties.Select(x => x.PropertyName).ToList();
         foreach (var positionalArgumentProperty in PositionalArgumentProperties)
         {
-            if (!optionNames.Contains(positionalArgumentProperty.Type.Name, StringComparer.Ordinal))
+            if (!optionNames.Contains(positionalArgumentProperty.PropertyName, StringComparer.Ordinal))
             {
                 yield return positionalArgumentProperty;
             }
@@ -297,16 +297,14 @@ internal record OptionPropertyGeneratingModel : PropertyGeneratingModel
             return null;
         }
 
-        if (optionAttribute.ConstructorArguments.Length is 0)
-        {
-            // 必须至少有一个构造函数参数。
-            return null;
-        }
-
         List<string> shortNames = [];
         List<string> longNames = [];
 
-        if (optionAttribute.ConstructorArguments.Length is 1)
+        if (optionAttribute.ConstructorArguments.Length is 0)
+        {
+            // 没有构造函数参数时，不设置任何名称。
+        }
+        else if (optionAttribute.ConstructorArguments.Length is 1)
         {
             // 只有一个构造函数参数时，要么是短名称（一定是字符），要么是长名称（一定是字符串）。
             var arg = optionAttribute.ConstructorArguments[0];
@@ -474,10 +472,58 @@ internal static class CommandModelExtensions
         kindOptions: SymbolDisplayKindOptions.None
     );
 
-    public static string ToCommandTargetMethodName(this ITypeSymbol type)
+    private static readonly SymbolDisplayFormat NotNullDisplayFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        kindOptions: SymbolDisplayKindOptions.None,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
+
+    public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
     {
+        string typeName;
+
+        if (symbol is { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
+        {
+            typeName = typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
+                // 获取 Nullable<T> 中的 T。
+                ? namedType.TypeArguments[0].ToDisplayString()
+                // 处理直接带有可空标记的类型 (int? 这种形式)。
+                : typeSymbol.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString();
+        }
+        else
+        {
+            typeName = symbol.ToDisplayString();
+        }
+
+        return $"__GeneratedEnumArgument__{typeName.Replace('.', '_')}__";
+    }
+
+    public static string ToOptionValueTypeName(this CommandPropertyType type) => type switch
+    {
+        CommandPropertyType.Boolean => "global::DotNetCampus.Cli.OptionValueType.Boolean",
+        CommandPropertyType.List => "global::DotNetCampus.Cli.OptionValueType.List",
+        CommandPropertyType.Dictionary => "global::DotNetCampus.Cli.OptionValueType.Dictionary",
+        _ => "global::DotNetCampus.Cli.OptionValueType.Normal",
+    };
+
+    public static string ToCommandTargetMethodName(this ITypeSymbol typeSymbol)
+    {
+        if (typeSymbol.Kind is SymbolKind.ArrayType)
+        {
+            return "Array";
+        }
+
+        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
+        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
+        {
+            // Nullable<T> 类型
+            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
+            return ToCommandTargetMethodName(genericType);
+        }
+
         // 取出类型的 .NET 类名称，不含泛型。如 bool 返回 Boolean，Dictionary<string, string> 返回 Dictionary。
-        return type.ToDisplayString(ToTargetTypeFormat) switch
+        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
         {
             "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
                 or "IImmutableSet" or "IImmutableList" => "List",
@@ -508,11 +554,6 @@ internal static class CommandModelExtensions
             return CommandPropertyType.Number;
         }
 
-        if (typeSymbol.SpecialType is SpecialType.System_Array)
-        {
-            return CommandPropertyType.List;
-        }
-
         if (typeSymbol.TypeKind is TypeKind.Enum)
         {
             return CommandPropertyType.Enum;
@@ -523,14 +564,27 @@ internal static class CommandModelExtensions
             return CommandPropertyType.String;
         }
 
+        if (typeSymbol.Kind is SymbolKind.ArrayType)
+        {
+            return CommandPropertyType.List;
+        }
+
+        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
+        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
+        {
+            // Nullable<T> 类型
+            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
+            return AsCommandPropertyType(genericType);
+        }
+
         return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
         {
             "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
                 or "IImmutableSet" or "IImmutableList" => CommandPropertyType.List,
             "ImmutableArray" or "List" or "ImmutableHashSet" or "Collection" or "HashSet" => CommandPropertyType.List,
             "IDictionary" or "IReadOnlyDictionary" => CommandPropertyType.Dictionary,
-            "ImmutableDictionary" or "Dictionary" => CommandPropertyType.Dictionary,
-            _ => CommandPropertyType.String,
+            "ImmutableDictionary" or "Dictionary" or "KeyValuePair" => CommandPropertyType.Dictionary,
+            _ => CommandPropertyType.Unknown,
         };
     }
 }
@@ -543,6 +597,7 @@ internal enum CommandPropertyType
     String,
     List,
     Dictionary,
+    Unknown,
 }
 
 file static class Extensions

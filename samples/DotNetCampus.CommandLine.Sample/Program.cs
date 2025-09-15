@@ -107,10 +107,6 @@ class Program
         {
             Run4xInterceptor(args);
         }
-        else if (args[0] == "4.x-module")
-        {
-            Run4xModule(args);
-        }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -129,52 +125,6 @@ class Program
     private static void Run4xInterceptor(string[] args)
     {
         _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Run4xModule(string[] args)
-    {
-        Initialize();
-        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void Initialize()
-    {
-        // DefaultOptions { CommandName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
-            null,
-            global::DotNetCampus.Cli.DefaultOptionsBuilder.CreateInstance);
-
-        // EditOptions { CommandName = "Edit" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
-            "Edit",
-            global::DotNetCampus.Cli.Tests.Fakes.EditOptionsBuilder.CreateInstance);
-
-        // Options { CommandName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
-            null,
-            global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
-
-        // PrintOptions { CommandName = "Print" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
-            "Print",
-            global::DotNetCampus.Cli.Tests.Fakes.PrintOptionsBuilder.CreateInstance);
-
-        // SampleCommandHandler { CommandName = "sample" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleCommandHandler>(
-            "sample",
-            global::DotNetCampus.Cli.SampleCommandHandlerBuilder.CreateInstance);
-
-        // SampleOptions { CommandName = "sample-options" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
-            "sample-options",
-            global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
-
-        // ShareOptions { CommandName = "Share" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
-            "Share",
-            global::DotNetCampus.Cli.Tests.Fakes.ShareOptionsBuilder.CreateInstance);
     }
 }
 
