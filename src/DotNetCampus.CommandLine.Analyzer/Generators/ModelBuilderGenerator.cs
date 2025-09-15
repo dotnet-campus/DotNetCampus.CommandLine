@@ -31,7 +31,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .AddTypeDeclaration($"{modifier} sealed class {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)", t => t
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToGlobalDisplayString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
                 .AddRawMembers(model.OptionProperties.Select(GenerateOptionPropertyCode))
-                .AddRawMembers(model.PositionalArgumentProperties.Select(GenerateOptionPropertyCode))
+                .AddRawMembers(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateOptionPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)",
@@ -53,7 +53,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     m => m
                         .BeginBracketScope("switch (propertyIndex)", l => l
                             .AddRawStatements(model.OptionProperties.Select(GenerateAssignPropertyValueCode))
-                            .AddRawStatements(model.PositionalArgumentProperties.Select(GenerateAssignPropertyValueCode))))
+                            .AddRawStatements(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateAssignPropertyValueCode))))
                 .AddMethodDeclaration(
                     $"private {model.CommandObjectType.ToUsingString()} BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => m

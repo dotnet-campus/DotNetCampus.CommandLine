@@ -154,6 +154,18 @@ internal record CommandObjectGeneratingModel
         { } names => names.Count(x => x == ' ') + 1,
     };
 
+    public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentPropertiesExcludingSameNameOptions()
+    {
+        var optionNames = OptionProperties.Select(x => x.Type.Name).ToList();
+        foreach (var positionalArgumentProperty in PositionalArgumentProperties)
+        {
+            if (!optionNames.Contains(positionalArgumentProperty.Type.Name, StringComparer.Ordinal))
+            {
+                yield return positionalArgumentProperty;
+            }
+        }
+    }
+
     public string? GetKebabCaseCommandNames()
     {
         if (CommandNames is not { } commandNames)
