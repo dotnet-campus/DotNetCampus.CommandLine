@@ -18,10 +18,12 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = false,
+            SupportsSpaceSeparatedOptionValue = true,
+            SupportsSpaceSeparatedCollectionValues = true,
             NamingPolicy = CommandNamingPolicy.Both,
             OptionPrefix = CommandOptionPrefix.Any,
-            OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
-            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
+            OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
+            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
@@ -36,10 +38,12 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = true,
             SupportsShortOptionValueWithoutSeparator = false,
+            SupportsSpaceSeparatedOptionValue = true,
+            SupportsSpaceSeparatedCollectionValues = true,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
-            OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
-            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
+            OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
+            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
@@ -54,10 +58,12 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = true,
             SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = true,
+            SupportsSpaceSeparatedOptionValue = true,
+            SupportsSpaceSeparatedCollectionValues = false,
             NamingPolicy = CommandNamingPolicy.KebabCase,
             OptionPrefix = CommandOptionPrefix.DoubleDash,
-            OptionValueSeparators = CommandSeparatorChars.Create('=', ' '),
-            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
+            OptionValueSeparators = CommandSeparatorChars.Create('='),
+            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
@@ -72,9 +78,11 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = false,
             SupportsShortOptionValueWithoutSeparator = false,
+            SupportsSpaceSeparatedOptionValue = true,
+            SupportsSpaceSeparatedCollectionValues = true,
             NamingPolicy = CommandNamingPolicy.PascalCase,
             OptionPrefix = CommandOptionPrefix.SingleDash,
-            OptionValueSeparators = CommandSeparatorChars.Create(' '),
+            OptionValueSeparators = CommandSeparatorChars.Create(),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
@@ -90,10 +98,12 @@ public readonly record struct CommandLineParsingOptions
             SupportsShortOptionCombination = false,
             SupportsMultiCharShortOption = true,
             SupportsShortOptionValueWithoutSeparator = false,
+            SupportsSpaceSeparatedOptionValue = true,
+            SupportsSpaceSeparatedCollectionValues = true,
             NamingPolicy = CommandNamingPolicy.PascalCase,
             OptionPrefix = CommandOptionPrefix.Slash,
-            OptionValueSeparators = CommandSeparatorChars.Create(':', '=', ' '),
-            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';', ' '),
+            OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
+            CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
@@ -279,6 +289,28 @@ public readonly record struct CommandLineStyleDetails()
     {
         get => _booleans[9];
         init => _booleans[9] = value;
+    }
+
+    /// <summary>
+    /// 是否支持使用空格分隔选项名和选项值。<br/>
+    /// 例如 --option value 等同于 --option=value。<br/>
+    /// 如果为 <see langword="false"/>，则 --option value 会被视为 --option 选项，value 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsSpaceSeparatedOptionValue
+    {
+        get => _booleans[10];
+        init => _booleans[10] = value;
+    }
+
+    /// <summary>
+    /// 当选项值为集合类型时，是否支持使用空格分隔多个选项值。<br/>
+    /// 例如 --option value1 value2 等同于 --option value1,value2。<br/>
+    /// 如果为 <see langword="false"/>，则 --option value1 value2 会被视为 --option 的值为 "value1"，而 "value2" 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsSpaceSeparatedCollectionValues
+    {
+        get => _booleans[11];
+        init => _booleans[11] = value;
     }
 
     /// <summary>

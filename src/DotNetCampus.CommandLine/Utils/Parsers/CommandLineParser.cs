@@ -33,6 +33,8 @@ public readonly ref struct CommandLineParser
         SupportsShortOptionCombination = Style.SupportsShortOptionCombination;
         SupportsMultiCharShortOption = Style.SupportsMultiCharShortOption;
         SupportsShortOptionValueWithoutSeparator = Style.SupportsShortOptionValueWithoutSeparator;
+        SupportsSpaceSeparatedOptionValue = Style.SupportsSpaceSeparatedOptionValue;
+        SupportsSpaceSeparatedCollectionValues = Style.SupportsSpaceSeparatedCollectionValues;
     }
 
     /// <summary>
@@ -57,6 +59,12 @@ public readonly ref struct CommandLineParser
 
     /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOptionValueWithoutSeparator"/>
     internal bool SupportsShortOptionValueWithoutSeparator { get; }
+
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedOptionValue"/>
+    internal bool SupportsSpaceSeparatedOptionValue { get; }
+
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedCollectionValues"/>
+    internal bool SupportsSpaceSeparatedCollectionValues { get; }
 
     /// <summary>
     /// 要求源生成器匹配长名称，返回此长选项的值类型。
@@ -245,6 +253,12 @@ public readonly ref struct CommandLineParser
         return result;
     }
 
+    /// <summary>
+    /// 配合源生成器生成的匹配结果，将选项值赋值给指定索引处的属性。
+    /// </summary>
+    /// <param name="match">源生成器生成的匹配结果。</param>
+    /// <param name="value">选项值。</param>
+    /// <returns>命令行参数解析结果。</returns>
     private CommandLineParsingResult AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
     {
         var result = CommandLineParsingResult.Success;
