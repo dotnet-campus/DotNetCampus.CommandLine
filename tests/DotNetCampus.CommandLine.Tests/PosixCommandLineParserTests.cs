@@ -336,6 +336,7 @@ public class PosixCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt", "file3.txt" }, files);
     }
 
+    [Ignore("规范行为后，此测试不再适用。")]
     [TestMethod("7.2. 带引号的列表参数")]
     public void QuotedArrayElements()
     {

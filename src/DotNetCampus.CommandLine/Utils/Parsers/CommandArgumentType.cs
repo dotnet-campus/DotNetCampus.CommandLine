@@ -58,12 +58,15 @@ internal enum CommandArgumentType
     /// <summary>
     /// 多个短选项。-abc
     /// </summary>
+    /// <remarks>
+    /// 存在以下三种情况：
+    /// <list type="number">
+    /// <item>-abc 表示 -a -b -c 三个布尔短选项。</item>
+    /// <item>-abc 表示 -a 选项的值为 bc。</item
+    /// <item>-abc 表示一个名为 abc 的多字符短选项。</item>
+    /// </list>
+    /// </remarks>
     MultiShortOptions,
-
-    /// <summary>
-    /// 不确定是多个短选项，还是一个无分隔符的带值短选项。-a1.txt
-    /// </summary>
-    MultiShortOptionsOrShortOptionConcatWithValue,
 
     /// <summary>
     /// 选项值。value

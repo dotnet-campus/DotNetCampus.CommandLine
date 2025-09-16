@@ -192,48 +192,51 @@ public readonly ref struct CommandLineParser
                 }
                 case Cat.MultiShortOptions:
                 {
-                    // 如果支持多字符短选项，则优先作为多字符短选项处理。
-                    if (SupportsMultiCharShortOption)
-                    {
-                        var m = optionName.Name;
-                        var optionMatch = MatchShortOption(m, _caseSensitive);
-                        if (optionMatch.ValueType is not OptionValueType.NotExist)
-                        {
-                            // 是一个多字符短选项。
-                            result = AssignOptionValue(optionMatch, []).Combine(result);
-                            break;
-                        }
-                    }
-                    // 随后，尝试逐个处理多个短选项。
-                    for (var i = 0; i < optionName.Name.Length; i++)
-                    {
-                        var n = optionName.Name[i..(i + 1)];
-                        var optionMatch = MatchShortOption(n, _caseSensitive);
-                        if (optionMatch.ValueType is OptionValueType.NotExist)
-                        {
-                            // 如果选项不存在，则报告错误。
-                            return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n);
-                        }
-                        result = AssignOptionValue(optionMatch, []).Combine(result);
-                    }
-                    break;
-                }
-                case Cat.MultiShortOptionsOrShortOptionConcatWithValue:
-                {
                     var name = optionName.Name;
-                    // 如果支持多字符短选项，则优先作为多字符短选项处理。
                     if (SupportsMultiCharShortOption)
                     {
+                        // 如果支持多字符短选项，则优先作为多字符短选项处理。
                         var optionMatch = MatchShortOption(name, _caseSensitive);
                         if (optionMatch.ValueType is not OptionValueType.NotExist)
                         {
                             // 是一个多字符短选项。
                             result = AssignOptionValue(optionMatch, []).Combine(result);
-                            break;
+                        }
+                        break;
+                    }
+                    var allCombined = SupportsShortOptionCombination;
+                    if (SupportsShortOptionCombination)
+                    {
+                        // 如果不支持，则尝试逐个处理多个短选项。
+                        for (var i = 0; i < optionName.Name.Length; i++)
+                        {
+                            var n = optionName.Name[i..(i + 1)];
+                            var optionMatch = MatchShortOption(n, _caseSensitive);
+                            if (optionMatch.ValueType is OptionValueType.NotExist)
+                            {
+                                // 如果选项不存在，则报告错误。
+                                return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n);
+                            }
+                            if (optionMatch.ValueType is OptionValueType.Boolean)
+                            {
+                                AssignOptionValue(optionMatch, []);
+                            }
+                            else
+                            {
+                                // 只有布尔选项才允许组合。
+                                allCombined = false;
+                                break;
+                            }
                         }
                     }
-                    // 随后，尝试解析为单个字符无分隔符带值的短选项。
+                    if (allCombined)
                     {
+                        // 短选项组合已处理完所有字符。
+                        break;
+                    }
+                    if (SupportsShortOptionValueWithoutSeparator)
+                    {
+                        // 随后，尝试解析为单个字符无分隔符带值的短选项。
                         var o = name[..1];
                         var v = name[1..];
                         var optionMatch = MatchShortOption(o, _caseSensitive);
@@ -243,8 +246,10 @@ public readonly ref struct CommandLineParser
                             return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, o);
                         }
                         result = AssignOptionValue(optionMatch, v).Combine(result);
+                        break;
                     }
-                    break;
+                    // 能进到这里，说明短选项的上述三种情况都不满足，应该报告错误。
+                    return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name);
                 }
                 // 其他状态要么已经处理过了，要不还未处理，要么不需要处理，所以不需要做任何事情。
             }
@@ -638,37 +643,10 @@ internal ref struct CommandArgumentPart
             return true;
         }
 
-        // 对于不带值的短选项，存在以下三种情况：
-        // 1. -abc 表示 -a -b -c 三个布尔短选项。
-        // 2. -abc 表示 -a 选项的值为 bc。
-        // 3. -abc 表示一个名为 abc 的多字符短选项。
-        // 目前不存在任何一种命令行风格同时支持上述三种情况，所以我们可以消除一些不确定性。
-        var supportsCombination = _parser.SupportsShortOptionCombination;
-        var supportsNoSeparator = _parser.SupportsShortOptionValueWithoutSeparator;
-        switch (supportsCombination, supportsNoSeparator)
-        {
-            // 支持短选项组合，也支持无分隔符带值的短选项。（上述 1 和 2，从实际考虑消除了 3）
-            case (true, true):
-                Type = Cat.MultiShortOptionsOrShortOptionConcatWithValue;
-                Option = new OptionName(false, argument);
-                return true;
-            case (true, false):
-                // 支持短选项组合，不支持无分隔符带值的短选项。（上述 1 和 3）
-                Type = Cat.MultiShortOptions;
-                Option = new OptionName(false, argument);
-                return true;
-            case (false, true):
-                // 不支持短选项组合，但支持无分隔符带值的短选项。（上述 2，从实际考虑消除了 3）
-                Type = Cat.ShortOptionWithValue;
-                Option = new OptionName(false, argument[..1]);
-                Value = argument[1..];
-                return true;
-            case (false, false):
-                // 既不支持短选项组合，也不支持无分隔符带值的短选项。（上述 3）
-                Type = Cat.ShortOption;
-                Option = new OptionName(false, argument);
-                return true;
-        }
+        // 直接返回，延迟处理。
+        Type = Cat.MultiShortOptions;
+        Option = new OptionName(false, argument);
+        return true;
     }
 
     private bool ParseLongShortOptionOrLongShortOptionWithValue(ReadOnlySpan<char> argument)
