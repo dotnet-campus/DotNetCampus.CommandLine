@@ -89,6 +89,7 @@ public readonly ref struct CommandLineParser
     /// <returns>命令行参数解析结果。</returns>
     public CommandLineParsingResult Parse()
     {
+        var result = CommandLineParsingResult.Success;
         var arguments = _commandLine.CommandLineArguments;
         var currentOption = OptionValueMatch.NotMatch;
         var currentPositionArgumentIndex = 0;
@@ -123,14 +124,19 @@ public readonly ref struct CommandLineParser
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                    }
+                    if (optionMatch.ValueType is OptionValueType.Boolean)
+                    {
+                        // 布尔选项必须立即赋值，因为后面是不一定需要跟值的。
+                        result = AssignOptionValue(optionMatch, []).Combine(result);
                     }
                     currentOption = optionMatch;
                     break;
                 }
                 case Cat.OptionValue:
                 {
-                    AssignOptionValue(currentOption, value);
+                    result = AssignOptionValue(currentOption, value).Combine(result);
                     if (currentOption.ValueType is not OptionValueType.List)
                     {
                         // 如果不是集合，那么此选项已经结束。
@@ -166,15 +172,15 @@ public readonly ref struct CommandLineParser
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName.Name);
                     }
-                    AssignOptionValue(optionMatch, value);
+                    result = AssignOptionValue(optionMatch, value).Combine(result);
                     break;
                 }
                 case Cat.ErrorOption:
                 {
                     // 如果当前参数疑似选项但解析失败，则报告错误。
-                    return CommandLineParsingResult.OptionParseError(_commandLine, index);
+                    return CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index);
                 }
                 case Cat.MultiShortOptions:
                 {
@@ -186,7 +192,7 @@ public readonly ref struct CommandLineParser
                         if (optionMatch.ValueType is not OptionValueType.NotExist)
                         {
                             // 是一个多字符短选项。
-                            AssignOptionValue(optionMatch, []);
+                            result = AssignOptionValue(optionMatch, []).Combine(result);
                             break;
                         }
                     }
@@ -198,9 +204,9 @@ public readonly ref struct CommandLineParser
                         if (optionMatch.ValueType is OptionValueType.NotExist)
                         {
                             // 如果选项不存在，则报告错误。
-                            return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, n);
+                            return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n);
                         }
-                        AssignOptionValue(optionMatch, []);
+                        result = AssignOptionValue(optionMatch, []).Combine(result);
                     }
                     break;
                 }
@@ -214,7 +220,7 @@ public readonly ref struct CommandLineParser
                         if (optionMatch.ValueType is not OptionValueType.NotExist)
                         {
                             // 是一个多字符短选项。
-                            AssignOptionValue(optionMatch, []);
+                            result = AssignOptionValue(optionMatch, []).Combine(result);
                             break;
                         }
                     }
@@ -226,9 +232,9 @@ public readonly ref struct CommandLineParser
                         if (optionMatch.ValueType is OptionValueType.NotExist)
                         {
                             // 如果选项不存在，则报告错误。
-                            return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, o);
+                            return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, o);
                         }
-                        AssignOptionValue(optionMatch, v);
+                        result = AssignOptionValue(optionMatch, v).Combine(result);
                     }
                     break;
                 }
@@ -236,11 +242,12 @@ public readonly ref struct CommandLineParser
             }
         }
 
-        return CommandLineParsingResult.Success;
+        return result;
     }
 
-    private void AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
+    private CommandLineParsingResult AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
     {
+        var result = CommandLineParsingResult.Success;
         if (match.ValueType is OptionValueType.List)
         {
             Span<char> separators = stackalloc char[4];
@@ -279,25 +286,44 @@ public readonly ref struct CommandLineParser
                 if (index < 0)
                 {
                     // 剩余部分没有分隔符，全部作为一个值。
-                    SplitKeyValue(value[start..], out var k, out var v);
+                    result = SplitKeyValue(value[start..], out var k, out var v).Combine(result);
                     AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
                     break;
                 }
                 if (index > 0)
                 {
                     // 截取分隔符前的部分作为一个值。
-                    SplitKeyValue(value.Slice(start, index), out var k, out var v);
+                    result = SplitKeyValue(value.Slice(start, index), out var k, out var v).Combine(result);
                     AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
                 }
                 // 跳过分隔符，继续处理后续部分。
                 start += index + 1;
             }
         }
+        else if (match.ValueType is OptionValueType.Boolean)
+        {
+            var booleanValue = ParseBoolean(value);
+            if (booleanValue is null)
+            {
+                result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result);
+            }
+            ReadOnlySpan<char> finalValue = booleanValue switch
+            {
+                // 用户输入明确指定为 true。
+                true => ['1'],
+                // 用户输入明确指定为 false。
+                false => ['0'],
+                // 无法识别。
+                _ => ['0'],
+            };
+            AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], finalValue);
+        }
         else
         {
             // 普通值。
             AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
         }
+        return result;
     }
 
     private void AssignPositionalArgumentValue(PositionalArgumentValueMatch match, ReadOnlySpan<char> value)
@@ -305,7 +331,7 @@ public readonly ref struct CommandLineParser
         AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
     }
 
-    private static void SplitKeyValue(ReadOnlySpan<char> item,
+    private CommandLineParsingResult SplitKeyValue(ReadOnlySpan<char> item,
         out ReadOnlySpan<char> key, out ReadOnlySpan<char> value)
     {
         // 截至目前，所有的字典类型都使用 key=value 形式，如果将来新增的风格有其他符号，我们再用一样的分隔符方式来配置。
@@ -314,10 +340,33 @@ public readonly ref struct CommandLineParser
         {
             key = item;
             value = [];
-            return;
+            return CommandLineParsingResult.DictionaryValueParseError(_commandLine, item);
         }
         key = item[..index];
         value = item[(index + 1)..];
+        return CommandLineParsingResult.Success;
+    }
+
+    internal static bool? ParseBoolean(ReadOnlySpan<char> value)
+    {
+        if (value.Length <= 4 && (
+                value.Equals("true".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("yes".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("on".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("1".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Length is 0))
+        {
+            return true;
+        }
+        if (value.Length is > 0 and <= 5 && (
+                value.Equals("false".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("no".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("off".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+                value.Equals("0".AsSpan(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+        return null;
     }
 }
 
@@ -633,22 +682,14 @@ internal ref struct CommandArgumentPart
     private bool ParseBooleanOptionValueOrNewOptionOrPositionalArgument()
     {
         var argument = _argument;
-        if (argument.Length <= 4 && (
-                argument.Equals("true", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("yes", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("on", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("1", StringComparison.OrdinalIgnoreCase) ||
-                argument is ""))
+        var booleanValue = CommandLineParser.ParseBoolean(argument.AsSpan());
+        if (booleanValue is true)
         {
             Type = Cat.OptionValue;
             Value = "1".AsSpan();
             return true;
         }
-        if (argument.Length is > 0 and <= 5 && (
-                argument.Equals("false", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("no", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("off", StringComparison.OrdinalIgnoreCase) ||
-                argument.Equals("0", StringComparison.OrdinalIgnoreCase)))
+        if (booleanValue is false)
         {
             Type = Cat.OptionValue;
             Value = "0".AsSpan();

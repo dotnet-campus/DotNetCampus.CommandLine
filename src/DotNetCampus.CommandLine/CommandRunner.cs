@@ -93,7 +93,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 var isAdded = _factories.TryAdd(ordinal, factory);
                 if (!isAdded)
                 {
-                    throw new InvalidOperationException($"The command '{ordinal}' is already registered.");
+                    throw new CommandNameAmbiguityException($"The command '{ordinal}' is already registered.", ordinal);
                 }
             }
             else
@@ -101,21 +101,21 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 // 不包含命令名称，表示这是默认命令。
                 if (_defaultFactory is not null)
                 {
-                    throw new InvalidOperationException("The default command handler is already registered.");
+                    throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
                 }
                 _defaultFactory = factory;
             }
         }
         if (_supportsPascalCase)
         {
-            if (command.PascalCase is { } ordinal && !string.IsNullOrWhiteSpace(ordinal))
+            if (command.PascalCase is { } pascal && !string.IsNullOrWhiteSpace(pascal))
             {
                 // 包含命令名称。
-                var isAdded = _factories.TryAdd(ordinal, factory);
+                var isAdded = _factories.TryAdd(pascal, factory);
                 if (!isAdded && !_supportsOrdinal)
                 {
                     // 转换的名称，之后在仅用转换名称时才需要抛出异常；否则很可能前面已经添加了一个相同的名称。
-                    throw new InvalidOperationException($"The command '{ordinal}' is already registered.");
+                    throw new CommandNameAmbiguityException($"The command '{pascal}' is already registered.", pascal);
                 }
             }
             else
@@ -124,7 +124,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 if (_defaultFactory is not null && !_supportsOrdinal)
                 {
                     // 如果支持双命名法，则允许前面已经注册了一个默认命令。
-                    throw new InvalidOperationException("The default command handler is already registered.");
+                    throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
                 }
                 _defaultFactory = factory;
             }

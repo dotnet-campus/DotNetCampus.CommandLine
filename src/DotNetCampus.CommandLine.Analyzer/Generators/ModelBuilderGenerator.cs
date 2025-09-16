@@ -89,7 +89,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             MatchPositionalArguments = MatchPositionalArguments,
             AssignPropertyValue = AssignPropertyValue,
         };
-        parser.Parse();
+        parser.Parse().ThrowIfError();
         return BuildCore(commandLine);
     }
     """;
@@ -211,7 +211,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         var assign = model.Type.AsCommandValueKind() switch
         {
-            CommandValueKind.Boolean => $"{model.PropertyName} = {model.PropertyName}.Assign(value[0] == '1');",
+            CommandValueKind.Boolean => $"{model.PropertyName} = {model.PropertyName}.Assign(value);",
             CommandValueKind.List => $"{model.PropertyName} = {model.PropertyName}.Append(value);",
             CommandValueKind.Dictionary => $"{model.PropertyName} = {model.PropertyName}.Append(key, value);",
             _ => $"{model.PropertyName} = {model.PropertyName}.Assign(value);",

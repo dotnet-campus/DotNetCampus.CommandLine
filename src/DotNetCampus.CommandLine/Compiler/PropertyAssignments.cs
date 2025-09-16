@@ -2,12 +2,14 @@
 using System.Collections.Immutable;
 #endif
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 专门解析来自命令行的布尔类型，并辅助赋值给属性。
 /// </summary>
+[DebuggerDisplay("Boolean: {Value,nq}")]
 public readonly record struct BooleanArgument
 {
     /// <summary>
@@ -19,9 +21,18 @@ public readonly record struct BooleanArgument
     /// 当命令行直接或间接输入了一个布尔参数时，调用此方法赋值。
     /// </summary>
     /// <param name="value">解析到的布尔值。</param>
-    public BooleanArgument Assign(bool value)
+    public BooleanArgument Assign(ReadOnlySpan<char> value)
     {
-        return new BooleanArgument { Value = value };
+        return value switch
+        {
+            // 因为解析器已经保证了布尔参数只可能出现以下三种值：
+            // - []:  表示 true
+            // - ['1', ..]: 表示 true
+            // - ['0', ..]: 表示 false
+            [] => new BooleanArgument { Value = true },
+            ['1', ..] => new BooleanArgument { Value = true },
+            _ => new BooleanArgument { Value = false },
+        };
     }
 
     /// <summary>
@@ -36,6 +47,7 @@ public readonly record struct BooleanArgument
 /// <summary>
 /// 专门解析来自命令行的数值类型，并辅助赋值给属性。
 /// </summary>
+[DebuggerDisplay("Number: {Value,nq}")]
 public readonly record struct NumberArgument
 {
     /// <summary>
@@ -138,6 +150,7 @@ public readonly record struct NumberArgument
 /// <summary>
 /// 专门解析来自命令行的字符串类型，并辅助赋值给属性。
 /// </summary>
+[DebuggerDisplay("String: {Value,nq}")]
 public readonly record struct StringArgument
 {
     /// <summary>
@@ -183,6 +196,7 @@ public readonly record struct StringArgument
 /// <summary>
 /// 专门解析来自命令行的字符串集合类型，并辅助赋值给属性。
 /// </summary>
+[DebuggerDisplay("String: {Value,nq}")]
 public readonly record struct StringListArgument
 {
     /// <summary>
@@ -264,6 +278,7 @@ public readonly record struct StringListArgument
 /// <summary>
 /// 专门解析来自命令行的字典类型，并辅助赋值给属性。
 /// </summary>
+[DebuggerDisplay("String: {Value,nq}")]
 public readonly record struct StringDictionaryArgument
 {
     /// <summary>
