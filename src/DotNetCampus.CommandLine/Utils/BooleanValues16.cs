@@ -1,3 +1,5 @@
+using System.Diagnostics.Contracts;
+
 namespace DotNetCampus.Cli.Utils;
 
 /// <summary>
@@ -70,4 +72,11 @@ internal struct BooleanValues16()
             _value = (ushort)((_value & ~(7 << index)) | (bits << index));
         }
     }
+
+    /// <summary>
+    /// 获取用于存储布尔值的魔术数字。
+    /// </summary>
+    /// <returns>魔术数字。</returns>
+    [Pure]
+    internal ushort GetMagicNumber() => _value;
 }

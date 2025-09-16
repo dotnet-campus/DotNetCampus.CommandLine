@@ -272,7 +272,7 @@ public readonly ref struct CommandLineParser
         var result = CommandLineParsingResult.Success;
         if (match.ValueType is OptionValueType.List)
         {
-            Span<char> separators = stackalloc char[4];
+            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
             Style.CollectionValueSeparators.CopyTo(separators, out var length);
             separators = separators[..length];
 
@@ -297,7 +297,7 @@ public readonly ref struct CommandLineParser
         }
         else if (match.ValueType is OptionValueType.Dictionary)
         {
-            Span<char> separators = stackalloc char[4];
+            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
             Style.CollectionValueSeparators.CopyTo(separators, out var length);
             separators = separators[..length];
 
@@ -541,7 +541,7 @@ internal ref struct CommandArgumentPart
         if (argument.Length is 1)
         {
             // 单个字符，确定一下是否是选项分隔符，如果是则要报错。
-            Span<char> separators = stackalloc char[4];
+            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
             _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
             separators = separators[..length];
             if (argument.IndexOfAny(separators) >= 0)
@@ -591,7 +591,7 @@ internal ref struct CommandArgumentPart
 
     private bool ParseLongOptionOrLongOptionWithValue(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[4];
+        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
         _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
         separators = separators[..length];
 
@@ -618,7 +618,7 @@ internal ref struct CommandArgumentPart
 
     private bool ParseShortOptionOrMultiShortOptions(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[4];
+        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
         _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
         separators = separators[..length];
 
@@ -659,7 +659,7 @@ internal ref struct CommandArgumentPart
 
     private bool ParseLongShortOptionOrLongShortOptionWithValue(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[4];
+        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
         _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
         separators = separators[..length];
 

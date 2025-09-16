@@ -1,3 +1,4 @@
+using System.Diagnostics.Contracts;
 using DotNetCampus.Cli.Utils;
 
 namespace DotNetCampus.Cli;
@@ -10,108 +11,139 @@ public readonly record struct CommandLineParsingOptions
     /// <inheritdoc cref="CommandLineStyle.Flexible" />
     public static CommandLineParsingOptions Flexible => new CommandLineParsingOptions
     {
-        Style = new CommandLineStyleDetails
+        Style = new CommandLineStyleDetails(FlexibleMagic)
         {
-            CaseSensitive = false,
-            SupportsLongOption = true,
-            SupportsShortOption = true,
-            SupportsShortOptionCombination = false,
-            SupportsMultiCharShortOption = false,
-            SupportsShortOptionValueWithoutSeparator = false,
-            SupportsSpaceSeparatedOptionValue = true,
-            SupportsSpaceSeparatedCollectionValues = true,
-            NamingPolicy = CommandNamingPolicy.Both,
-            OptionPrefix = CommandOptionPrefix.Any,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
+    };
+
+    private static CommandLineStyleDetails FlexibleDefinition => new CommandLineStyleDetails
+    {
+        CaseSensitive = false,
+        SupportsLongOption = true,
+        SupportsShortOption = true,
+        SupportsShortOptionCombination = false,
+        SupportsMultiCharShortOption = false,
+        SupportsShortOptionValueWithoutSeparator = false,
+        SupportsSpaceSeparatedOptionValue = true,
+        SupportsSpaceSeparatedCollectionValues = true,
+        NamingPolicy = CommandNamingPolicy.Both,
+        OptionPrefix = CommandOptionPrefix.Any,
     };
 
     /// <inheritdoc cref="CommandLineStyle.DotNet" />
     public static CommandLineParsingOptions DotNet => new CommandLineParsingOptions
     {
-        Style = new CommandLineStyleDetails
+        Style = new CommandLineStyleDetails(DotNetMagic)
         {
-            CaseSensitive = true,
-            SupportsLongOption = true,
-            SupportsShortOption = true,
-            SupportsShortOptionCombination = false,
-            SupportsMultiCharShortOption = true,
-            SupportsShortOptionValueWithoutSeparator = false,
-            SupportsSpaceSeparatedOptionValue = true,
-            SupportsSpaceSeparatedCollectionValues = true,
-            NamingPolicy = CommandNamingPolicy.KebabCase,
-            OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
+    };
+
+    private static CommandLineStyleDetails DotNetDefinition => new CommandLineStyleDetails
+    {
+        CaseSensitive = true,
+        SupportsLongOption = true,
+        SupportsShortOption = true,
+        SupportsShortOptionCombination = false,
+        SupportsMultiCharShortOption = true,
+        SupportsShortOptionValueWithoutSeparator = false,
+        SupportsSpaceSeparatedOptionValue = true,
+        SupportsSpaceSeparatedCollectionValues = true,
+        NamingPolicy = CommandNamingPolicy.KebabCase,
+        OptionPrefix = CommandOptionPrefix.DoubleDash,
     };
 
     /// <inheritdoc cref="CommandLineStyle.Gnu" />
     public static CommandLineParsingOptions Gnu => new CommandLineParsingOptions
     {
-        Style = new CommandLineStyleDetails
+        Style = new CommandLineStyleDetails(GnuMagic)
         {
-            CaseSensitive = true,
-            SupportsLongOption = true,
-            SupportsShortOption = true,
-            SupportsShortOptionCombination = true,
-            SupportsMultiCharShortOption = false,
-            SupportsShortOptionValueWithoutSeparator = true,
-            SupportsSpaceSeparatedOptionValue = true,
-            SupportsSpaceSeparatedCollectionValues = false,
-            NamingPolicy = CommandNamingPolicy.KebabCase,
-            OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create('='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
+    private static CommandLineStyleDetails GnuDefinition => new CommandLineStyleDetails
+    {
+        CaseSensitive = true,
+        SupportsLongOption = true,
+        SupportsShortOption = true,
+        SupportsShortOptionCombination = true,
+        SupportsMultiCharShortOption = false,
+        SupportsShortOptionValueWithoutSeparator = true,
+        SupportsSpaceSeparatedOptionValue = true,
+        SupportsSpaceSeparatedCollectionValues = false,
+        NamingPolicy = CommandNamingPolicy.KebabCase,
+        OptionPrefix = CommandOptionPrefix.DoubleDash,
+    };
+
     /// <inheritdoc cref="CommandLineStyle.Posix" />
     public static CommandLineParsingOptions Posix => new CommandLineParsingOptions
     {
-        Style = new CommandLineStyleDetails
+        Style = new CommandLineStyleDetails(PosixMagic)
         {
-            CaseSensitive = true,
-            SupportsLongOption = false,
-            SupportsShortOption = true,
-            SupportsShortOptionCombination = true,
-            SupportsMultiCharShortOption = false,
-            SupportsShortOptionValueWithoutSeparator = false,
-            SupportsSpaceSeparatedOptionValue = true,
-            SupportsSpaceSeparatedCollectionValues = true,
-            NamingPolicy = CommandNamingPolicy.PascalCase,
-            // Posix 不支持长选项，使用 DoubleDash 的含义是 '-' 一定表示短选项。
-            OptionPrefix = CommandOptionPrefix.DoubleDash,
             OptionValueSeparators = CommandSeparatorChars.Create(),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
+    private static CommandLineStyleDetails PosixDefinition => new CommandLineStyleDetails
+    {
+        CaseSensitive = true,
+        SupportsLongOption = false,
+        SupportsShortOption = true,
+        SupportsShortOptionCombination = true,
+        SupportsMultiCharShortOption = false,
+        SupportsShortOptionValueWithoutSeparator = false,
+        SupportsSpaceSeparatedOptionValue = true,
+        SupportsSpaceSeparatedCollectionValues = true,
+        NamingPolicy = CommandNamingPolicy.PascalCase,
+        // Posix 不支持长选项，使用 DoubleDash 的含义是 '-' 一定表示短选项。
+        OptionPrefix = CommandOptionPrefix.DoubleDash,
+    };
+
+
     /// <inheritdoc cref="CommandLineStyle.PowerShell" />
     public static CommandLineParsingOptions PowerShell => new CommandLineParsingOptions
     {
-        Style = new CommandLineStyleDetails
+        Style = new CommandLineStyleDetails(PowerShellMagic)
         {
-            CaseSensitive = false,
-            SupportsLongOption = true,
-            SupportsShortOption = true,
-            SupportsShortOptionCombination = false,
-            SupportsMultiCharShortOption = true,
-            SupportsShortOptionValueWithoutSeparator = false,
-            SupportsSpaceSeparatedOptionValue = true,
-            SupportsSpaceSeparatedCollectionValues = true,
-            NamingPolicy = CommandNamingPolicy.PascalCase,
-            OptionPrefix = CommandOptionPrefix.SlashOrDash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
     };
 
+    /// <inheritdoc cref="CommandLineStyle.PowerShell" />
+    private static CommandLineStyleDetails PowerShellDefinition => new CommandLineStyleDetails
+    {
+        CaseSensitive = false,
+        SupportsLongOption = true,
+        SupportsShortOption = true,
+        SupportsShortOptionCombination = false,
+        SupportsMultiCharShortOption = true,
+        SupportsShortOptionValueWithoutSeparator = false,
+        SupportsSpaceSeparatedOptionValue = true,
+        SupportsSpaceSeparatedCollectionValues = true,
+        NamingPolicy = CommandNamingPolicy.PascalCase,
+        OptionPrefix = CommandOptionPrefix.SlashOrDash,
+    };
+
     /// <summary>
     /// 内部使用。当发现命令行参数只有一个，且符合 URL 格式时，无论用户设置了哪种命令行风格，都会使用此风格进行解析。
     /// </summary>
-    internal static CommandLineStyleDetails UrlStyle => new CommandLineStyleDetails
+    public static CommandLineStyleDetails UrlStyle => new CommandLineStyleDetails(UrlMagic)
+    {
+        OptionValueSeparators = CommandSeparatorChars.Create('='),
+        CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
+    };
+
+    /// <summary>
+    /// 内部使用。当发现命令行参数只有一个，且符合 URL 格式时，无论用户设置了哪种命令行风格，都会使用此风格进行解析。
+    /// </summary>
+    private static CommandLineStyleDetails UrlDefinition => new CommandLineStyleDetails
     {
         CaseSensitive = false,
         SupportsLongOption = true,
@@ -123,8 +155,6 @@ public readonly record struct CommandLineParsingOptions
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
-        OptionValueSeparators = CommandSeparatorChars.Create('='),
-        CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
     };
 
     /// <summary>
@@ -179,6 +209,54 @@ public readonly record struct CommandLineParsingOptions
     /// </code>
     /// </remarks>
     public IReadOnlyList<string>? SchemeNames { get; init; }
+
+    private const ushort FlexibleMagic = 0x18C7;
+    private const ushort DotNetMagic = 0x1AE1;
+    private const ushort GnuMagic = 0xDE1;
+    private const ushort PosixMagic = 0x19A2;
+    private const ushort PowerShellMagic = 0x1ADA;
+    private const ushort UrlMagic = 0x0043;
+
+#if DEBUG
+
+    /// <summary>
+    /// 在单元测试里调用，以验证各种预定义的命令行风格没有被意外修改。
+    /// </summary>
+    public static void VerifyMagicNumbers()
+    {
+        var flexibleMagic = FlexibleDefinition.GetMagicNumber();
+        var dotNetMagic = DotNetDefinition.GetMagicNumber();
+        var gnuMagic = GnuDefinition.GetMagicNumber();
+        var posixMagic = PosixDefinition.GetMagicNumber();
+        var powerShellMagic = PowerShellDefinition.GetMagicNumber();
+        var urlMagic = UrlDefinition.GetMagicNumber();
+        if (flexibleMagic != FlexibleMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of Flexible is 0x{flexibleMagic:X4}.");
+        }
+        if (dotNetMagic != DotNetMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of DotNet is 0x{dotNetMagic:X4}.");
+        }
+        if (gnuMagic != GnuMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of Gnu is 0x{gnuMagic:X4}.");
+        }
+        if (posixMagic != PosixMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of Posix is 0x{posixMagic:X4}.");
+        }
+        if (powerShellMagic != PowerShellMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of PowerShell is 0x{powerShellMagic:X4}.");
+        }
+        if (urlMagic != UrlMagic)
+        {
+            throw new InvalidOperationException($"The new magic number of UrlStyle is 0x{urlMagic:X4}.");
+        }
+    }
+
+#endif
 }
 
 /// <summary>
@@ -351,6 +429,13 @@ public readonly record struct CommandLineStyleDetails()
     /// 如 ',', ';', ' ' 分别对应: --option value1,value2, --option value1;value2, --option value1 value2。
     /// </summary>
     public CommandSeparatorChars CollectionValueSeparators { get; init; }
+
+    /// <summary>
+    /// 获取用于存储样式细节的魔术数字。
+    /// </summary>
+    /// <returns>魔术数字。</returns>
+    [Pure]
+    internal ushort GetMagicNumber() => _booleans.GetMagicNumber();
 }
 
 /// <summary>

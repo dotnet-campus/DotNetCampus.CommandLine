@@ -4,8 +4,7 @@ using System.Runtime.CompilerServices;
 namespace DotNetCampus.Cli;
 
 /// <summary>
-/// 允许用户在命令行中使用的分隔符字符集合。<br/>
-/// 用节省空间的方式存储不小于长度 4 的多个字符。
+/// 允许用户在命令行中使用的分隔符字符集合。最多只能支持 <see cref="CommandSeparatorChars"/> 个字符。
 /// </summary>
 #if NET8_0_OR_GREATER
 [CollectionBuilder(typeof(CommandSeparatorChars), nameof(Create))]
@@ -13,13 +12,18 @@ namespace DotNetCampus.Cli;
 public readonly record struct CommandSeparatorChars : IEnumerable<char>
 {
     /// <summary>
-    /// 最多支持 4 个分隔符字符。
+    /// 分隔符字符集合中允许的最大字符数量。
     /// </summary>
-    private readonly uint _chars;
+    internal const int MaxSupportedCount = 2;
 
-    private CommandSeparatorChars(uint packedChars)
+    private readonly char _char0;
+
+    private readonly char _char1;
+
+    private CommandSeparatorChars(char char0, char char1)
     {
-        _chars = packedChars;
+        _char0 = char0;
+        _char1 = char1;
     }
 
     /// <summary>
@@ -28,19 +32,20 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <returns>分隔符字符集合。</returns>
     public void CopyTo(Span<char> buffer, out int length)
     {
-        length = 0;
-        var packed = _chars;
-        while (packed != 0)
+        if (_char0 is '\0')
         {
-            var c = (char)(packed & 0xFF);
-            if (length < buffer.Length)
-            {
-                buffer[length] = c;
-            }
-
-            length++;
-            packed >>= 8;
+            length = 0;
+            return;
         }
+        if (_char1 is '\0')
+        {
+            buffer[0] = _char0;
+            length = 1;
+            return;
+        }
+        buffer[0] = _char0;
+        buffer[1] = _char1;
+        length = 2;
     }
 
     /// <summary>
@@ -49,44 +54,31 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <returns>一个可用于遍历 <see cref="CommandSeparatorChars"/> 中字符的枚举器。</returns>
     public IEnumerator<char> GetEnumerator()
     {
-        var packed = _chars;
-        while (packed != 0)
+        if (_char0 is not '\0')
         {
-            var c = (char)(packed & 0xFF);
-            yield return c;
-            packed >>= 8;
+            yield return _char0;
+        }
+        if (_char1 is not '\0')
+        {
+            yield return _char1;
         }
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <summary>
-    /// 从长度不大于 4 的字符（ASCII）集合创建一个新的 <see cref="CommandSeparatorChars"/> 实例。
+    /// 从长度不大于 <see cref="CommandSeparatorChars"/> 的字符（ASCII）集合创建一个新的 <see cref="CommandSeparatorChars"/> 实例。
     /// </summary>
     /// <param name="chars">分隔符字符集合。</param>
     /// <returns>新的 <see cref="CommandSeparatorChars"/> 实例。</returns>
-    /// <exception cref="ArgumentOutOfRangeException">如果 <paramref name="chars"/> 长度大于 4。</exception>
+    /// <exception cref="ArgumentOutOfRangeException">如果 <paramref name="chars"/> 长度大于 <see cref="CommandSeparatorChars"/>。</exception>
     /// <exception cref="ArgumentException">如果 <paramref name="chars"/> 中包含 null 字符。</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static CommandSeparatorChars Create(params ReadOnlySpan<char> chars)
+    public static CommandSeparatorChars Create(params ReadOnlySpan<char> chars) => chars.Length switch
     {
-        if (chars.Length > 4)
-        {
-            throw new ArgumentOutOfRangeException(nameof(chars), "最多只能指定 4 个分隔符字符。");
-        }
-
-        uint packed = 0;
-        for (var i = chars.Length - 1; i >= 0; i--)
-        {
-            var c = chars[i];
-            if (c == 0)
-            {
-                throw new ArgumentException("不支持 null 字符作为分隔符。", nameof(chars));
-            }
-
-            packed = (packed << 8) | c;
-        }
-
-        return new CommandSeparatorChars(packed);
-    }
+        0 => new CommandSeparatorChars('\0', '\0'),
+        1 => new CommandSeparatorChars(chars[0], '\0'),
+        2 => new CommandSeparatorChars(chars[0], chars[1]),
+        _ => throw new ArgumentOutOfRangeException(nameof(chars), $"The length of chars cannot be greater than {MaxSupportedCount}."),
+    };
 }
