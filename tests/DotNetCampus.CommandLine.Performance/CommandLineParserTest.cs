@@ -12,7 +12,7 @@ using static DotNetCampus.Cli.CommandLineParsingOptions;
 
 namespace DotNetCampus.Cli.Performance;
 
-// [DryJob] // 取消注释以验证测试能否运行。
+// [DryJob]
 [MemoryDiagnoser]
 [BenchmarkCategory("CommandLine.Parse")]
 public class CommandLineParserTest
@@ -66,31 +66,59 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [PS1] --flexible")]
-    public void Parse_PowerShell_Flexible()
+    [Benchmark(Description = "parse  [NET] --flexible")]
+    public void Parse_DotNet_Flexible()
     {
-        var commandLine = CommandLine.Parse(WindowsStyleArgs, Flexible);
+        var commandLine = CommandLine.Parse(DotNetStyleArgs, Flexible);
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [PS1] --dotnet")]
+    [Benchmark(Description = "parse  [NET] --dotnet")]
+    public void Parse_DotNet_PowerShell()
+    {
+        var commandLine = CommandLine.Parse(DotNetStyleArgs, DotNet);
+        commandLine.As<Options>();
+    }
+
+    [Benchmark(Description = "parse  [NET] -v=3.x -p=parser")]
+    public void Parse_DotNet_3x_Parser()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(DotNetStyleArgs);
+        commandLine.As(new OptionsParser());
+    }
+
+    [Benchmark(Description = "parse  [NET] -v=3.x -p=runtime")]
+    public void Parse_DotNet_3x_Runtime()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(DotNetStyleArgs);
+        commandLine.As<Options>();
+    }
+
+    [Benchmark(Description = "parse  [PS1] --flexible")]
+    public void Parse_PowerShell_Flexible()
+    {
+        var commandLine = CommandLine.Parse(PowerShellStyleArgs, Flexible);
+        commandLine.As<Options>();
+    }
+
+    [Benchmark(Description = "parse  [PS1] --powershell")]
     public void Parse_PowerShell_PowerShell()
     {
-        var commandLine = CommandLine.Parse(WindowsStyleArgs, DotNet);
+        var commandLine = CommandLine.Parse(PowerShellStyleArgs, PowerShell);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "parse  [PS1] -v=3.x -p=parser")]
     public void Parse_PowerShell_3x_Parser()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(WindowsStyleArgs);
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(PowerShellStyleArgs);
         commandLine.As(new OptionsParser());
     }
 
     [Benchmark(Description = "parse  [PS1] -v=3.x -p=runtime")]
     public void Parse_PowerShell_3x_Runtime()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(WindowsStyleArgs);
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(PowerShellStyleArgs);
         commandLine.As<Options>();
     }
 
@@ -101,10 +129,10 @@ public class CommandLineParserTest
         commandLine.As<Options>();
     }
 
-    [Benchmark(Description = "parse  [CMD] --dotnet")]
+    [Benchmark(Description = "parse  [CMD] --powershell")]
     public void Parse_Cmd_PowerShell()
     {
-        var commandLine = CommandLine.Parse(CmdStyleArgs, DotNet);
+        var commandLine = CommandLine.Parse(CmdStyleArgs, PowerShell);
         commandLine.As<Options>();
     }
 
@@ -125,33 +153,42 @@ public class CommandLineParserTest
     [Benchmark(Description = "parse  [GNU] --flexible")]
     public void Parse_Gnu_Flexible()
     {
-        var commandLine = CommandLine.Parse(LinuxStyleArgs, Flexible);
+        var commandLine = CommandLine.Parse(GnuStyleArgs, Flexible);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "parse  [GNU] --gnu")]
     public void Parse_Gnu_Gnu()
     {
-        var commandLine = CommandLine.Parse(LinuxStyleArgs, Gnu);
+        var commandLine = CommandLine.Parse(GnuStyleArgs, Gnu);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "parse  [GNU] -v=3.x -p=parser")]
     public void Parse_Gnu_3x_Parser()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(LinuxStyleArgs);
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(GnuStyleArgs);
         commandLine.As(new OptionsParser());
     }
 
     [Benchmark(Description = "parse  [GNU] -v=3.x -p=runtime")]
     public void Parse_Gnu_3x_Runtime()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(LinuxStyleArgs);
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(GnuStyleArgs);
         commandLine.As<Options>();
     }
 
     [Benchmark(Description = "handle [Edit,Print] --flexible")]
     public void Handle_Verbs_Flexible()
+    {
+        CommandLine.Parse(EditVerbArgs)
+            .AddHandler<EditOptions>(options => 0)
+            .AddHandler<PrintOptions>(options => 0)
+            .Run();
+    }
+
+    [Benchmark(Description = "handle [Edit,Print] --dotnet")]
+    public void Handle_Verbs_DotNet()
     {
         CommandLine.Parse(EditVerbArgs)
             .AddHandler<EditOptions>(options => 0)
@@ -203,7 +240,7 @@ public class CommandLineParserTest
     [Benchmark(Description = "NuGet: CommandLineParser")]
     public void CommandLineParser()
     {
-        Parser.Default.ParseArguments<ComparedOptions>(LinuxStyleArgs).WithParsed(options => { });
+        Parser.Default.ParseArguments<ComparedOptions>(GnuStyleArgs).WithParsed(options => { });
     }
 
     [Benchmark(Description = "NuGet: System.CommandLine")]
@@ -217,6 +254,6 @@ public class CommandLineParserTest
         rootCommand.AddOption(fileOption);
         rootCommand.SetHandler(file => { }, fileOption);
 
-        rootCommand.Invoke(LinuxStyleArgs);
+        rootCommand.Invoke(GnuStyleArgs);
     }
 }

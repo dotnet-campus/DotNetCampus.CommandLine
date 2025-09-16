@@ -11,9 +11,23 @@ internal static class CommandLineArgs
     internal const string PlacementValue = "Outside";
     internal const string StartupSessionValue = "89EA9D26-6464-4E71-BD04-AA6516063D83";
 
-    internal static readonly string[] NoArgs = new string[0];
+    internal static readonly string[] NoArgs = [];
 
-    internal static readonly string[] WindowsStyleArgs =
+    internal static readonly string[] DotNetStyleArgs =
+    {
+        FileValue,
+        "--cloud",
+        "--iwb",
+        "-m",
+        ModeValue,
+        "-s",
+        "-p",
+        PlacementValue,
+        "--startup-session",
+        StartupSessionValue,
+    };
+
+    internal static readonly string[] PowerShellStyleArgs =
     {
         FileValue,
         "-Cloud",
@@ -52,7 +66,7 @@ internal static class CommandLineArgs
         $"/StartupSession:{StartupSessionValue}",
     };
 
-    internal static readonly string[] LinuxStyleArgs =
+    internal static readonly string[] GnuStyleArgs =
     {
         FileValue,
         "--cloud",
