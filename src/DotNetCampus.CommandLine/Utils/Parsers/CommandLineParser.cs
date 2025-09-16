@@ -571,6 +571,11 @@ internal ref struct CommandArgumentPart
                 '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
                 _ => ParsePositionalArgument(argument),
             },
+            CommandOptionPrefix.SlashOrDash => argument[0] switch
+            {
+                '-' or '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
+                _ => ParsePositionalArgument(argument),
+            },
             CommandOptionPrefix.Any => (argument[0], argument[1]) switch
             {
                 ('-', '-') => ParseLongOptionOrLongOptionWithValue(argument[2..]),
@@ -727,6 +732,17 @@ internal ref struct CommandArgumentPart
             CommandOptionPrefix.Slash => argument[0] switch
             {
                 '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
+                _ => ParseOptionValue(argument),
+            },
+            CommandOptionPrefix.SlashOrDash => argument[0] switch
+            {
+                '-' or '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
+                _ => ParseOptionValue(argument),
+            },
+            CommandOptionPrefix.Any => (argument[0], argument[1]) switch
+            {
+                ('-', '-') => ParseLongOptionOrLongOptionWithValue(argument[2..]),
+                ('-', _) or ('/', _) => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
                 _ => ParseOptionValue(argument),
             },
             _ => throw new ArgumentOutOfRangeException(),

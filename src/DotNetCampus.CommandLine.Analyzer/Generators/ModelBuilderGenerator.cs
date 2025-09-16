@@ -111,18 +111,12 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         // 再根据命名法匹配一遍（只匹配与上述名称不同的名称）。
         if (namingPolicy.SupportsPascalCase())
         {
-        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetPascalCaseLongNames().Except(x.GetOrdinalLongNames()).ToList())))}}
+        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetPascalCaseLongNames())))}}
         }
         """;
 
         static string GenerateOptionMatchCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
-            if (names.Count == 0)
-            {
-                return $"""
-            // 属性 {model.PropertyName} 在此命名法下的所有名称均已在前面匹配过，无需重复匹配。
-        """;
-            }
             var comparison = model.CaseSensitive switch
             {
                 true => "global::System.StringComparison.Ordinal",

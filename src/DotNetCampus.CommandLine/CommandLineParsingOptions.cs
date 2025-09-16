@@ -102,7 +102,7 @@ public readonly record struct CommandLineParsingOptions
             SupportsSpaceSeparatedOptionValue = true,
             SupportsSpaceSeparatedCollectionValues = true,
             NamingPolicy = CommandNamingPolicy.PascalCase,
-            OptionPrefix = CommandOptionPrefix.Slash,
+            OptionPrefix = CommandOptionPrefix.SlashOrDash,
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -207,22 +207,22 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public CommandOptionPrefix OptionPrefix
     {
-        // [2] 表示是否使用短横线（-）作为选项前缀
-        // [3] 表示是否使用斜杠（/）作为选项前缀
-        get => _booleans[2, 3]switch
+        get => _booleans[2, 3, 4]switch
         {
-            (true, true) => CommandOptionPrefix.Any,
-            (true, false) => CommandOptionPrefix.DoubleDash,
-            (false, true) => CommandOptionPrefix.Slash,
-            (false, false) => CommandOptionPrefix.SingleDash,
+            (false, false, false) => CommandOptionPrefix.DoubleDash,
+            (false, false, true) => CommandOptionPrefix.SingleDash,
+            (false, true, false) => CommandOptionPrefix.Slash,
+            (false, true, true) => CommandOptionPrefix.SlashOrDash,
+            (true, _, _) => CommandOptionPrefix.Any,
         };
-        init => _booleans[2, 3] = value switch
+        init => _booleans[2, 3, 4] = value switch
         {
-            CommandOptionPrefix.Any => (true, true),
-            CommandOptionPrefix.DoubleDash => (true, false),
-            CommandOptionPrefix.Slash => (false, true),
-            CommandOptionPrefix.SingleDash => (false, false),
-            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+            CommandOptionPrefix.DoubleDash => (false, false, false),
+            CommandOptionPrefix.SingleDash => (false, false, true),
+            CommandOptionPrefix.Slash => (false, true, false),
+            CommandOptionPrefix.SlashOrDash => (false, true, true),
+            CommandOptionPrefix.Any => (true, false, false),
+            _ => (true, true, true),
         };
     }
 
@@ -231,8 +231,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool CaseSensitive
     {
-        get => _booleans[4];
-        init => _booleans[4] = value;
+        get => _booleans[5];
+        init => _booleans[5] = value;
     }
 
     /// <summary>
@@ -240,8 +240,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsLongOption
     {
-        get => _booleans[5];
-        init => _booleans[5] = value;
+        get => _booleans[6];
+        init => _booleans[6] = value;
     }
 
     /// <summary>
@@ -249,8 +249,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsShortOption
     {
-        get => _booleans[6];
-        init => _booleans[6] = value;
+        get => _booleans[7];
+        init => _booleans[7] = value;
     }
 
     /// <summary>
@@ -263,8 +263,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </remarks>
     public bool SupportsShortOptionCombination
     {
-        get => _booleans[7];
-        init => _booleans[7] = value;
+        get => _booleans[8];
+        init => _booleans[8] = value;
     }
 
     /// <summary>
@@ -276,8 +276,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </remarks>
     public bool SupportsMultiCharShortOption
     {
-        get => _booleans[8];
-        init => _booleans[8] = value;
+        get => _booleans[9];
+        init => _booleans[9] = value;
     }
 
     /// <summary>
@@ -288,8 +288,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsShortOptionValueWithoutSeparator
     {
-        get => _booleans[9];
-        init => _booleans[9] = value;
+        get => _booleans[10];
+        init => _booleans[10] = value;
     }
 
     /// <summary>
@@ -299,8 +299,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsSpaceSeparatedOptionValue
     {
-        get => _booleans[10];
-        init => _booleans[10] = value;
+        get => _booleans[11];
+        init => _booleans[11] = value;
     }
 
     /// <summary>
@@ -310,8 +310,8 @@ public readonly record struct CommandLineStyleDetails()
     /// </summary>
     public bool SupportsSpaceSeparatedCollectionValues
     {
-        get => _booleans[11];
-        init => _booleans[11] = value;
+        get => _booleans[12];
+        init => _booleans[12] = value;
     }
 
     /// <summary>
@@ -385,6 +385,12 @@ public enum CommandOptionPrefix : byte
     /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
     /// </summary>
     Slash,
+
+    /// <summary>
+    /// 使用斜杠（/）或单个短横线（-）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
+    /// </summary>
+    SlashOrDash,
 
     /// <summary>
     /// 允许使用任意一种前缀风格（-、--、/）。<br/>

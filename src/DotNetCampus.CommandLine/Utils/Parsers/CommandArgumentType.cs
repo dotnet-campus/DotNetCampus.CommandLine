@@ -62,7 +62,7 @@ internal enum CommandArgumentType
     /// 存在以下三种情况：
     /// <list type="number">
     /// <item>-abc 表示 -a -b -c 三个布尔短选项。</item>
-    /// <item>-abc 表示 -a 选项的值为 bc。</item
+    /// <item>-abc 表示 -a 选项的值为 bc。</item>
     /// <item>-abc 表示一个名为 abc 的多字符短选项。</item>
     /// </list>
     /// </remarks>
