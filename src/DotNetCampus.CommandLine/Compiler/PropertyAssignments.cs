@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 #endif
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Compiler;
 
@@ -76,7 +77,7 @@ public readonly record struct NumberArgument
         }
         if (!IgnoreExceptions)
         {
-            throw new FormatException($"无法将 \"{value.ToString()}\" 转换为数值。");
+            throw new CommandLineParseValueException($"无法将 \"{value.ToString()}\" 转换为数值。");
         }
         return this;
     }
@@ -181,7 +182,7 @@ public readonly record struct StringArgument
         null => null,
         { Length: 1 } => Value[0],
         _ when IgnoreExceptions => null,
-        _ => throw new FormatException($"无法将 \"{Value}\" 转换为字符，因为它的长度不为 1。"),
+        _ => throw new CommandLineParseValueException($"无法将 \"{Value}\" 转换为字符，因为它的长度不为 1。"),
     };
 
     /// <summary>
@@ -311,7 +312,7 @@ public readonly record struct StringDictionaryArgument
 
         if (Value.Count > 1)
         {
-            throw new InvalidOperationException("字典包含多个元素，无法转换为 KeyValuePair。");
+            throw new CommandLineParseValueException("字典包含多个元素，无法转换为 KeyValuePair。");
         }
 
         using var enumerator = Value.GetEnumerator();
@@ -363,7 +364,7 @@ public readonly record struct RuntimeEnumArgument<T> where T : unmanaged, Enum
         }
         if (!IgnoreExceptions)
         {
-            throw new FormatException($"无法将 \"{value.ToString()}\" 转换为 {typeof(T).FullName} 枚举。");
+            throw new CommandLineParseValueException($"无法将 \"{value.ToString()}\" 转换为 {typeof(T).FullName} 枚举。");
         }
         return this;
     }

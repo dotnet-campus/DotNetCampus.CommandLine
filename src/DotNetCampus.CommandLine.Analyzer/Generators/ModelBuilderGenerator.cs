@@ -385,7 +385,7 @@ private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
         {
     {{string.Join("\n    ", enumNames.Select(x => $"        \"{x.ToLowerInvariant()}\" => {enumType.ToUsingString()}.{x},"))}}
             _ when IgnoreExceptions => null,
-            _ => throw new global::System.ArgumentOutOfRangeException(nameof(value), value.ToString(), $"Cannot convert '{value.ToString()}' to enum type '{{enumType.ToDisplayString()}}'."),
+            _ => throw new global::DotNetCampus.Cli.Exceptions.CommandLineParseValueException($"Cannot convert '{value.ToString()}' to enum type '{{enumType.ToDisplayString()}}'."),
         };
         return this with { Value = newValue };
     }
