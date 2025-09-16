@@ -75,77 +75,70 @@ public static class CommandRunnerBuilderExtensions
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
+    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull, ICommandHandler
     {
         return builder.GetOrCreateRunner()
-            .AddHandlerCore(command, creator, commandAliases);
+            .AddHandlerCore(command, factory);
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
         return builder.GetOrCreateRunner()
-            .AddHandlerCore(command, cl => new AnonymousCommandHandler<T>(cl, creator, handler), commandAliases);
+            .AddHandlerCore(command, cl => new AnonymousCommandHandler<T>(cl, factory, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,CommandObjectCreator,IReadOnlyList{string})" />
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, creator, commandAliases);
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,CommandObjectCreator,IReadOnlyList{string})" />
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
         return builder.GetOrCreateRunner()
-            .AddHandlerCore(command, cl => new AnonymousInt32CommandHandler<T>(cl, creator, handler), commandAliases);
+            .AddHandlerCore(command, cl => new AnonymousInt32CommandHandler<T>(cl, factory, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,CommandObjectCreator,IReadOnlyList{string})" />
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, creator, commandAliases);
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},string,CommandObjectCreator,IReadOnlyList{string})" />
+    /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
         return builder.GetOrCreateRunner()
-            .AddHandlerCore(command, cl => new AnonymousTaskCommandHandler<T>(cl, creator, handler), commandAliases);
+            .AddHandlerCore(command, cl => new AnonymousTaskCommandHandler<T>(cl, factory, handler));
     }
 
     /// <summary>
@@ -154,19 +147,17 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
+    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler,
-        string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases = null
+        NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : notnull
     {
         return builder.GetOrCreateRunner()
-            .AddHandlerCore(command, cl => new AnonymousTaskInt32CommandHandler<T>(cl, creator, handler), commandAliases);
+            .AddHandlerCore(command, cl => new AnonymousTaskInt32CommandHandler<T>(cl, factory, handler));
     }
 
     /// <summary>

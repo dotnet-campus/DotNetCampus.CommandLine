@@ -397,6 +397,8 @@ internal ref struct CommandArgumentPart
 
         return _lastType switch
         {
+            // 上一个是起点或命令，后面只能是新的选项或位置参数。
+            Cat.Start or Cat.Command => ParseOptionOrPositionalArgument(),
             // 值已经被上一个选项消费掉了，必须是新的选项或位置参数。
             Cat.PositionalArgument or Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue => ParseOptionOrPositionalArgument(),
             // 多个短选项，后面不允许带值。

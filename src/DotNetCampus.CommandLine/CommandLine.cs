@@ -86,13 +86,13 @@ public class CommandLine : ICoreCommandRunnerBuilder
     /// <summary>
     /// 尝试将命令行参数转换为指定类型的实例。
     /// </summary>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">要转换的类型。</typeparam>
     /// <returns>转换后的实例。</returns>
     [Pure, EditorBrowsable(EditorBrowsableState.Never)]
-    public T As<T>(CommandObjectCreator creator) where T : notnull
+    public T As<T>(CommandObjectFactory factory) where T : notnull
     {
-        return (T)creator(this);
+        return (T)factory(this);
     }
 
     /// <summary>

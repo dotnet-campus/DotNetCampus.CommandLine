@@ -101,7 +101,7 @@ internal static class InterceptorModelProvider
                 // 获取 [Command("xxx")] 或 [Verb("xxx")] 特性中的 xxx。
                 var commandAttribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
 #pragma warning disable CS0618 // 类型或成员已过时
-                                ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
+                                       ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
 #pragma warning restore CS0618 // 类型或成员已过时
                     ;
                 var commandNames = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
@@ -129,14 +129,14 @@ internal record InterceptorGeneratingModel(
 {
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
 
-    public string? GetKebabCaseCommandNames()
+    public string? GetPascalCaseCommandNames()
     {
         if (CommandNames is not { } commandNames)
         {
             return null;
         }
         return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+            .Select(NamingHelper.MakePascalCase));
     }
 
     internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =

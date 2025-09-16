@@ -10,12 +10,19 @@ namespace DotNetCampus.Cli;
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
     private readonly CommandLine _commandLine;
-
-    private readonly SortedList<string, CommandObjectCreationInfo> _creators = new(StringLengthDescendingComparer.CaseSensitive);
+    private readonly SortedList<string, CommandObjectFactory> _factories;
+    private readonly bool _supportsOrdinal;
+    private readonly bool _supportsPascalCase;
+    private CommandObjectFactory? _defaultFactory;
 
     internal CommandRunner(CommandLine commandLine)
     {
         _commandLine = commandLine;
+        _factories = commandLine.DefaultCaseSensitive
+            ? new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseSensitive)
+            : new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseInsensitive);
+        _supportsOrdinal = commandLine.ParsingOptions.Style.NamingPolicy.SupportsOrdinal();
+        _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
 
     /// <inheritdoc />
@@ -27,75 +34,102 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <inheritdoc />
     public Task<int> RunAsync()
     {
-        var (possibleCommandNames, creator) = MatchCreator();
+        var (possibleCommandNames, factory) = MatchCreator();
 
-        if (creator is null)
+        if (factory is null)
         {
             throw new CommandNameNotFoundException(
                 string.IsNullOrEmpty(possibleCommandNames)
-                    ? "No default command handler found. Please ensure that a default command handler is registered correctly."
-                    : $"No command handler found for command '{possibleCommandNames}'. Please ensure that the command handler is registered correctly.",
+                    ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler()."
+                    : $"No command handler found for command '{possibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
                 possibleCommandNames);
         }
 
-        var handler = (ICommandHandler)creator(_commandLine);
+        var handler = (ICommandHandler)factory(_commandLine);
         return handler.RunAsync();
     }
 
-    private (string PossibleCommandNames, CommandObjectCreator? Creator) MatchCreator()
+    private (string PossibleCommandNames, CommandObjectFactory? Creator) MatchCreator()
     {
-        if (_creators.Count is 0)
+        if (_factories.Count > 0)
         {
-            return ("", null);
-        }
+            var maxLength = _factories.Keys[0].Length;
+            var header = _commandLine.GetHeader(maxLength);
+            var stringComparison = _commandLine.DefaultCaseSensitive
+                ? StringComparison.Ordinal
+                : StringComparison.OrdinalIgnoreCase;
 
-        var maxLength = _creators.Keys[0].Length;
-        var header = _commandLine.GetHeader(maxLength);
-        var stringComparison = _commandLine.DefaultCaseSensitive
-            ? StringComparison.Ordinal
-            : StringComparison.OrdinalIgnoreCase;
-
-        foreach (var (command, info) in _creators)
-        {
-            if (header.StartsWith(command, stringComparison)
-                || info.CommandAliases.Any(alias => header.StartsWith(alias, stringComparison)))
+            foreach (var (command, factory) in _factories)
             {
-                return (header, info.Creator);
+                if (header.StartsWith(command, stringComparison))
+                {
+                    return (header, factory);
+                }
             }
         }
 
-        return (header, null);
+        if (_defaultFactory is { } defaultFactory)
+        {
+            return ("", defaultFactory);
+        }
+
+        return (_commandLine.GetHeader(1), null);
     }
 
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
-    /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 表示此处理器没有命令名称。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="commandAliases">命令的别名列表，由源生成器生成，用于根据不同的命令行风格生成不同的命名法名称。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="default"/> 表示此处理器没有命令名称。</param>
+    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
     /// <returns>返回一个命令处理器构建器。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandlerCore(string? command, CommandObjectCreator creator,
-        IReadOnlyList<string>? commandAliases
-    )
+    internal CommandRunner AddHandlerCore(NamingPolicyNameGroup command, CommandObjectFactory factory)
     {
-        var isAdded = _creators.TryAdd(command ?? "", new CommandObjectCreationInfo
+        if (_supportsOrdinal)
         {
-            Creator = creator,
-            CommandAliases = commandAliases ?? [],
-        });
-        if (!isAdded)
+            if (command.Ordinal is { } ordinal && !string.IsNullOrWhiteSpace(ordinal))
+            {
+                // 包含命令名称。
+                var isAdded = _factories.TryAdd(ordinal, factory);
+                if (!isAdded)
+                {
+                    throw new InvalidOperationException($"The command '{ordinal}' is already registered.");
+                }
+            }
+            else
+            {
+                // 不包含命令名称，表示这是默认命令。
+                if (_defaultFactory is not null)
+                {
+                    throw new InvalidOperationException("The default command handler is already registered.");
+                }
+                _defaultFactory = factory;
+            }
+        }
+        if (_supportsPascalCase)
         {
-            throw new InvalidOperationException($"The command '{command}' is already registered.");
+            if (command.PascalCase is { } ordinal && !string.IsNullOrWhiteSpace(ordinal))
+            {
+                // 包含命令名称。
+                var isAdded = _factories.TryAdd(ordinal, factory);
+                if (!isAdded && !_supportsOrdinal)
+                {
+                    // 转换的名称，之后在仅用转换名称时才需要抛出异常；否则很可能前面已经添加了一个相同的名称。
+                    throw new InvalidOperationException($"The command '{ordinal}' is already registered.");
+                }
+            }
+            else
+            {
+                // 不包含命令名称，表示这是默认命令。
+                if (_defaultFactory is not null && !_supportsOrdinal)
+                {
+                    // 如果支持双命名法，则允许前面已经注册了一个默认命令。
+                    throw new InvalidOperationException("The default command handler is already registered.");
+                }
+                _defaultFactory = factory;
+            }
         }
         return this;
-    }
-
-    private readonly record struct CommandObjectCreationInfo
-    {
-        public required CommandObjectCreator Creator { get; init; }
-
-        public required IReadOnlyList<string> CommandAliases { get; init; }
     }
 }
 
