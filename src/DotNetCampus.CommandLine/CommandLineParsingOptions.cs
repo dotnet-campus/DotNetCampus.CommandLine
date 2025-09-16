@@ -197,18 +197,20 @@ public readonly record struct CommandLineStyleDetails()
     public CommandOptionPrefix OptionPrefix
     {
         // [2] 表示是否使用短横线（-）作为选项前缀
-        // [3] 表示长选项是否使用双短横线（--）
+        // [3] 表示是否使用斜杠（/）作为选项前缀
         get => _booleans[2, 3]switch
         {
-            (true, true) => CommandOptionPrefix.DoubleDash,
-            (true, false) => CommandOptionPrefix.SingleDash,
-            (false, _) => CommandOptionPrefix.Slash,
+            (true, true) => CommandOptionPrefix.Any,
+            (true, false) => CommandOptionPrefix.DoubleDash,
+            (false, true) => CommandOptionPrefix.Slash,
+            (false, false) => CommandOptionPrefix.SingleDash,
         };
         init => _booleans[2, 3] = value switch
         {
-            CommandOptionPrefix.DoubleDash => (true, true),
-            CommandOptionPrefix.SingleDash => (true, false),
-            CommandOptionPrefix.Slash => (false, false),
+            CommandOptionPrefix.Any => (true, true),
+            CommandOptionPrefix.DoubleDash => (true, false),
+            CommandOptionPrefix.Slash => (false, true),
+            CommandOptionPrefix.SingleDash => (false, false),
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
         };
     }
