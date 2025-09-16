@@ -12,11 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DotNetCampus.CommandLine.Tests\Fakes\**" LinkBase="Fakes" />
-    <Compile Remove="..\DotNetCampus.CommandLine.Tests\Fakes\**\Runtime*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine.Analyzer\DotNetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
   </ItemGroup>

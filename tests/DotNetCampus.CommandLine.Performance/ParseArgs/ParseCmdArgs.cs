@@ -1,0 +1,41 @@
+﻿using BenchmarkDotNet.Attributes;
+using DotNetCampus.Cli.Performance.Fakes;
+using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
+using static DotNetCampus.Cli.CommandLineParsingOptions;
+
+// ReSharper disable ReturnValueOfPureMethodIsNotUsed
+
+namespace DotNetCampus.Cli.Performance.ParseArgs;
+
+[MemoryDiagnoser]
+[BenchmarkCategory("Parse CMD Args")]
+public class ParseCmdArgs
+{
+    [Benchmark(Description = "parse [CMD] -v=4.1 -p=flexible")]
+    public void Parse41_Flexible()
+    {
+        var commandLine = CommandLine.Parse(CmdArgs, Flexible);
+        commandLine.As<BenchmarkOptions4>();
+    }
+
+    [Benchmark(Description = "parse [CMD] -v=4.1 -p=powershell")]
+    public void Parse41_PowerShell()
+    {
+        var commandLine = CommandLine.Parse(CmdArgs, PowerShell);
+        commandLine.As<BenchmarkOptions4>();
+    }
+
+    [Benchmark(Description = "parse [CMD] -v=3.x -p=parser")]
+    public void Parse3x_Parser()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(CmdArgs);
+        commandLine.As(new BenchmarkOption3Parser());
+    }
+
+    [Benchmark(Description = "parse [CMD] -v=3.x -p=runtime")]
+    public void Parse3x_Runtime()
+    {
+        var commandLine = dotnetCampus.Cli.CommandLine.Parse(CmdArgs);
+        commandLine.As<RuntimeBenchmarkOptions3>();
+    }
+}
