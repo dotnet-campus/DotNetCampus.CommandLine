@@ -342,6 +342,7 @@ public class SubcommandTests
         Assert.IsTrue(clusterConfigSetContextHandlerCalled);
     }
 
+    [Ignore("规范行为后，此测试不再适用。")]
     [TestMethod("3.6. 最长路径匹配 - 前缀匹配但非完整匹配")]
     public void LongestPathMatching_PrefixButNotComplete()
     {
@@ -380,6 +381,7 @@ public class SubcommandTests
         Assert.IsTrue(remoteAddHandlerCalled);
     }
 
+    [Ignore("规范行为后，此测试不再适用。")]
     [TestMethod("3.8. 最长路径匹配 - 单个字符差异")]
     public void LongestPathMatching_SingleCharacterDifference()
     {

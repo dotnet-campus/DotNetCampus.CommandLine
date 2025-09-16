@@ -63,7 +63,11 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             {
                 if (header.StartsWith(command, stringComparison))
                 {
-                    return (header, factory);
+                    // 前缀已匹配成功，接下来判断这是否是命令单词边界。
+                    if (header.Length == command.Length || char.IsWhiteSpace(header[command.Length]))
+                    {
+                        return (command, factory);
+                    }
                 }
             }
         }

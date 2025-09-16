@@ -55,8 +55,7 @@ internal sealed class AnonymousInt32CommandHandler<T>(
         {
             throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
         }
-        handler(_options);
-        return Task.FromResult(0);
+        return Task.FromResult(handler(_options));
     }
 }
 
