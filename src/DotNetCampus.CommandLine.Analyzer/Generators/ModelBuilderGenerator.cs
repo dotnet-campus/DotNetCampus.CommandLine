@@ -132,7 +132,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return string.Join("\n", names.Select(name => $$"""
             if (longOption.Equals("{{name}}".AsSpan(), {{comparison}}))
             {
-                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({{model.PropertyName}}), {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
         """));
         }
@@ -166,7 +166,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return string.Join("\n", names.Select(name => $$"""
             if (shortOption.Equals("{{name}}".AsSpan(), {{comparison}}))
             {
-                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({{model.PropertyName}}), {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
             """));
         }
