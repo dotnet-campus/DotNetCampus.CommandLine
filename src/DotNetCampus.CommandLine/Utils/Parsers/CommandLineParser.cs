@@ -481,7 +481,7 @@ internal ref struct CommandArgumentPart
             Cat.PositionalArgument or Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue => ParseOptionOrPositionalArgument(),
             // 多个短选项，后面不允许带值。
             Cat.MultiShortOptions => ParseOptionOrPositionalArgument(),
-            // 上一个是选项：
+            // 上一个是选项。
             Cat.LongOption or Cat.ShortOption or Cat.Option => (_lastOptionType switch
             {
                 // 如果是布尔选项，则后面只能跟布尔值，否则只能是新的选项或位置参数。
@@ -490,6 +490,15 @@ internal ref struct CommandArgumentPart
                 OptionValueType.List or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
                 // 如果是普通选项，则后面只能是选项值。
                 _ => ParseOptionValue(_argument.AsSpan()),
+            }),
+            // 上一个是选项的值。
+            Cat.OptionValue => (_lastOptionType switch
+            {
+                // 只有集合才可以继续跟值（且必须允许），其他都要解析为新的选项或位置参数。
+                OptionValueType.List or OptionValueType.Dictionary when _parser.SupportsSpaceSeparatedCollectionValues =>
+                    ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                // 解析为新的选项或位置参数。
+                _ => ParseOptionOrPositionalArgument(),
             }),
             _ => throw new InvalidOperationException($"解析上一个参数时已进入错误的状态：{_lastType}。"),
         };
