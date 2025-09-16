@@ -153,7 +153,22 @@ public readonly ref struct CommandLineParser
                 }
                 case Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue:
                 {
-                    AssignOptionValue(currentOption, value);
+                    var optionMatch = state switch
+                    {
+                        Cat.LongOptionWithValue => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy),
+                        Cat.ShortOptionWithValue => MatchShortOption(optionName.Name, _caseSensitive),
+                        _ => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy) switch
+                        {
+                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName.Name, _caseSensitive),
+                            var t => t,
+                        },
+                    };
+                    if (optionMatch.ValueType is OptionValueType.NotExist)
+                    {
+                        // 如果选项不存在，则报告错误。
+                        return CommandLineParsingResult.OptionNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                    }
+                    AssignOptionValue(optionMatch, value);
                     break;
                 }
                 case Cat.ErrorOption:

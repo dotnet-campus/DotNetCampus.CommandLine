@@ -15,9 +15,9 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     /// <summary>
     /// 最多支持 4 个分隔符字符。
     /// </summary>
-    private readonly ushort _chars;
+    private readonly uint _chars;
 
-    private CommandSeparatorChars(ushort packedChars)
+    private CommandSeparatorChars(uint packedChars)
     {
         _chars = packedChars;
     }
@@ -32,14 +32,14 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
         var packed = _chars;
         while (packed != 0)
         {
-            var c = (char)(packed & 0xF);
+            var c = (char)(packed & 0xFF);
             if (length < buffer.Length)
             {
                 buffer[length] = c;
             }
 
             length++;
-            packed >>= 4;
+            packed >>= 8;
         }
     }
 
@@ -52,9 +52,9 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
         var packed = _chars;
         while (packed != 0)
         {
-            var c = (char)(packed & 0xF);
+            var c = (char)(packed & 0xFF);
             yield return c;
-            packed >>= 4;
+            packed >>= 8;
         }
     }
 
@@ -75,7 +75,7 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
             throw new ArgumentOutOfRangeException(nameof(chars), "最多只能指定 4 个分隔符字符。");
         }
 
-        ushort packed = 0;
+        uint packed = 0;
         for (var i = chars.Length - 1; i >= 0; i--)
         {
             var c = chars[i];
@@ -84,7 +84,7 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
                 throw new ArgumentException("不支持 null 字符作为分隔符。", nameof(chars));
             }
 
-            packed = (ushort)((packed << 4) | c);
+            packed = (packed << 8) | c;
         }
 
         return new CommandSeparatorChars(packed);

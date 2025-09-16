@@ -70,12 +70,12 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateOptionPropertyCode(PropertyGeneratingModel model) => model.Type.AsCommandValueKind() switch
     {
-        CommandValueKind.Boolean => $"private global::DotNetCampus.Cli.Compiler.BooleanArgument {model.PropertyName} {{ get; }} = new();",
-        CommandValueKind.Number => $"private global::DotNetCampus.Cli.Compiler.NumberArgument {model.PropertyName} {{ get; }} = new();",
-        CommandValueKind.Enum => $"private {model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} {{ get; }} = new();",
-        CommandValueKind.String => $"private global::DotNetCampus.Cli.Compiler.StringArgument {model.PropertyName} {{ get; }} = new();",
-        CommandValueKind.List => $"private global::DotNetCampus.Cli.Compiler.StringListArgument {model.PropertyName} {{ get; }} = new();",
-        CommandValueKind.Dictionary => $"private global::DotNetCampus.Cli.Compiler.StringDictionaryArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.Boolean => $"private global::DotNetCampus.Cli.Compiler.BooleanArgument {model.PropertyName} = new();",
+        CommandValueKind.Number => $"private global::DotNetCampus.Cli.Compiler.NumberArgument {model.PropertyName} = new();",
+        CommandValueKind.Enum => $"private {model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} = new();",
+        CommandValueKind.String => $"private global::DotNetCampus.Cli.Compiler.StringArgument {model.PropertyName} = new();",
+        CommandValueKind.List => $"private global::DotNetCampus.Cli.Compiler.StringListArgument {model.PropertyName} = new();",
+        CommandValueKind.Dictionary => $"private global::DotNetCampus.Cli.Compiler.StringDictionaryArgument {model.PropertyName} = new();",
         _ => $"// 不支持解析类型为 {model.Type.ToDisplayString()} 的属性 {model.PropertyName}。",
     };
 
@@ -211,10 +211,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         var assign = model.Type.AsCommandValueKind() switch
         {
-            CommandValueKind.Boolean => $"{model.PropertyName}.Assign(value[0] == '1');",
-            CommandValueKind.List => $"{model.PropertyName}.Append(value);",
-            CommandValueKind.Dictionary => $"{model.PropertyName}.Append(key, value);",
-            _ => $"{model.PropertyName}.Assign(value);",
+            CommandValueKind.Boolean => $"{model.PropertyName} = {model.PropertyName}.Assign(value[0] == '1');",
+            CommandValueKind.List => $"{model.PropertyName} = {model.PropertyName}.Append(value);",
+            CommandValueKind.Dictionary => $"{model.PropertyName} = {model.PropertyName}.Append(key, value);",
+            _ => $"{model.PropertyName} = {model.PropertyName}.Assign(value);",
         };
         var propertyIndex = model switch
         {
@@ -353,7 +353,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 /// <summary>
 /// Provides parsing and assignment for the enum type <see cref="{{enumType.ToGlobalDisplayString()}}"/>.
 /// </summary>
-private struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
+private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
 {
     /// <summary>
     /// Indicates whether to ignore exceptions when parsing fails.
@@ -363,31 +363,32 @@ private struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
     /// <summary>
     /// Stores the parsed enum value.
     /// </summary>
-    private {{enumType.ToUsingString()}}? _value;
+    private {{enumType.ToUsingString()}}? Value { get; init; }
 
     /// <summary>
     /// Assigns a value when a command line input is parsed.
     /// </summary>
     /// <param name="value">The parsed string value.</param>
-    public void Assign(ReadOnlySpan<char> value)
+    public {{enumType.GetGeneratedEnumArgumentTypeName()}} Assign(ReadOnlySpan<char> value)
     {
         Span<char> lowerValue = stackalloc char[value.Length];
         for (var i = 0; i < value.Length; i++)
         {
             lowerValue[i] = char.ToLowerInvariant(value[i]);
         }
-        _value = lowerValue switch
+        {{enumType.ToUsingString()}}? newValue = lowerValue switch
         {
     {{string.Join("\n    ", enumNames.Select(x => $"        \"{x.ToLowerInvariant()}\" => {enumType.ToUsingString()}.{x},"))}}
             _ when IgnoreExceptions => null,
             _ => throw new global::System.ArgumentOutOfRangeException(nameof(value), value.ToString(), $"Cannot convert '{value.ToString()}' to enum type '{{enumType.ToDisplayString()}}'."),
         };
+        return this with { Value = newValue };
     }
 
     /// <summary>
     /// Converts the parsed value to the enum type.
     /// </summary>
-    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandValueNonAbstractName()}}() => _value;
+    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandValueNonAbstractName()}}() => Value;
 }
 """;
     }

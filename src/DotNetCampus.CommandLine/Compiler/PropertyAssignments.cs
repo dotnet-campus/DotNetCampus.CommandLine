@@ -8,20 +8,20 @@ namespace DotNetCampus.Cli.Compiler;
 /// <summary>
 /// 专门解析来自命令行的布尔类型，并辅助赋值给属性。
 /// </summary>
-public struct BooleanArgument
+public readonly record struct BooleanArgument
 {
     /// <summary>
     /// 存储解析到的布尔值。
     /// </summary>
-    private bool? _value;
+    private bool? Value { get; init; }
 
     /// <summary>
     /// 当命令行直接或间接输入了一个布尔参数时，调用此方法赋值。
     /// </summary>
     /// <param name="value">解析到的布尔值。</param>
-    public void Assign(bool value)
+    public BooleanArgument Assign(bool value)
     {
-        _value = value;
+        return new BooleanArgument { Value = value };
     }
 
     /// <summary>
@@ -29,14 +29,14 @@ public struct BooleanArgument
     /// </summary>
     public bool? ToBoolean()
     {
-        return _value;
+        return Value;
     }
 }
 
 /// <summary>
 /// 专门解析来自命令行的数值类型，并辅助赋值给属性。
 /// </summary>
-public struct NumberArgument
+public readonly record struct NumberArgument
 {
     /// <summary>
     /// 指示在解析失败时是否忽略异常并保持未初始化的状态。
@@ -46,13 +46,13 @@ public struct NumberArgument
     /// <summary>
     /// 存储解析到的数值。
     /// </summary>
-    private decimal? _value;
+    private decimal? Value { get; init; }
 
     /// <summary>
     /// 当命令行输入了一个数值参数时，调用此方法赋值。
     /// </summary>
     /// <param name="value">解析到的数值字符串。</param>
-    public void Assign(ReadOnlySpan<char> value)
+    public NumberArgument Assign(ReadOnlySpan<char> value)
     {
         if (decimal.TryParse(value
 #if !NETCOREAPP3_1_OR_GREATER
@@ -60,84 +60,85 @@ public struct NumberArgument
 #endif
                 , out var doubleValue))
         {
-            _value = doubleValue;
+            return this with { Value = doubleValue };
         }
-        else if (!IgnoreExceptions)
+        if (!IgnoreExceptions)
         {
             throw new FormatException($"无法将 \"{value.ToString()}\" 转换为数值。");
         }
+        return this;
     }
 
     /// <summary>
     /// 将解析到的值转换为字节。
     /// </summary>
-    public byte? ToByte() => (byte?)_value;
+    public byte? ToByte() => (byte?)Value;
 
     /// <summary>
     /// 将解析到的值转换为有符号字节。
     /// </summary>
-    public sbyte? ToSByte() => (sbyte?)_value;
+    public sbyte? ToSByte() => (sbyte?)Value;
 
     /// <summary>
     /// 将解析到的值转换为高精度浮点数。
     /// </summary>
-    public decimal? ToDecimal() => _value;
+    public decimal? ToDecimal() => Value;
 
     /// <summary>
     /// 将解析到的值转换为双精度浮点数。
     /// </summary>
-    public double? ToDouble() => (double?)_value;
+    public double? ToDouble() => (double?)Value;
 
     /// <summary>
     /// 将解析到的值转换为单精度浮点数。
     /// </summary>
-    public float? ToSingle() => (float?)_value;
+    public float? ToSingle() => (float?)Value;
 
     /// <summary>
     /// 将解析到的值转换为 32 位整数。
     /// </summary>
-    public int? ToInt32() => (int?)_value;
+    public int? ToInt32() => (int?)Value;
 
     /// <summary>
     /// 将解析到的值转换为无符号 32 位整数。
     /// </summary>
-    public uint? ToUInt32() => (uint?)_value;
+    public uint? ToUInt32() => (uint?)Value;
 
     /// <summary>
     /// 将解析到的值转换为指针大小的整数。
     /// </summary>
-    public nint? ToIntPtr() => (nint?)_value;
+    public nint? ToIntPtr() => (nint?)Value;
 
     /// <summary>
     /// 将解析到的值转换为无符号指针大小的整数。
     /// </summary>
-    public nuint? ToUIntPtr() => (nuint?)_value;
+    public nuint? ToUIntPtr() => (nuint?)Value;
 
     /// <summary>
     /// 将解析到的值转换为 64 位整数。
     /// </summary>
-    public long? ToInt64() => (long?)_value;
+    public long? ToInt64() => (long?)Value;
 
     /// <summary>
     /// 将解析到的值转换为无符号 64 位整数。
     /// </summary>
-    public ulong? ToUInt64() => (ulong?)_value;
+    public ulong? ToUInt64() => (ulong?)Value;
 
     /// <summary>
     /// 将解析到的值转换为 16 位整数。
     /// </summary>
-    public short? ToInt16() => (short?)_value;
+    public short? ToInt16() => (short?)Value;
 
     /// <summary>
     /// 将解析到的值转换为无符号 16 位整数。
     /// </summary>
-    public ushort? ToUInt16() => (ushort?)_value;
+    public ushort? ToUInt16() => (ushort?)Value;
 }
 
 /// <summary>
 /// 专门解析来自命令行的字符串类型，并辅助赋值给属性。
 /// </summary>
-public struct StringArgument
+public readonly record struct StringArgument
 {
     /// <summary>
     /// 指示在解析失败时是否忽略异常并保持未初始化的状态。
@@ -147,27 +148,27 @@ public struct StringArgument
     /// <summary>
     /// 存储解析到的字符串值。
     /// </summary>
-    private string? _text;
+    private string? Value { get; init; }
 
     /// <summary>
     /// 当命令行输入了一个字符串参数时，调用此方法赋值。
     /// </summary>
     /// <param name="value">解析到的字符串值。</param>
-    public void Assign(ReadOnlySpan<char> value)
+    public StringArgument Assign(ReadOnlySpan<char> value)
     {
-        _text = value.ToString();
+        return this with { Value = value.ToString() };
     }
 
     /// <summary>
     /// 将解析到的值转换为字符。
     /// </summary>
     /// <returns>如果字符串长度为 1，则返回该字符；否则返回 null。</returns>
-    public char? ToChar() => _text switch
+    public char? ToChar() => Value switch
     {
         null => null,
-        { Length: 1 } => _text[0],
+        { Length: 1 } => Value[0],
         _ when IgnoreExceptions => null,
-        _ => throw new FormatException($"无法将 \"{_text}\" 转换为字符，因为它的长度不为 1。"),
+        _ => throw new FormatException($"无法将 \"{Value}\" 转换为字符，因为它的长度不为 1。"),
     };
 
     /// <summary>
@@ -175,34 +176,36 @@ public struct StringArgument
     /// </summary>
     public override string? ToString()
     {
-        return _text;
+        return Value;
     }
 }
 
 /// <summary>
 /// 专门解析来自命令行的字符串集合类型，并辅助赋值给属性。
 /// </summary>
-public struct StringListArgument
+public readonly record struct StringListArgument
 {
     /// <summary>
     /// 存储解析到的字符串列表。
     /// </summary>
-    private List<string>? _list;
+    private List<string>? Value { get; init; }
 
     /// <summary>
     /// 当命令行输入了一个字符串参数时，调用此方法追加值。
     /// </summary>
     /// <param name="value">解析到的字符串值。</param>
-    public void Append(ReadOnlySpan<char> value)
+    public StringListArgument Append(ReadOnlySpan<char> value)
     {
-        _list ??= [];
-        _list.Add(value.ToString());
+        var list = Value;
+        list ??= [];
+        list.Add(value.ToString());
+        return new StringListArgument { Value = list };
     }
 
     /// <summary>
     /// 将解析到的值转换为字符串数组。
     /// </summary>
-    public string[] ToArray() => _list switch
+    public string[] ToArray() => Value switch
     {
         null or { Count: 0 } => [],
         { } values => [..values],
@@ -212,7 +215,7 @@ public struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变数组。
     /// </summary>
-    public ImmutableArray<string> ToImmutableArray() => _list switch
+    public ImmutableArray<string> ToImmutableArray() => Value switch
     {
 #if NET8_0_OR_GREATER
         null or { Count: 0 } => [],
@@ -226,7 +229,7 @@ public struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变哈希集合。
     /// </summary>
-    public ImmutableHashSet<string> ToImmutableHashSet() => _list switch
+    public ImmutableHashSet<string> ToImmutableHashSet() => Value switch
     {
 #if NET8_0_OR_GREATER
         null or { Count: 0 } => [],
@@ -242,7 +245,7 @@ public struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为集合。
     /// </summary>
-    public Collection<string> ToCollection() => _list switch
+    public Collection<string> ToCollection() => Value switch
     {
         null or { Count: 0 } => [],
         { } values => [..values],
@@ -251,7 +254,7 @@ public struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为列表。
     /// </summary>
-    public List<string> ToList() => _list switch
+    public List<string> ToList() => Value switch
     {
         null or { Count: 0 } => [],
         { } values => values,
@@ -261,22 +264,24 @@ public struct StringListArgument
 /// <summary>
 /// 专门解析来自命令行的字典类型，并辅助赋值给属性。
 /// </summary>
-public struct StringDictionaryArgument
+public readonly record struct StringDictionaryArgument
 {
     /// <summary>
     /// 存储解析到的字符串字典。
     /// </summary>
-    private Dictionary<string, string> _dictionary;
+    private Dictionary<string, string> Value { get; init; }
 
     /// <summary>
     /// 当命令行输入了一个键值对参数时，调用此方法追加值。
     /// </summary>
     /// <param name="key">解析到的键。</param>
     /// <param name="value">解析到的值。</param>
-    public void Append(ReadOnlySpan<char> key, ReadOnlySpan<char> value)
+    public StringDictionaryArgument Append(ReadOnlySpan<char> key, ReadOnlySpan<char> value)
     {
-        _dictionary ??= [];
-        _dictionary[key.ToString()] = value.ToString();
+        var dictionary = Value;
+        dictionary ??= [];
+        dictionary[key.ToString()] = value.ToString();
+        return new StringDictionaryArgument { Value = dictionary };
     }
 
     /// <summary>
@@ -284,17 +289,17 @@ public struct StringDictionaryArgument
     /// </summary>
     public KeyValuePair<string, string>? ToKeyValuePair()
     {
-        if (_dictionary is null || _dictionary.Count == 0)
+        if (Value is null || Value.Count == 0)
         {
             return null;
         }
 
-        if (_dictionary.Count > 1)
+        if (Value.Count > 1)
         {
             throw new InvalidOperationException("字典包含多个元素，无法转换为 KeyValuePair。");
         }
 
-        using var enumerator = _dictionary.GetEnumerator();
+        using var enumerator = Value.GetEnumerator();
         enumerator.MoveNext();
         return enumerator.Current;
     }
@@ -304,7 +309,7 @@ public struct StringDictionaryArgument
     /// </summary>
     public Dictionary<string, string> ToDictionary()
     {
-        return _dictionary ?? [];
+        return Value ?? [];
     }
 }
 
@@ -315,7 +320,7 @@ public struct StringDictionaryArgument
 /// 源生成器会为各个枚举生成专门的编译时类型来处理枚举的赋值。<br/>
 /// 此类型是为那些在运行时才知道枚举类型的场景准备的。
 /// </remarks>
-public struct RuntimeEnumArgument<T> where T : unmanaged, Enum
+public readonly record struct RuntimeEnumArgument<T> where T : unmanaged, Enum
 {
     /// <summary>
     /// 指示在解析失败时是否忽略异常并保持未初始化的状态。
@@ -325,13 +330,13 @@ public struct RuntimeEnumArgument<T> where T : unmanaged, Enum
     /// <summary>
     /// 存储解析到的枚举值。
     /// </summary>
-    private T? _value;
+    private T? Value { get; init; }
 
     /// <summary>
     /// 当命令行输入了一个数值参数时，调用此方法赋值。
     /// </summary>
     /// <param name="value">解析到的数值字符串。</param>
-    public void Assign(ReadOnlySpan<char> value)
+    public RuntimeEnumArgument<T> Assign(ReadOnlySpan<char> value)
     {
         if (Enum.TryParse<T>(value
 #if !NET6_0_OR_GREATER
@@ -339,16 +344,17 @@ public struct RuntimeEnumArgument<T> where T : unmanaged, Enum
 #endif
                 , ignoreCase: true, out var enumValue))
         {
-            _value = enumValue;
+            return this with { Value = enumValue };
         }
-        else if (!IgnoreExceptions)
+        if (!IgnoreExceptions)
         {
             throw new FormatException($"无法将 \"{value.ToString()}\" 转换为 {typeof(T).FullName} 枚举。");
         }
+        return this;
     }
 
     /// <summary>
     /// 将解析到的值转换为枚举。
     /// </summary>
-    public T? ToEnum() => _value;
+    public T? ToEnum() => Value;
 }
