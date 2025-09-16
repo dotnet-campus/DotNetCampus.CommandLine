@@ -109,6 +109,25 @@ public readonly record struct CommandLineParsingOptions
     };
 
     /// <summary>
+    /// 内部使用。当发现命令行参数只有一个，且符合 URL 格式时，无论用户设置了哪种命令行风格，都会使用此风格进行解析。
+    /// </summary>
+    internal static CommandLineStyleDetails UrlStyle => new CommandLineStyleDetails
+    {
+        CaseSensitive = false,
+        SupportsLongOption = true,
+        SupportsShortOption = false,
+        SupportsShortOptionCombination = false,
+        SupportsMultiCharShortOption = false,
+        SupportsShortOptionValueWithoutSeparator = false,
+        SupportsSpaceSeparatedOptionValue = false,
+        SupportsSpaceSeparatedCollectionValues = false,
+        NamingPolicy = CommandNamingPolicy.Both,
+        OptionPrefix = CommandOptionPrefix.DoubleDash,
+        OptionValueSeparators = CommandSeparatorChars.Create('='),
+        CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
+    };
+
+    /// <summary>
     /// 详细设置命令行解析时的各种细节。
     /// </summary>
     public CommandLineStyleDetails Style { get; init; }

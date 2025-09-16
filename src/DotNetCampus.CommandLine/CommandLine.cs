@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
 
@@ -12,9 +13,22 @@ namespace DotNetCampus.Cli;
 public class CommandLine : ICoreCommandRunnerBuilder
 {
     /// <summary>
+    /// 存储特殊处理过 URL 的命令行参数。
+    /// </summary>
+    private readonly IReadOnlyList<string>? _urlNormalizedArguments;
+
+    /// <summary>
     /// 获取此命令行解析类型所关联的命令行参数。
     /// </summary>
-    public IReadOnlyList<string> CommandLineArguments { get; }
+    /// <remarks>
+    /// 如果命令行参数中传入的是 URL，则此参数不会保存原始的 URL，而是将 URL 转换为普通的命令行参数列表。
+    /// </remarks>
+    public IReadOnlyList<string> CommandLineArguments => _urlNormalizedArguments ?? RawArguments;
+
+    /// <summary>
+    /// 获取命令行传入的原始参数列表。
+    /// </summary>
+    public IReadOnlyList<string> RawArguments { get; }
 
     /// <summary>
     /// 获取解析此命令行时所使用的各种选项。
@@ -22,20 +36,21 @@ public class CommandLine : ICoreCommandRunnerBuilder
     public CommandLineParsingOptions ParsingOptions { get; }
 
     /// <summary>
-    /// 在特定的属性不指定时，默认应使用的大小写敏感性。
+    /// 如果此命令行是从 Web 请求的 URL 中解析出来的，则此属性保存 URL 的 Scheme 部分。
     /// </summary>
-    public bool DefaultCaseSensitive => ParsingOptions.Style.CaseSensitive;
+    internal string? MatchedUrlScheme { get; }
 
     private CommandLine()
     {
-        CommandLineArguments = [];
+        RawArguments = [];
         ParsingOptions = CommandLineParsingOptions.Flexible;
     }
 
     private CommandLine(IReadOnlyList<string> arguments, CommandLineParsingOptions? parsingOptions = null)
     {
-        CommandLineArguments = arguments;
+        RawArguments = arguments;
         ParsingOptions = parsingOptions ?? CommandLineParsingOptions.Flexible;
+        (MatchedUrlScheme, _urlNormalizedArguments) = CommandUrlParser.TryNormalizeUrlArguments(arguments, ParsingOptions);
     }
 
     /// <summary>

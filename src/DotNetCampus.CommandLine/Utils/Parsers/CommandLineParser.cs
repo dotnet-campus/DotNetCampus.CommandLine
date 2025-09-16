@@ -24,7 +24,10 @@ public readonly ref struct CommandLineParser
         _commandLine = commandLine;
         _commandObjectName = commandObjectName;
         _commandCount = commandCount;
-        Style = commandLine.ParsingOptions.Style;
+        var isUrl = commandLine.MatchedUrlScheme is null;
+        Style = isUrl
+            ? commandLine.ParsingOptions.Style
+            : CommandLineParsingOptions.UrlStyle;
         _namingPolicy = Style.NamingPolicy;
         OptionPrefix = Style.OptionPrefix;
         _caseSensitive = Style.CaseSensitive;

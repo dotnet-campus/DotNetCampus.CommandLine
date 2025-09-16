@@ -41,7 +41,7 @@ public class UrlCommandLineParserTests
             .Run();
 
         // Assert
-        Assert.AreEqual("documents/open", path);
+        Assert.AreEqual("open", path);
         Assert.IsTrue(readOnly);
         Assert.AreEqual("yes", highlight);
     }
@@ -541,12 +541,14 @@ internal record Url04_CaseInsensitiveSchemeOptions
     public string Param { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url05_BasicQueryParamOptions
 {
     [Option]
     public string Name { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url06_MultipleQueryParamOptions
 {
     [Option]
@@ -559,6 +561,7 @@ internal record Url06_MultipleQueryParamOptions
     public string Location { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url07_BooleanQueryParamOptions
 {
     [Option]
@@ -568,6 +571,7 @@ internal record Url07_BooleanQueryParamOptions
     public bool Verbose { get; init; }
 }
 
+[Command("path")]
 internal record Url08_EmptyValueQueryParamOptions
 {
     [Option]
@@ -577,12 +581,14 @@ internal record Url08_EmptyValueQueryParamOptions
     public string Comment { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url09_ArrayQueryParamOptions
 {
     [Option]
     public string[] Tags { get; init; } = [];
 }
 
+[Command("path")]
 internal record Url10_IntegerTypeOptions
 {
     [Option]
@@ -592,6 +598,7 @@ internal record Url10_IntegerTypeOptions
     public int Count { get; init; }
 }
 
+[Command("path")]
 internal record Url11_BooleanTypeOptions
 {
     [Option]
@@ -604,6 +611,7 @@ internal record Url11_BooleanTypeOptions
     public bool Flag { get; init; }
 }
 
+[Command("path")]
 internal record Url12_EnumTypeOptions
 {
     /// <summary>
@@ -619,6 +627,7 @@ internal record Url12_EnumTypeOptions
     public CommandLineStyle Style { get; init; }
 }
 
+[Command("path")]
 internal record Url13_CollectionTypeOptions
 {
     [Option]
@@ -628,6 +637,7 @@ internal record Url13_CollectionTypeOptions
     public IReadOnlyList<string> Names { get; init; } = [];
 }
 
+[Command("path")]
 internal record Url14_UrlEncodedOptions
 {
     [Option]
@@ -637,12 +647,14 @@ internal record Url14_UrlEncodedOptions
     public string Path { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url15_SpecialCharsOptions
 {
     [Option]
     public string Special { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url16_NonAsciiOptions
 {
     [Option]
@@ -680,12 +692,14 @@ internal record Url20_MalformedUrlOptions
     public string Value { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url21_DuplicateParamOptions
 {
     [Option]
     public string Name { get; init; } = string.Empty;
 }
 
+[Command("path")]
 internal record Url22_FragmentOptions
 {
     [Option]
