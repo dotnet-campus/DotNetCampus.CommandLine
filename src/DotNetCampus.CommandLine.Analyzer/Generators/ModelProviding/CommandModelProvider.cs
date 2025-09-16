@@ -1,6 +1,5 @@
-﻿using System.Collections.Immutable;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Utils;
+﻿using DotNetCampus.Cli.Compiler;
+using DotNetCampus.CommandLine.Generators.Models;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,15 +54,16 @@ internal static class CommandModelProvider
                     ;
                 // 4. 拥有 [Option] 特性的属性。
                 var optionProperties = typeSymbol
-                    .GetAttributedProperties(OptionPropertyGeneratingModel.TryParse);
+                    .GetAttributedProperties(OptionalArgumentPropertyGeneratingModel.TryParse);
                 // 5. 拥有 [Value] 特性的属性。
                 var valueProperties = typeSymbol
                     .GetAttributedProperties(PositionalArgumentPropertyGeneratingModel.TryParse);
                 // 6. 拥有 [RawArguments] 特性的属性。
                 var rawArgumentsProperties = typeSymbol
-                    .GetAttributedProperties(RawArgumentsPropertyGeneratingModel.TryParse);
+                    .GetAttributedProperties(RawArgumentPropertyGeneratingModel.TryParse);
 
-                if (!isOptions && !isHandler && attribute is null && optionProperties.IsEmpty && valueProperties.IsEmpty && rawArgumentsProperties.IsEmpty)
+                if (!isOptions && !isHandler && attribute is null
+                    && optionProperties.Count is 0 && valueProperties.Count is 0 && rawArgumentsProperties.Count is 0)
                 {
                     // 不是命令行选项类型。
                     return null;
@@ -73,13 +73,13 @@ internal static class CommandModelProvider
                 var commandNames = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
                 var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
 
-                for (var i = 0; i < optionProperties.Length; i++)
+                for (var i = 0; i < optionProperties.Count; i++)
                 {
                     optionProperties[i].PropertyIndex = i;
                 }
-                for (var i = 0; i < valueProperties.Length; i++)
+                for (var i = 0; i < valueProperties.Count; i++)
                 {
-                    valueProperties[i].PropertyIndex = i + optionProperties.Length;
+                    valueProperties[i].PropertyIndex = i + optionProperties.Count;
                 }
 
                 return new CommandObjectGeneratingModel
@@ -126,483 +126,26 @@ internal static class CommandModelProvider
     }
 }
 
-internal record CommandObjectGeneratingModel
-{
-    private static readonly ImmutableArray<string> SupportedPostfixes = ["Options", "CommandOptions", "Handler", "CommandHandler", ""];
-
-    public required string Namespace { get; init; }
-
-    public required INamedTypeSymbol CommandObjectType { get; init; }
-
-    public required bool IsPublic { get; init; }
-
-    public required string? CommandNames { get; init; }
-
-    public required bool IsHandler { get; init; }
-
-    public required ImmutableArray<OptionPropertyGeneratingModel> OptionProperties { get; init; }
-
-    public required ImmutableArray<PositionalArgumentPropertyGeneratingModel> PositionalArgumentProperties { get; init; }
-
-    public required ImmutableArray<RawArgumentsPropertyGeneratingModel> RawArgumentsProperties { get; init; }
-
-    public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
-
-    public int GetCommandLevel() => CommandNames switch
-    {
-        null => 0,
-        { } names => names.Count(x => x == ' ') + 1,
-    };
-
-    public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentPropertiesExcludingSameNameOptions()
-    {
-        var optionNames = OptionProperties.Select(x => x.PropertyName).ToList();
-        foreach (var positionalArgumentProperty in PositionalArgumentProperties)
-        {
-            if (!optionNames.Contains(positionalArgumentProperty.PropertyName, StringComparer.Ordinal))
-            {
-                yield return positionalArgumentProperty;
-            }
-        }
-    }
-
-    public string? GetKebabCaseCommandNames()
-    {
-        if (CommandNames is not { } commandNames)
-        {
-            return null;
-        }
-        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
-    }
-
-    public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
-    {
-        return $"{commandObjectType.Name}Builder";
-    }
-
-    public IEnumerable<ITypeSymbol> EnumerateEnumPropertyTypes()
-    {
-        var enums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
-        foreach (var option in OptionProperties)
-        {
-            if (option.Type.TypeKind is TypeKind.Enum)
-            {
-                enums.Add(option.Type);
-            }
-        }
-        foreach (var value in PositionalArgumentProperties)
-        {
-            if (value.Type.TypeKind is TypeKind.Enum)
-            {
-                enums.Add(value.Type);
-            }
-        }
-        return enums;
-    }
-}
-
-internal abstract record PropertyGeneratingModel
-{
-    public required string PropertyName { get; init; }
-
-    public required ITypeSymbol Type { get; init; }
-
-    public required bool IsRequired { get; init; }
-
-    public required bool IsInitOnly { get; init; }
-
-    public required bool IsNullable { get; init; }
-}
-
-internal record OptionPropertyGeneratingModel : PropertyGeneratingModel
-{
-    public required bool IsValueType { get; init; }
-
-    public required IReadOnlyList<string> ShortNames { get; init; }
-
-    public required IReadOnlyList<string> LongNames { get; init; }
-
-    public required bool? CaseSensitive { get; init; }
-
-    public int PropertyIndex { get; set; } = -1;
-
-    /// <summary>
-    /// 返回开发者定义的长选项名称列表，按定义顺序返回。<br/>
-    /// 如果没有定义，则返回 kebab-case 风格的属性名作为默认名称；
-    /// 如果有定义，无论定义了什么，都视其为 kebab-case 风格的名称。
-    /// </summary>
-    public IReadOnlyList<string> GetOrdinalLongNames()
-    {
-        List<string> list = [];
-        if (LongNames.Count is 0)
-        {
-            list.Add(NamingHelper.MakeKebabCase(PropertyName));
-        }
-        else
-        {
-            foreach (var longName in LongNames)
-            {
-                if (!string.IsNullOrEmpty(longName) && !list.Contains(longName, StringComparer.Ordinal))
-                {
-                    list.Add(longName);
-                }
-            }
-        }
-        return list;
-    }
-
-    public IReadOnlyList<string> GetPascalCaseLongNames()
-    {
-        List<string> list = [];
-        if (LongNames.Count is 0)
-        {
-            list.Add(PropertyName);
-        }
-        else
-        {
-            foreach (var longName in LongNames)
-            {
-                if (!string.IsNullOrEmpty(longName))
-                {
-                    var pascalCase = NamingHelper.MakePascalCase(longName);
-                    if (!list.Contains(pascalCase, StringComparer.Ordinal))
-                    {
-                        list.Add(pascalCase);
-                    }
-                }
-            }
-        }
-        return list;
-    }
-
-    public IReadOnlyList<string> GetShortNames()
-    {
-        List<string> list = [];
-        foreach (var shortName in ShortNames)
-        {
-            if (!string.IsNullOrEmpty(shortName) && !list.Contains(shortName, StringComparer.Ordinal))
-            {
-                list.Add(shortName);
-            }
-        }
-        return list;
-    }
-
-    public static OptionPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
-    {
-        var optionAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<OptionAttribute>());
-        if (optionAttribute is null)
-        {
-            return null;
-        }
-
-        List<string> shortNames = [];
-        List<string> longNames = [];
-
-        if (optionAttribute.ConstructorArguments.Length is 0)
-        {
-            // 没有构造函数参数时，不设置任何名称。
-        }
-        else if (optionAttribute.ConstructorArguments.Length is 1)
-        {
-            // 只有一个构造函数参数时，要么是短名称（一定是字符），要么是长名称（一定是字符串）。
-            var arg = optionAttribute.ConstructorArguments[0];
-            if (arg.Type?.SpecialType is SpecialType.System_Char)
-            {
-                var shortName = arg.Value?.ToString();
-                if (!string.IsNullOrEmpty(shortName))
-                {
-                    shortNames.Add(shortName!);
-                }
-            }
-            else if (arg.Type?.SpecialType is SpecialType.System_String)
-            {
-                var longName = arg.Value?.ToString();
-                if (!string.IsNullOrEmpty(longName))
-                {
-                    longNames.Add(longName!);
-                }
-            }
-        }
-        else if (optionAttribute.ConstructorArguments.Length is 2)
-        {
-            // 有两个构造函数参数时，第一个参数是短名称（字符、字符串、字符串数组），第二个参数是长名称（字符串、字符串数组）。
-            var shortArg = optionAttribute.ConstructorArguments[0];
-            if (shortArg.Type?.SpecialType is SpecialType.System_Char)
-            {
-                var shortName = shortArg.Value?.ToString();
-                if (!string.IsNullOrEmpty(shortName))
-                {
-                    shortNames.Add(shortName!);
-                }
-            }
-            else if (shortArg.Type?.SpecialType is SpecialType.System_String)
-            {
-                var shortName = shortArg.Value?.ToString();
-                if (!string.IsNullOrEmpty(shortName))
-                {
-                    shortNames.Add(shortName!);
-                }
-            }
-            else if (shortArg.Kind is TypedConstantKind.Array)
-            {
-                foreach (var value in shortArg.Values)
-                {
-                    var shortName = value.Value?.ToString();
-                    if (!string.IsNullOrEmpty(shortName) && !shortNames.Contains(shortName, StringComparer.Ordinal))
-                    {
-                        shortNames.Add(shortName!);
-                    }
-                }
-            }
-            var longArg = optionAttribute.ConstructorArguments[1];
-            if (longArg.Type?.SpecialType is SpecialType.System_String)
-            {
-                var longName = longArg.Value?.ToString();
-                if (!string.IsNullOrEmpty(longName))
-                {
-                    longNames.Add(longName!);
-                }
-            }
-            else if (longArg.Kind is TypedConstantKind.Array)
-            {
-                foreach (var value in longArg.Values)
-                {
-                    var longName = value.Value?.ToString();
-                    if (!string.IsNullOrEmpty(longName) && !longNames.Contains(longName, StringComparer.Ordinal))
-                    {
-                        longNames.Add(longName!);
-                    }
-                }
-            }
-        }
-
-        var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
-
-        return new OptionPropertyGeneratingModel
-        {
-            PropertyName = propertySymbol.Name,
-            Type = propertySymbol.Type,
-            IsRequired = propertySymbol.IsRequired,
-            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
-            IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
-            IsValueType = propertySymbol.Type.IsValueType,
-            ShortNames = shortNames,
-            LongNames = longNames,
-            CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
-        };
-    }
-}
-
-internal record PositionalArgumentPropertyGeneratingModel : PropertyGeneratingModel
-{
-    public required bool IsValueType { get; init; }
-
-    public required int Index { get; init; }
-
-    public required int Length { get; init; }
-
-    public int PropertyIndex { get; set; } = -1;
-
-    public static PositionalArgumentPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
-    {
-        var valueAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<ValueAttribute>());
-        if (valueAttribute is null)
-        {
-            return null;
-        }
-
-        var index = valueAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        var length =
-            // 优先从命名属性中拿。
-            valueAttribute.NamedArguments
-                .FirstOrDefault(a => a.Key == nameof(ValueAttribute.Length)).Value.Value?.ToString()
-            // 其次从构造函数参数中拿。
-            ?? valueAttribute.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
-
-        return new PositionalArgumentPropertyGeneratingModel
-        {
-            PropertyName = propertySymbol.Name,
-            Type = propertySymbol.Type,
-            IsRequired = propertySymbol.IsRequired,
-            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
-            IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
-            IsValueType = propertySymbol.Type.IsValueType,
-            Index = index is not null && int.TryParse(index, out var result) ? result : 0,
-            Length = length is not null && int.TryParse(length, out var result2) ? result2 : 1,
-        };
-    }
-}
-
-internal record RawArgumentsPropertyGeneratingModel : PropertyGeneratingModel
-{
-    public static RawArgumentsPropertyGeneratingModel? TryParse(IPropertySymbol propertySymbol)
-    {
-        var rawArgumentsAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<RawArgumentsAttribute>());
-        if (rawArgumentsAttribute is null)
-        {
-            return null;
-        }
-
-        return new RawArgumentsPropertyGeneratingModel
-        {
-            PropertyName = propertySymbol.Name,
-            Type = propertySymbol.Type,
-            IsRequired = propertySymbol.IsRequired,
-            IsInitOnly = propertySymbol.SetMethod?.IsInitOnly ?? false,
-            IsNullable = propertySymbol.Type.NullableAnnotation == NullableAnnotation.Annotated,
-        };
-    }
-}
-
-internal record AssemblyCommandsGeneratingModel
-{
-    public required string Namespace { get; init; }
-
-    public required INamedTypeSymbol AssemblyCommandHandlerType { get; init; }
-}
-
-internal static class CommandModelExtensions
-{
-    private static readonly SymbolDisplayFormat ToTargetTypeFormat = new SymbolDisplayFormat(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-        genericsOptions: SymbolDisplayGenericsOptions.None,
-        kindOptions: SymbolDisplayKindOptions.None
-    );
-
-    private static readonly SymbolDisplayFormat NotNullDisplayFormat = new SymbolDisplayFormat(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        genericsOptions: SymbolDisplayGenericsOptions.None,
-        kindOptions: SymbolDisplayKindOptions.None,
-        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier);
-
-    public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
-    {
-        string typeName;
-
-        if (symbol is { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
-        {
-            typeName = typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
-                // 获取 Nullable<T> 中的 T。
-                ? namedType.TypeArguments[0].ToDisplayString()
-                // 处理直接带有可空标记的类型 (int? 这种形式)。
-                : typeSymbol.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString();
-        }
-        else
-        {
-            typeName = symbol.ToDisplayString();
-        }
-
-        return $"__GeneratedEnumArgument__{typeName.Replace('.', '_')}__";
-    }
-
-    public static string ToOptionValueTypeName(this CommandPropertyType type) => type switch
-    {
-        CommandPropertyType.Boolean => "global::DotNetCampus.Cli.OptionValueType.Boolean",
-        CommandPropertyType.List => "global::DotNetCampus.Cli.OptionValueType.List",
-        CommandPropertyType.Dictionary => "global::DotNetCampus.Cli.OptionValueType.Dictionary",
-        _ => "global::DotNetCampus.Cli.OptionValueType.Normal",
-    };
-
-    public static string ToCommandTargetMethodName(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol.Kind is SymbolKind.ArrayType)
-        {
-            return "Array";
-        }
-
-        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
-        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
-        {
-            // Nullable<T> 类型
-            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return ToCommandTargetMethodName(genericType);
-        }
-
-        // 取出类型的 .NET 类名称，不含泛型。如 bool 返回 Boolean，Dictionary<string, string> 返回 Dictionary。
-        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
-        {
-            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
-                or "IImmutableSet" or "IImmutableList" => "List",
-            "IDictionary" or "IReadOnlyDictionary" => "Dictionary",
-            var name => name,
-        };
-    }
-
-    public static CommandPropertyType AsCommandPropertyType(this ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol.SpecialType is SpecialType.System_Boolean)
-        {
-            return CommandPropertyType.Boolean;
-        }
-
-        if (typeSymbol.SpecialType is SpecialType.System_Byte or
-            SpecialType.System_SByte or
-            SpecialType.System_Int16 or
-            SpecialType.System_UInt16 or
-            SpecialType.System_Int32 or
-            SpecialType.System_UInt32 or
-            SpecialType.System_Int64 or
-            SpecialType.System_UInt64 or
-            SpecialType.System_Single or
-            SpecialType.System_Double or
-            SpecialType.System_Decimal)
-        {
-            return CommandPropertyType.Number;
-        }
-
-        if (typeSymbol.TypeKind is TypeKind.Enum)
-        {
-            return CommandPropertyType.Enum;
-        }
-
-        if (typeSymbol.SpecialType is SpecialType.System_String)
-        {
-            return CommandPropertyType.String;
-        }
-
-        if (typeSymbol.Kind is SymbolKind.ArrayType)
-        {
-            return CommandPropertyType.List;
-        }
-
-        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
-        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
-        {
-            // Nullable<T> 类型
-            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return AsCommandPropertyType(genericType);
-        }
-
-        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
-        {
-            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
-                or "IImmutableSet" or "IImmutableList" => CommandPropertyType.List,
-            "ImmutableArray" or "List" or "ImmutableHashSet" or "Collection" or "HashSet" => CommandPropertyType.List,
-            "IDictionary" or "IReadOnlyDictionary" => CommandPropertyType.Dictionary,
-            "ImmutableDictionary" or "Dictionary" or "KeyValuePair" => CommandPropertyType.Dictionary,
-            _ => CommandPropertyType.Unknown,
-        };
-    }
-}
-
-internal enum CommandPropertyType
-{
-    Boolean,
-    Number,
-    Enum,
-    String,
-    List,
-    Dictionary,
-    Unknown,
-}
-
 file static class Extensions
 {
-    public static IEnumerable<ITypeSymbol> EnumerateBaseTypesRecursively(this ITypeSymbol type)
+    public static IReadOnlyList<TModel> GetAttributedProperties<TModel>(this ITypeSymbol typeSymbol,
+        Func<IPropertySymbol, TModel?> propertyParser)
+        where TModel : class
+    {
+        return typeSymbol
+            .EnumerateBaseTypesRecursively() // 递归获取所有基类
+            .Reverse() // （注意我们先给父类属性赋值，再给子类属性赋值）
+            .SelectMany(x => x.GetMembers()) // 的所有成员，
+            .OfType<IPropertySymbol>() // 然后取出属性，
+            .Select(x => (PropertyName: x.Name, Model: propertyParser(x))) // 解析出 OptionPropertyGeneratingModel。
+            .Where(x => x.Model is not null)
+            .GroupBy(x => x.PropertyName) // 按属性名去重。
+            .Select(x => x.Last().Model) // 随后，取子类的属性（去除父类的重名属性）。
+            .Cast<TModel>()
+            .ToList();
+    }
+
+    private static IEnumerable<ITypeSymbol> EnumerateBaseTypesRecursively(this ITypeSymbol type)
     {
         var current = type;
         while (current != null)
@@ -610,22 +153,5 @@ file static class Extensions
             yield return current;
             current = current.BaseType;
         }
-    }
-
-    public static ImmutableArray<TModel> GetAttributedProperties<TModel>(this ITypeSymbol typeSymbol,
-        Func<IPropertySymbol, TModel?> propertyParser)
-        where TModel : class
-    {
-        return typeSymbol
-            .EnumerateBaseTypesRecursively() // 递归获取所有基类
-            .Reverse() // （注意我们先给父类属性赋值，再给子类属性赋值）
-            .SelectMany(x => x.GetMembers()) //                 的所有成员，
-            .OfType<IPropertySymbol>() //                             然后取出属性，
-            .Select(x => (PropertyName: x.Name, Model: propertyParser(x))) // 解析出 OptionPropertyGeneratingModel。
-            .Where(x => x.Model is not null)
-            .GroupBy(x => x.PropertyName) // 按属性名去重。
-            .Select(x => x.Last().Model) // 随后，取子类的属性（去除父类的重名属性）。
-            .Cast<TModel>()
-            .ToImmutableArray();
     }
 }

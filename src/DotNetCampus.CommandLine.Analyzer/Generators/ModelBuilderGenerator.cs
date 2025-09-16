@@ -1,5 +1,6 @@
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Generators.Models;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators;
@@ -67,14 +68,14 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         return builder.ToString();
     }
 
-    private string GenerateOptionPropertyCode(PropertyGeneratingModel model) => model.Type.AsCommandPropertyType() switch
+    private string GenerateOptionPropertyCode(PropertyGeneratingModel model) => model.Type.AsCommandValueKind() switch
     {
-        CommandPropertyType.Boolean => $"private global::DotNetCampus.Cli.Compiler.BooleanArgument {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.Number => $"private global::DotNetCampus.Cli.Compiler.NumberArgument {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.Enum => $"private {model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.String => $"private global::DotNetCampus.Cli.Compiler.StringArgument {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.List => $"private global::DotNetCampus.Cli.Compiler.StringListArgument {model.PropertyName} {{ get; }} = new();",
-        CommandPropertyType.Dictionary => $"private global::DotNetCampus.Cli.Compiler.StringDictionaryArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.Boolean => $"private global::DotNetCampus.Cli.Compiler.BooleanArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.Number => $"private global::DotNetCampus.Cli.Compiler.NumberArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.Enum => $"private {model.Type.GetGeneratedEnumArgumentTypeName()} {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.String => $"private global::DotNetCampus.Cli.Compiler.StringArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.List => $"private global::DotNetCampus.Cli.Compiler.StringListArgument {model.PropertyName} {{ get; }} = new();",
+        CommandValueKind.Dictionary => $"private global::DotNetCampus.Cli.Compiler.StringDictionaryArgument {model.PropertyName} {{ get; }} = new();",
         _ => $"// 不支持解析类型为 {model.Type.ToDisplayString()} 的属性 {model.PropertyName}。",
     };
 
@@ -96,7 +97,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private string GenerateMatchLongOptionCode(CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return optionProperties.Length is 0
+        return optionProperties.Count is 0
             ? "// 没有长名称选项，无需匹配。"
             : $$"""
         var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
@@ -114,7 +115,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         }
         """;
 
-        static string GenerateOptionMatchCode(OptionPropertyGeneratingModel model, IReadOnlyList<string> names)
+        static string GenerateOptionMatchCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
             if (names.Count == 0)
             {
@@ -131,7 +132,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return string.Join("\n", names.Select(name => $$"""
             if (longOption.Equals("{{name}}".AsSpan(), {{comparison}}))
             {
-                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandPropertyType().ToOptionValueTypeName()}});
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
         """));
         }
@@ -140,7 +141,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private string GenerateMatchShortOptionCode(CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return optionProperties.Length is 0
+        return optionProperties.Count is 0
             ? "// 没有短名称选项，无需匹配。"
             : $$"""
         var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
@@ -148,7 +149,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetShortNames())))}}
         """;
 
-        static string GenerateOptionMatchCode(OptionPropertyGeneratingModel model, IReadOnlyList<string> names)
+        static string GenerateOptionMatchCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
             if (names.Count == 0)
             {
@@ -165,7 +166,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return string.Join("\n", names.Select(name => $$"""
             if (shortOption.Equals("{{name}}".AsSpan(), {{comparison}}))
             {
-                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandPropertyType().ToOptionValueTypeName()}});
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
             """));
         }
@@ -174,7 +175,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private string GenerateMatchPositionalArgumentsCode(CommandObjectGeneratingModel model)
     {
         var positionalArgumentProperties = model.PositionalArgumentProperties;
-        return positionalArgumentProperties.Length is 0
+        return positionalArgumentProperties.Count is 0
             ? "// 没有位置参数，无需匹配。"
             : $$"""
         {{string.Join("\n", positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))}}
@@ -208,16 +209,16 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateAssignPropertyValueCode(PropertyGeneratingModel model)
     {
-        var assign = model.Type.AsCommandPropertyType() switch
+        var assign = model.Type.AsCommandValueKind() switch
         {
-            CommandPropertyType.Boolean => $"{model.PropertyName}.Assign(value[0] == '1');",
-            CommandPropertyType.List => $"{model.PropertyName}.Append(value);",
-            CommandPropertyType.Dictionary => $"{model.PropertyName}.Append(key, value);",
+            CommandValueKind.Boolean => $"{model.PropertyName}.Assign(value[0] == '1');",
+            CommandValueKind.List => $"{model.PropertyName}.Append(value);",
+            CommandValueKind.Dictionary => $"{model.PropertyName}.Append(key, value);",
             _ => $"{model.PropertyName}.Assign(value);",
         };
         var propertyIndex = model switch
         {
-            OptionPropertyGeneratingModel optionPropertyGeneratingModel => optionPropertyGeneratingModel.PropertyIndex,
+            OptionalArgumentPropertyGeneratingModel optionPropertyGeneratingModel => optionPropertyGeneratingModel.PropertyIndex,
             PositionalArgumentPropertyGeneratingModel positionalArgumentPropertyGeneratingModel => positionalArgumentPropertyGeneratingModel.PropertyIndex,
             _ => -1,
         };
@@ -230,12 +231,12 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateBuildCoreCode(CommandObjectGeneratingModel model)
     {
-        var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequired || x.IsInitOnly).ToList();
-        var initOptionProperties = model.OptionProperties.Where(x => x.IsRequired || x.IsInitOnly).ToList();
-        var initPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => x.IsRequired || x.IsInitOnly).ToList();
-        var setRawArgumentsProperties = model.RawArgumentsProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToList();
-        var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToList();
-        var setPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => !x.IsRequired && !x.IsInitOnly).ToList();
+        var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequiredOrInit).ToList();
+        var initOptionProperties = model.OptionProperties.Where(x => x.IsRequiredOrInit).ToList();
+        var initPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => x.IsRequiredOrInit).ToList();
+        var setRawArgumentsProperties = model.RawArgumentsProperties.Where(x => !x.IsRequiredOrInit).ToList();
+        var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequiredOrInit).ToList();
+        var setPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => !x.IsRequiredOrInit).ToList();
         return $$"""
     var result = new {{model.CommandObjectType.ToUsingString()}}
     {
@@ -302,14 +303,14 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         // | 0    | _        | _    | 0   | 保留初值   |
         // | _    | _        | _    | 1   | 赋值       |
 
-        var toTarget = model.Type.ToCommandTargetMethodName();
-        var fallback = (model.IsNullable, model.Type.AsCommandPropertyType() is CommandPropertyType.List or CommandPropertyType.Dictionary) switch
+        var toTarget = model.Type.ToCommandValueNonAbstractName();
+        var fallback = (model.IsNullable, model.Type.AsCommandValueKind() is CommandValueKind.List or CommandValueKind.Dictionary) switch
         {
             (true, _) => " ?? null",
             (false, true) => "",
             (false, false) => model switch
             {
-                OptionPropertyGeneratingModel option =>
+                OptionalArgumentPropertyGeneratingModel option =>
                     $" ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{option.GetOrdinalLongNames()[0]}'. Command line: {{commandLine}}\", \"{option.PropertyName}\")",
                 PositionalArgumentPropertyGeneratingModel positionalArgument =>
                     $" ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at index {positionalArgument.Index}. Command line: {{commandLine}}\", \"{positionalArgument.PropertyName}\")",
@@ -321,11 +322,11 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateSetProperty(PropertyGeneratingModel model, int modelIndex)
     {
-        var toTarget = model.Type.ToCommandTargetMethodName();
+        var toTarget = model.Type.ToCommandValueNonAbstractName();
         var variablePrefix = model switch
         {
-            RawArgumentsPropertyGeneratingModel => "a",
-            OptionPropertyGeneratingModel => "o",
+            RawArgumentPropertyGeneratingModel => "a",
+            OptionalArgumentPropertyGeneratingModel => "o",
             PositionalArgumentPropertyGeneratingModel => "v",
             _ => "",
         };
@@ -337,10 +338,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         """;
     }
 
-    private string GenerateRawArgumentProperty(RawArgumentsPropertyGeneratingModel model)
+    private string GenerateRawArgumentProperty(RawArgumentPropertyGeneratingModel model)
     {
         var assignment = $"{model.PropertyName} = (commandLine.CommandLineArguments as {model.Type.ToDisplayString()}) ?? [..commandLine.CommandLineArguments]";
-        return model.IsRequired || model.IsInitOnly
+        return model.IsRequiredOrInit
             ? $"    {assignment},"
             : $"result.{assignment};";
     }
@@ -386,7 +387,7 @@ private struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
     /// <summary>
     /// Converts the parsed value to the enum type.
     /// </summary>
-    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandTargetMethodName()}}() => _value;
+    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandValueNonAbstractName()}}() => _value;
 }
 """;
     }

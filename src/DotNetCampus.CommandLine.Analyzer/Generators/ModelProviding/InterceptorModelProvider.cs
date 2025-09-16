@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Generators.Models;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
