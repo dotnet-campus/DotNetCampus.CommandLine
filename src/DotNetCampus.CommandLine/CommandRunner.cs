@@ -11,6 +11,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
     private readonly CommandLine _commandLine;
     private readonly SortedList<string, CommandObjectFactory> _factories;
+    private readonly StringComparison _stringComparison;
     private readonly bool _supportsOrdinal;
     private readonly bool _supportsPascalCase;
     private CommandObjectFactory? _defaultFactory;
@@ -18,9 +19,13 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     internal CommandRunner(CommandLine commandLine)
     {
         _commandLine = commandLine;
-        _factories = commandLine.DefaultCaseSensitive
+        var caseSensitive = commandLine.ParsingOptions.Style.CaseSensitive;
+        _factories = caseSensitive
             ? new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseSensitive)
             : new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseInsensitive);
+        _stringComparison = caseSensitive
+            ? StringComparison.Ordinal
+            : StringComparison.OrdinalIgnoreCase;
         _supportsOrdinal = commandLine.ParsingOptions.Style.NamingPolicy.SupportsOrdinal();
         _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
@@ -55,13 +60,10 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         {
             var maxLength = _factories.Keys[0].Length;
             var header = _commandLine.GetHeader(maxLength);
-            var stringComparison = _commandLine.DefaultCaseSensitive
-                ? StringComparison.Ordinal
-                : StringComparison.OrdinalIgnoreCase;
 
             foreach (var (command, factory) in _factories)
             {
-                if (header.StartsWith(command, stringComparison))
+                if (header.StartsWith(command, _stringComparison))
                 {
                     // 前缀已匹配成功，接下来判断这是否是命令单词边界。
                     if (header.Length == command.Length || char.IsWhiteSpace(header[command.Length]))
