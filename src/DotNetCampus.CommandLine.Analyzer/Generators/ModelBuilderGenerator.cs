@@ -289,26 +289,27 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateInitProperty(PropertyGeneratingModel model)
     {
-        // 对于不同的属性类型，生成不同的代码。
-        // init: 属性要求必须立即赋值
+        // 对于不同的属性种类，如果命令行中没有赋值，则行为不同。
+
+        // required: 属性要求必须由命令行传入
+        // init: 属性要求必须赋值（没有传入则使用该类型默认值）
         // nullable: 属性允许为 null
         // list: 属性是一个集合
         // cli: 实际命令行参数是否传入
 
-        // | init | nullable | list | cli | 行为       |
-        // | ---- | -------- | ---- | --- | ---------- |
-        // | 1    | 1        | _    | 0   | null       |
-        // | 1    | 0        | 1    | 0   | 空集合     |
-        // | 1    | 0        | 0    | 0   | 抛异常     |
-        // | 0    | _        | _    | 0   | 保留初值   |
-        // | _    | _        | _    | 1   | 赋值       |
+        // | required | init | list | nullable | 行为       | 解释                              |
+        // | -------- | ---- | ---- | -------- | ---------- | --------------------------------- |
+        // | 1        | _    | _    | _        | 抛异常     | 要求必须传入，没有传就抛异常      |
+        // | 0        | 1    | 1    | _        | 空集合     | 集合永不为 null，没传就赋值空集合 |
+        // | 0        | 1    | 0    | 1        | null       | 可空，没有传就赋值 null           |
+        // | 0        | 1    | 0    | 0        | 默认值     | 不可空，没有传就赋值默认值        |
+        // | 0        | 0    | _    | _        | 保留初值   | 不要求必须或立即赋值的，保留初值  |
 
         var toTarget = model.Type.ToCommandValueNonAbstractName();
-        var fallback = (model.IsNullable, model.Type.AsCommandValueKind() is CommandValueKind.List or CommandValueKind.Dictionary) switch
+        var isList = model.Type.AsCommandValueKind() is CommandValueKind.List or CommandValueKind.Dictionary;
+        var fallback = (model.IsRequired, model.IsInitOnly, isList, model.IsNullable) switch
         {
-            (true, _) => " ?? null",
-            (false, true) => "",
-            (false, false) => model switch
+            (true, _, _, _) => model switch
             {
                 OptionalArgumentPropertyGeneratingModel option =>
                     $" ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{option.GetOrdinalLongNames()[0]}'. Command line: {{commandLine}}\", \"{option.PropertyName}\")",
@@ -316,6 +317,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     $" ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at index {positionalArgument.Index}. Command line: {{commandLine}}\", \"{positionalArgument.PropertyName}\")",
                 _ => "",
             },
+            (_, true, true, _) => "",
+            (_, true, false, true) => " ?? null",
+            (_, true, false, false) => $" ?? default({model.Type.ToDisplayString()})",
+            _ => "/* 非 init 属性，在下面单独赋值 */",
         };
         return $"    {model.PropertyName} = {model.PropertyName}.To{toTarget}(){fallback},";
     }

@@ -913,7 +913,7 @@ public class DotNetCommandLineParserTests
 
         // Act
         CommandLine.Parse(args, DotNet)
-            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.Tl)
+            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.TerminalLogger)
             .Run();
 
         // Assert
@@ -929,7 +929,7 @@ public class DotNetCommandLineParserTests
 
         // Act
         CommandLine.Parse(args, DotNet)
-            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.Tl)
+            .AddHandler<DotNet29_TwoCharOptions>(o => value = o.TerminalLogger)
             .Run();
 
         // Assert
@@ -1141,8 +1141,8 @@ internal record DotNet28_DotNetSpecificOptions
 
 internal record DotNet29_TwoCharOptions
 {
-    [Option("tl")]
-    public string Tl { get; init; } = string.Empty;
+    [Option("tl", "terminal-logger")]
+    public string TerminalLogger { get; init; } = string.Empty;
 }
 
 #endregion
