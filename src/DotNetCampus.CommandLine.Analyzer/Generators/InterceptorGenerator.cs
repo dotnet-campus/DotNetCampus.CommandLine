@@ -158,7 +158,12 @@ namespace System.Runtime.CompilerServices
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return (T)(object)new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}(commandLine).Build();
+            var instance = new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}(commandLine).Build();
+            return {{(
+                model.UseFullStackParser
+                    ? $"global::System.Runtime.CompilerServices.Unsafe.As<{model.CommandObjectType.ToGlobalDisplayString()}, T>(ref instance)"
+                    : "(T)(object)instance"
+            )}};
         }
 """;
     }

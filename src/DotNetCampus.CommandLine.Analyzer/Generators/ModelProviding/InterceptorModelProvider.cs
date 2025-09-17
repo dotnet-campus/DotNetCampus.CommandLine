@@ -107,13 +107,19 @@ internal static class InterceptorModelProvider
                 var commandNames = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
                     ? commandArgument.Value?.ToString()
                     : null;
+                var useFullStackParser = commandAttribute?.NamedArguments
+                    .FirstOrDefault(kv => kv.Key == "ExperimentalUseFullStackParser").Value.Value as bool? ?? false;
                 // 获取调用代码所在的类和方法。
                 var methodDeclaration = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
                 var classDeclaration = methodDeclaration?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
                 var invocationFileName = Path.GetFileName(node.SyntaxTree.FilePath);
                 var invocationInfo = $"{classDeclaration?.Identifier.ToString()}.{methodDeclaration?.Identifier.ToString()} @{invocationFileName}";
 
-                return new InterceptorGeneratingModel(interceptableLocation, symbol, commandNames, invocationInfo);
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, invocationInfo)
+                {
+                    CommandNames = commandNames,
+                    UseFullStackParser = useFullStackParser,
+                };
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -123,10 +129,13 @@ internal static class InterceptorModelProvider
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
     INamedTypeSymbol CommandObjectType,
-    string? CommandNames,
     string InvocationInfo
 )
 {
+    public required string? CommandNames { get; init; }
+
+    public required bool UseFullStackParser { get; init; }
+
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
 
     public string? GetPascalCaseCommandNames()
