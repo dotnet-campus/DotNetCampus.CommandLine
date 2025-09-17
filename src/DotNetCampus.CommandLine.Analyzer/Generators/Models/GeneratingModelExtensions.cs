@@ -140,4 +140,36 @@ internal static class GeneratingModelExtensions
             _ => CommandValueKind.Unknown,
         };
     }
+
+    /// <summary>
+    /// 判断类型是否确定支持集合表达式（Collection Expression）。
+    /// </summary>
+    /// <param name="typeSymbol">要检查的类型符号。</param>
+    /// <param name="supportImmutableCollections">当前框架是否支持不可变集合类型（如 <c>ImmutableList</c> 和 <c>ImmutableHashSet</c>）。</param>
+    /// <returns>如果类型确定支持集合表达式，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
+    public static bool SupportCollectionExpression(this ITypeSymbol typeSymbol, bool supportImmutableCollections)
+    {
+        if (typeSymbol.Kind is SymbolKind.ArrayType)
+        {
+            return true;
+        }
+
+        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
+        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
+        {
+            // Nullable<T> 类型
+            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
+            return SupportCollectionExpression(genericType, supportImmutableCollections);
+        }
+
+        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
+        {
+            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
+                or "IImmutableSet" or "IImmutableList" => true,
+            "List" or "Collection" or "HashSet" => true,
+            // 不可变集合在 .NET 8 及以上版本中支持集合表达式。
+            "ImmutableArray" or "ImmutableHashSet" => supportImmutableCollections,
+            _ => false,
+        };
+    }
 }
