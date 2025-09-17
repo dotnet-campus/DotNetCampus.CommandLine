@@ -25,11 +25,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private string GenerateCommandObjectCreatorCode(CommandObjectGeneratingModel model)
     {
-        var modifier = model.IsPublic ? "public" : "internal";
         var builder = new SourceTextBuilder(model.Namespace)
             .Using("System")
             .Using("DotNetCampus.Cli.Compiler")
-            .AddTypeDeclaration($"{modifier} sealed class {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)", t => t
+            .AddTypeDeclaration(GenerateBuilderTypeDeclarationLine(model), t => t
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToUsingString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
                 .AddMethodDeclaration(
                     $"public static {model.CommandObjectType.ToUsingString()} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)",
@@ -70,6 +69,13 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawMembers(model.EnumerateEnumPropertyTypes().Select(GenerateEnumDeclarationCode))
             );
         return builder.ToString();
+    }
+
+    private static string GenerateBuilderTypeDeclarationLine(CommandObjectGeneratingModel model)
+    {
+        var modifier = model.IsPublic ? "public" : "internal";
+        var type = model.UseFullStackParser ? "partial struct" : "sealed class";
+        return $"{modifier} {type} {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)";
     }
 
     private string GenerateArgumentPropertyCode(PropertyGeneratingModel model) =>
@@ -303,7 +309,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         {
             // 存在必须赋值的属性，不能生成默认值创建代码。
             return """
-    throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException("The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", "");
+    throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
     """;
         }
 

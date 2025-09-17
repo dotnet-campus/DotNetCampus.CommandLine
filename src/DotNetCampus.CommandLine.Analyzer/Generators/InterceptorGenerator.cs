@@ -155,11 +155,10 @@ namespace System.Runtime.CompilerServices
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
         public static T CommandLine_As_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
-            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return (T)global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance(commandLine);
+            return (T)(object)new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}(commandLine).Build();
         }
 """;
     }
@@ -172,8 +171,9 @@ namespace System.Runtime.CompilerServices
         /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
-            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}, global::DotNetCampus.Cli.ICommandHandler
+        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(
+            this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
+            where T : class, global::DotNetCampus.Cli.ICommandHandler
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
@@ -191,8 +191,8 @@ namespace System.Runtime.CompilerServices
         /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.{{parameterThisName}} builder,
-            global::{{parameterTypeFullName}} handler)
+        public static global::DotNetCampus.Cli.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(
+            this global::DotNetCampus.Cli.{{parameterThisName}} builder, global::{{parameterTypeFullName}} handler)
             where T : class
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；

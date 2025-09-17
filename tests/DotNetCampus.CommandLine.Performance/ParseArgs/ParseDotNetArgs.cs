@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using BenchmarkDotNet.Attributes;
 using DotNetCampus.Cli.Performance.Fakes;
 using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
 using static DotNetCampus.Cli.CommandLineParsingOptions;
@@ -19,10 +20,17 @@ public class ParseDotNetArgs
     }
 
     [Benchmark(Description = "parse [NET] -v=4.1 -p=dotnet")]
-    public void Parse41_PowerShell()
+    public void Parse41_Dotnet()
     {
         var commandLine = CommandLine.Parse(DotNetArgs, DotNet);
         commandLine.As<BenchmarkOptions4>();
+    }
+
+    [Benchmark(Description = "parse [NET] -v=4.1 -p=dotnet (struct)")]
+    public void Parse41_Dotnet_Struct()
+    {
+        var commandLine = CommandLine.Parse(DotNetArgs, DotNet);
+        var o = commandLine.As<FullStackBenchmarkOptions4>();
     }
 
     [Benchmark(Description = "parse [NET] -v=3.x -p=parser")]

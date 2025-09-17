@@ -16,21 +16,21 @@ public static class CommandRunnerBuilderExtensions
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder)
-        where T : notnull, ICommandHandler
+        where T : class, ICommandHandler
     {
         throw CommandLine.MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
@@ -38,21 +38,21 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
@@ -65,7 +65,7 @@ public static class CommandRunnerBuilderExtensions
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler)
-        where T : notnull
+        where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
     }
@@ -82,7 +82,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull, ICommandHandler
+        where T : class, ICommandHandler
     {
         return builder.GetOrCreateRunner()
             .AddHandlerCore(command, factory);
@@ -93,7 +93,7 @@ public static class CommandRunnerBuilderExtensions
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Action<T> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return builder.GetOrCreateRunner()
             .AddHandlerCore(command, cl => new AnonymousCommandHandler<T>(cl, factory, handler));
@@ -104,7 +104,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
     }
@@ -114,7 +114,7 @@ public static class CommandRunnerBuilderExtensions
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, int> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return builder.GetOrCreateRunner()
             .AddHandlerCore(command, cl => new AnonymousInt32CommandHandler<T>(cl, factory, handler));
@@ -125,7 +125,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
     }
@@ -135,7 +135,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return builder.GetOrCreateRunner()
             .AddHandlerCore(command, cl => new AnonymousTaskCommandHandler<T>(cl, factory, handler));
@@ -154,7 +154,7 @@ public static class CommandRunnerBuilderExtensions
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, Func<T, Task<int>> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
-        where T : notnull
+        where T : class
     {
         return builder.GetOrCreateRunner()
             .AddHandlerCore(command, cl => new AnonymousTaskInt32CommandHandler<T>(cl, factory, handler));
@@ -167,7 +167,7 @@ public static class CommandRunnerBuilderExtensions
     /// <typeparam name="T">命令处理器集合的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static IAsyncCommandRunnerBuilder AddHandlers<T>(this ICoreCommandRunnerBuilder builder)
-        where T : notnull, ICommandHandlerCollection, new()
+        where T : class, ICommandHandlerCollection, new()
     {
         throw new NotImplementedException();
     }

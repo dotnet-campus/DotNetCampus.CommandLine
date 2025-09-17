@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using ConsoleAppFramework;
 
@@ -18,9 +17,9 @@ public class BenchmarkOptionsConsoleAppFramework
     [Command("")]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void Root(
-        [Argument] IReadOnlyList<string> testItems,
+        [Argument] string[] testItems,
         bool debug, int testCount, string? testName,
-        DetailLevel detailLevel, IReadOnlyList<string>? testCategories = null)
+        DetailLevel detailLevel, string[]? testCategories = null)
     {
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using ConsoleAppFramework;
 using DotNetCampus.Cli.Performance.Fakes;
@@ -7,6 +6,7 @@ using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
 using static DotNetCampus.Cli.CommandLineParsingOptions;
 
 #if IS_NOT_USING_AOT
+using System.Collections.Generic;
 using System.CommandLine;
 using CommandLine;
 #endif
@@ -15,6 +15,7 @@ using CommandLine;
 
 namespace DotNetCampus.Cli.Performance.ParseArgs;
 
+[SimpleJob(RuntimeMoniker.Net10_0)]
 [SimpleJob(RuntimeMoniker.NativeAot90)]
 [MemoryDiagnoser]
 [BenchmarkCategory("Parse GNU Args")]

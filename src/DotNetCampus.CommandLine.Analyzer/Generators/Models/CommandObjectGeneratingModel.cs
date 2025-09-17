@@ -13,6 +13,8 @@ internal record CommandObjectGeneratingModel
 
     public required string? CommandNames { get; init; }
 
+    public required bool UseFullStackParser { get; init; }
+
     public required bool IsHandler { get; init; }
 
     public required IReadOnlyList<RawArgumentPropertyGeneratingModel> RawArgumentsProperties { get; init; }

@@ -26,13 +26,18 @@ namespace DotNetCampus.Cli.Compiler;
 /// </list>
 /// </param>
 [Conditional("FOR_SOURCE_GENERATION_ONLY")]
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = false)]
 public sealed class CommandAttribute(string? names = null) : CommandLineAttribute
 {
     /// <summary>
     /// 获取命令行的命令，可以是单个词组的主命令（Main Command），也可以是多个词组的子命令或多级子命令（Sub Command）。
     /// </summary>
     public string? Names { get; } = names;
+
+    /// <summary>
+    /// 实验性功能：完全使用栈上解析器，避免任何非业务的堆内存分配。
+    /// </summary>
+    public bool ExperimentalUseFullStackParser { get; set; }
 }
 
 /// <summary>
