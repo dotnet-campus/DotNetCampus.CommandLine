@@ -48,6 +48,15 @@ internal static class CommandLineArguments
         "--debug",
     ];
 
+    public static readonly string[] GnuForConsoleAppFrameworkArgs =
+    [
+        "DotNetCampus.CommandLine.Performance.dll,DotNetCampus.CommandLine.Sample.dll,DotNetCampus.CommandLine.Test.dll",
+        "-c", "20",
+        "--test-name", "BenchmarkTest",
+        "--detail-level", "High",
+        "--debug",
+    ];
+
     public static readonly string[] MixArgs =
     [
         "DotNetCampus.CommandLine.Performance.dll",

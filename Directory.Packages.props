@@ -1,6 +1,7 @@
 <Project>
   <ItemGroup>
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.2" />
+    <PackageVersion Include="ConsoleAppFramework" Version="5.6.1" />
     <PackageVersion Include="DotNetCampus.CodeAnalysisUtils" Version="0.1.0-alpha01" />
     <PackageVersion Include="dotnetCampus.LatestCSharpFeatures" Version="13.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />

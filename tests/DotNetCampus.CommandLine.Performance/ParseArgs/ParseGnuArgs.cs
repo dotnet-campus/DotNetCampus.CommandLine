@@ -2,6 +2,7 @@
 using System.CommandLine;
 using BenchmarkDotNet.Attributes;
 using CommandLine;
+using ConsoleAppFramework;
 using DotNetCampus.Cli.Performance.Fakes;
 using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
 using static DotNetCampus.Cli.CommandLineParsingOptions;
@@ -40,6 +41,14 @@ public class ParseGnuArgs
     {
         var commandLine = dotnetCampus.Cli.CommandLine.Parse(GnuArgs);
         commandLine.As<RuntimeBenchmarkOptions3>();
+    }
+
+    [Benchmark(Description = "NuGet: ConsoleAppFramework")]
+    public void ConsoleAppFramework()
+    {
+        var app = ConsoleApp.Create();
+        app.Add<BenchmarkOptionsConsoleAppFramework>();
+        app.Run(GnuForConsoleAppFrameworkArgs);
     }
 
     [Benchmark(Description = "NuGet: CommandLineParser")]
