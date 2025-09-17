@@ -1,6 +1,7 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Collections.Immutable;
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -105,106 +106,95 @@ public class InterceptorGenerator : IIncrementalGenerator
             return;
         }
 
-        var code = GenerateCode(modelGroups, x => GenerateCommandBuilderAddHandlerActionCode(x, parameterThisName, parameterTypeFullName, returnName));
+        var code = GenerateCode(modelGroups, (t, x) =>
+            GenerateCommandBuilderAddHandlerActionCode(t, x, parameterThisName, parameterTypeFullName, returnName));
         context.AddSource($"CommandLine.Interceptors/{fileName}.g.cs", code);
     }
 
     private string GenerateCode(Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>> models,
-        Func<ImmutableArray<InterceptorGeneratingModel>, string> methodCreator)
+        Action<TypeDeclarationSourceTextBuilder, IReadOnlyList<InterceptorGeneratingModel>> methodCreator)
     {
-        return $$"""
-#nullable enable
-
-namespace DotNetCampus.Cli.Compiler
-{
-    file static class Interceptors
-    {
-{{string.Join("\n\n", models.Select(x => methodCreator(x.Value)))}}
-    }
-}
-
-namespace System.Runtime.CompilerServices
-{
-    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
-    file sealed class InterceptsLocationAttribute : global::System.Attribute
-    {
-        public InterceptsLocationAttribute(int version, string data)
-        {
-            _ = version;
-            _ = data;
-        }
-    }
-}
-
-""";
+        var builder = new SourceTextBuilder()
+            .AddNamespaceDeclaration("DotNetCampus.Cli.Compiler", n => n
+                .AddTypeDeclaration("file static class Interceptors", t =>
+                {
+                    foreach (var pair in models)
+                    {
+                        methodCreator(t, pair.Value);
+                    }
+                }))
+            .AddNamespaceDeclaration("System.Runtime.CompilerServices", n => n
+                .AddTypeDeclaration("file sealed class InterceptsLocationAttribute : global::System.Attribute", t => t
+                    .AddAttribute("""[global::System.Diagnostics.Conditional("FOR_SOURCE_GENERATION_ONLY")]""")
+                    .AddAttribute("[global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]")
+                    .AddRawText("""
+                        public InterceptsLocationAttribute(int version, string data)
+                        {
+                            _ = version;
+                            _ = data;
+                        }                                
+                        """)));
+        return builder.ToString();
     }
 
-    private string GenerateInterceptsLocationCode(InterceptorGeneratingModel model)
-    {
-        return $"""
+    private string GenerateInterceptsLocationCode(InterceptorGeneratingModel model) => $"""
         [global::System.Runtime.CompilerServices.InterceptsLocation({model.InterceptableLocation.Version}, /* {model.InvocationInfo} */ "{model.InterceptableLocation.Data}")]
-""";
-    }
+        """;
 
-    private string GenerateCommandLineAsCode(ImmutableArray<InterceptorGeneratingModel> models)
+    private void GenerateCommandLineAsCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models)
     {
         var model = models[0];
-        return $$"""
-        /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。
-        /// </summary>
-{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static T CommandLine_As_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
-        {
-            // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-            // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            var instance = new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}(commandLine).Build();
-            return {{(
-                model.UseFullStackParser
-                    ? $"global::System.Runtime.CompilerServices.Unsafe.As<{model.CommandObjectType.ToGlobalDisplayString()}, T>(ref instance)"
-                    : "(T)(object)instance"
-            )}};
-        }
-""";
+        builder.AddMethodDeclaration(
+            $"public static T CommandLine_As_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.CommandLine commandLine)",
+            m => m
+                .WithSummaryComment($$"""<see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。""")
+                .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+                .AddTypeConstraints(model.UseFullStackParser ? "where T : struct" : "where T : notnull")
+                .AddRawStatements($"""
+                    // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
+                    // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
+                    var instance = new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}(commandLine).Build();
+                    return {(
+                        model.UseFullStackParser
+                            ? $"global::System.Runtime.CompilerServices.Unsafe.BitCast<{model.CommandObjectType.ToGlobalDisplayString()}, T>(instance)"
+                            : "(T)(object)instance"
+                    )};
+                    """));
     }
 
-    private string GenerateCommandBuilderAddHandlerCode(ImmutableArray<InterceptorGeneratingModel> models)
+    private void GenerateCommandBuilderAddHandlerCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models)
     {
         var model = models[0];
-        return $$"""
-        /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
-        /// </summary>
-{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(
-            this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
-            where T : class, global::DotNetCampus.Cli.ICommandHandler
-        {
-            // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-            // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{model.ToNameGroup()}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
-        }
-""";
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
+            """, m => m
+            .WithSummaryComment(
+                $$"""<see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。""")
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
+            .AddRawStatements($"""
+                // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
+                // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {model.ToNameGroup()}, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
     }
 
-    private string GenerateCommandBuilderAddHandlerActionCode(ImmutableArray<InterceptorGeneratingModel> models, string parameterThisName,
-        string parameterTypeFullName, string returnName)
+    private void GenerateCommandBuilderAddHandlerActionCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
+        string parameterThisName, string parameterTypeFullName, string returnName)
     {
         var model = models[0];
-        return $$"""
-        /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
-        /// </summary>
-{{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(
-            this global::DotNetCampus.Cli.{{parameterThisName}} builder, global::{{parameterTypeFullName}} handler)
-            where T : class
-        {
-            // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-            // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, {{model.ToNameGroup()}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
-        }
-""";
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.{returnName} CommandBuilder_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} builder, global::{parameterTypeFullName} handler)
+            """, m => m
+            .WithSummaryComment(
+                $$"""<see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。""")
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class")
+            .AddRawStatements($"""
+                // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
+                // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, {model.ToNameGroup()}, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
     }
 }
 
