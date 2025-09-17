@@ -1,6 +1,8 @@
+using System.Text;
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Generators.Models;
+using DotNetCampus.CommandLine.IO;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators;
@@ -21,6 +23,15 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         var code = GenerateCommandObjectCreatorCode(model);
         context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.cs", code);
+
+        // if (model.UseFullStackParser)
+        // {
+        //     var originalCode = EmbeddedSourceFiles.Enumerate(null)
+        //         .First(x => x.FileName == "CommandLineParser.cs")
+        //         .Content;
+        //     var parserCode = GenerateParserCode(originalCode, model);
+        //     context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.parser.cs", parserCode);
+        // }
     }
 
     private string GenerateCommandObjectCreatorCode(CommandObjectGeneratingModel model)
@@ -483,4 +494,12 @@ private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
 }
 """;
     }
+
+    private string GenerateParserCode(string originalCode, CommandObjectGeneratingModel model) => new StringBuilder()
+        .AppendLine("#nullable enable")
+        .AppendLine("using DotNetCampus.Cli;")
+        .Append(originalCode)
+        .Replace("namespace DotNetCampus.Cli.Utils.Parsers;", $"namespace {model.Namespace};")
+        .Replace("public readonly ref struct CommandLineParser", $"partial struct {model.GetBuilderTypeName()}")
+        .ToString();
 }
