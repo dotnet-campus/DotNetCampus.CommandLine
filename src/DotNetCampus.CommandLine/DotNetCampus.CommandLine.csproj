@@ -16,15 +16,15 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <IsAotCompatible>true</IsAotCompatible>
-    <IsAotCompatible Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0'">false</IsAotCompatible>
+    <IsAotCompatible>false</IsAotCompatible>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
     <EmbedAllSources Condition="'$(Configuration)' != 'debug'">true</EmbedAllSources>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <NoWarn>$(NoWarn);CS8767</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="DotNetCampus.CommandLine.Tests" />
   </ItemGroup>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
@@ -10,15 +12,18 @@ class Program
 {
     static void Main(string[] args)
     {
+#if DEBUG
         if (args.Contains("--debug"))
         {
             DebugAll();
             return;
         }
+#endif
 
         BenchmarkSwitcher.FromAssembly(typeof(Program).GetTypeInfo().Assembly).Run(args);
     }
 
+    [Conditional("DEBUG")]
     private static void DebugAll()
     {
         var methods = typeof(Program).Assembly.GetTypes()
