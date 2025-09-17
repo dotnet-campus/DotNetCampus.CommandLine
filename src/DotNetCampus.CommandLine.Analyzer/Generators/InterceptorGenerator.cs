@@ -154,11 +154,17 @@ public class InterceptorGenerator : IIncrementalGenerator
                     // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
                     // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
                     var instance = new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}(commandLine).Build();
-                    return {(
+                    {(
                         model.UseFullStackParser
-                            ? $"global::System.Runtime.CompilerServices.Unsafe.BitCast<{model.CommandObjectType.ToGlobalDisplayString()}, T>(instance)"
-                            : "(T)(object)instance"
-                    )};
+                            ? $"""
+                    #if NET8_0_OR_GREATER
+                    return global::System.Runtime.CompilerServices.Unsafe.BitCast<{model.CommandObjectType.ToGlobalDisplayString()}, T>(instance);
+                    #else
+                    return global::System.Runtime.CompilerServices.Unsafe.As<{model.CommandObjectType.ToGlobalDisplayString()}, T>(ref instance);
+                    #endif
+                    """
+                            : "return (T)(object)instance;"
+                    )}
                     """));
     }
 
