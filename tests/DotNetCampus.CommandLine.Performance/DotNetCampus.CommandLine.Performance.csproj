@@ -5,6 +5,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>DotNetCampus.Cli.Performance</RootNamespace>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <!-- 当 Benchmark 使用 AOT 测试时，一些对照组无法支持 AOT，需要去除 -->
+    <DotNetCampusIsUsingAot>false</DotNetCampusIsUsingAot>
+    <DotNetCampusIsUsingAot Condition="$(PublishAot) == true">true</DotNetCampusIsUsingAot>
+    <DefineConstants Condition="'$(DotNetCampusIsUsingAot)'=='true'">$(DefineConstants);IS_USING_AOT</DefineConstants>
+    <DefineConstants Condition="'$(DotNetCampusIsUsingAot)'=='false'">$(DefineConstants);IS_NOT_USING_AOT</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
@@ -12,7 +20,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="System.CommandLine" Condition="'$(DotNetCampusIsUsingAot)'=='false'" />
   </ItemGroup>
 
   <ItemGroup>

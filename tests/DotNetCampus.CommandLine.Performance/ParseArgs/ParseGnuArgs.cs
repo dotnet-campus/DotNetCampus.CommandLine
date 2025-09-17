@@ -1,16 +1,21 @@
 ﻿using System.Collections.Generic;
-using System.CommandLine;
 using BenchmarkDotNet.Attributes;
-using CommandLine;
+using BenchmarkDotNet.Jobs;
 using ConsoleAppFramework;
 using DotNetCampus.Cli.Performance.Fakes;
 using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
 using static DotNetCampus.Cli.CommandLineParsingOptions;
 
+#if IS_NOT_USING_AOT
+using System.CommandLine;
+using CommandLine;
+#endif
+
 // ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
 namespace DotNetCampus.Cli.Performance.ParseArgs;
 
+[SimpleJob(RuntimeMoniker.NativeAot10_0)]
 [MemoryDiagnoser]
 [BenchmarkCategory("Parse GNU Args")]
 public class ParseGnuArgs
@@ -51,6 +56,8 @@ public class ParseGnuArgs
         app.Run(GnuForConsoleAppFrameworkArgs);
     }
 
+#if IS_NOT_USING_AOT
+
     [Benchmark(Description = "NuGet: CommandLineParser")]
     public void CommandLineParser()
     {
@@ -78,4 +85,7 @@ public class ParseGnuArgs
 
         rootCommand.Invoke(GnuArgs);
     }
+
+#endif
+
 }
