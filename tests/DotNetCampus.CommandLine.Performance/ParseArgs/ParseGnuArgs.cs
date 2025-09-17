@@ -15,7 +15,7 @@ using CommandLine;
 
 namespace DotNetCampus.Cli.Performance.ParseArgs;
 
-[SimpleJob(RuntimeMoniker.NativeAot10_0)]
+[SimpleJob(RuntimeMoniker.NativeAot90)]
 [MemoryDiagnoser]
 [BenchmarkCategory("Parse GNU Args")]
 public class ParseGnuArgs
