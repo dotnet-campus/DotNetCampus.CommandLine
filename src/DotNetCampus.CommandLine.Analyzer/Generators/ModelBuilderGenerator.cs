@@ -2,7 +2,6 @@ using System.Text;
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Generators.Models;
-using DotNetCampus.CommandLine.IO;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators;
@@ -66,7 +65,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddMethodDeclaration(
                     "private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
                     m => m
-                        .BeginBracketScope("switch (propertyIndex)", l => l
+                        .AddBracketScope("switch (propertyIndex)", l => l
                             .AddRawStatements(model.OptionProperties.Select(GenerateAssignPropertyValueCode))
                             .AddRawStatements(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateAssignPropertyValueCode))))
                 .AddMethodDeclaration(
