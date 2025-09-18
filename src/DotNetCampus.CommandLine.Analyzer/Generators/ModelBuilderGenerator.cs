@@ -128,14 +128,18 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
                 .AddBracketScope("switch (longOption)", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionCaseCode(x, x.GetOrdinalLongNames()))))
+                .AddLineSeparator()
                 .AddDefaultStringComparisonIfNeeded(optionProperties)
+                .AddLineSeparator()
                 .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
                 .AddBracketScope("if (namingPolicy.SupportsOrdinal())", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetOrdinalLongNames()))))
+                .AddLineSeparator()
                 .AddRawStatement("// 3. 最后根据其他命名法匹配一遍（能应对所有不规范命令行大小写，并支持所有风格）。")
                 .AddBracketScope("if (namingPolicy.SupportsPascalCase())", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames())))))
             .EndCondition()
+            .AddLineSeparator()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateLongOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
@@ -160,8 +164,9 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private MethodDeclarationSourceTextBuilder GenerateMatchShortOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
+        var hasShortName = optionProperties.SelectMany(x => x.GetShortNames()).Any();
         return builder
-            .Condition(optionProperties.Count is 0, b => b
+            .Condition(!hasShortName, b => b
                 .AddRawStatement("// 没有短名称选项，无需匹配。"))
             .Otherwise(b => b
                 .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
@@ -184,7 +189,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return string.Join("\n", names.Select(name => $"""
             case "{name}":
                 return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({model.PropertyName}), {model.PropertyIndex}, {model.Type.AsCommandValueKind().ToCommandValueTypeName()});
-        """));
+            """));
         }
 
         static string GenerateOptionEqualsCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
