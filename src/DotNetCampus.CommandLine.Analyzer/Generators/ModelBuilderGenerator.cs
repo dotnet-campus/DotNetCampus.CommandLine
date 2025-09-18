@@ -48,7 +48,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawMembers(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)",
+                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
                     m => GenerateMatchLongOptionCode(m, model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
