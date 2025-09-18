@@ -66,12 +66,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                             .AddRawStatements(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateAssignPropertyValueCode))))
                 .AddMethodDeclaration(
                     $"private {model.CommandObjectType.ToUsingString()} BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)",
-                    m => m
-                        .AddRawStatements(GenerateBuildCoreCode(model)))
+                    m => GenerateBuildCoreCode(m, model))
                 .AddMethodDeclaration(
                     $"private {model.CommandObjectType.ToUsingString()} BuildDefault()",
-                    m => m
-                        .AddRawStatements(GenerateBuildDefaultCode(model)))
+                    m => GenerateBuildDefaultCode(m, model))
                 .AddRawMembers(model.EnumerateEnumPropertyTypes().Select(GenerateEnumDeclarationCode))
             );
         return builder.ToString();
@@ -172,10 +170,13 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
                 .AddBracketScope("switch (shortOption)", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateOptionCaseCode(x, x.GetShortNames()))))
+                .AddLineSeparator()
                 .AddDefaultStringComparisonIfNeeded(optionProperties)
+                .AddLineSeparator()
                 .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
                 .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetShortNames()))))
             .EndCondition()
+            .AddLineSeparator()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
@@ -266,7 +267,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             """;
     }
 
-    private string GenerateBuildCoreCode(CommandObjectGeneratingModel model)
+    private MethodDeclarationSourceTextBuilder GenerateBuildCoreCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequiredOrInit).ToList();
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequiredOrInit).ToList();
@@ -274,96 +275,109 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         var setRawArgumentsProperties = model.RawArgumentsProperties.Where(x => !x.IsRequiredOrInit).ToList();
         var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequiredOrInit).ToList();
         var setPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => !x.IsRequiredOrInit).ToList();
-        return $$"""
-    var result = new {{model.CommandObjectType.ToUsingString()}}
-    {
-        // 1. [RawArguments]
-    {{(
-        initRawArgumentsProperties.Count is 0
-            ? "    // There is no [RawArguments] property to be initialized."
-            : string.Join("\n", initRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, false)))
-    )}}
 
-        // 2. [Option]
-    {{(
-        initOptionProperties.Count is 0
-            ? "    // There is no [Option] property to be initialized."
-            : string.Join("\n", initOptionProperties.Select(x => GenerateInitProperty(x, false)))
-    )}}
+        return builder
+            .AddBracketScope($"var result = new {model.CommandObjectType.ToUsingString()}", "{", "};", c => c
 
-        // 3. [Value]
-    {{(
-        initPositionalArgumentProperties.Count is 0
-            ? "    // There is no [Value] property to be initialized."
-            : string.Join("\n", initPositionalArgumentProperties.Select(x => GenerateInitProperty(x, false)))
-    )}}
-    };
+                // 1. [RawArguments]
+                .Condition(initRawArgumentsProperties.Count is 0, b => b
+                    .AddRawStatement("// 1. There is no [RawArguments] property to be initialized."))
+                .Otherwise(b => b
+                    .AddRawStatement("// 1. [RawArguments]")
+                    .AddRawStatements(initRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, false))))
+                .EndCondition()
 
-    // 1. [RawArguments]
-    {{(
-        setRawArgumentsProperties.Count is 0
-            ? "// There is no [RawArguments] property to be assigned."
-            : string.Join("\n", setRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, false)))
-    )}}
+                // 2. [Option]
+                .AddLineSeparator()
+                .Condition(initOptionProperties.Count is 0, b => b
+                    .AddRawStatement("// 2. There is no [Option] property to be initialized."))
+                .Otherwise(b => b
+                    .AddRawStatement("// 2. [Option]")
+                    .AddRawStatements(initOptionProperties.Select(x => GenerateInitProperty(x, false))))
+                .EndCondition()
 
-    // 2. [Option]
-    {{(
-        setOptionProperties.Count is 0
-            ? "// There is no [RawArguments] property to be assigned."
-            : string.Join("\n", setOptionProperties.Select(GenerateSetProperty))
-    )}}
+                // 3. [Value]
+                .AddLineSeparator()
+                .Condition(initPositionalArgumentProperties.Count is 0, b => b
+                    .AddRawStatement("// 3. There is no [Value] property to be initialized."))
+                .Otherwise(b => b
+                    .AddRawStatement("// 3. [Value]")
+                    .AddRawStatements(initPositionalArgumentProperties.Select(x => GenerateInitProperty(x, false))))
+                .EndCondition())
 
-    // 3. [Value]
-    {{(
-        setPositionalArgumentProperties.Count is 0
-            ? "// There is no [RawArguments] property to be assigned."
-            : string.Join("\n", setPositionalArgumentProperties.Select(GenerateSetProperty))
-    )}}
+            // 1. [RawArguments]
+            .AddLineSeparator()
+            .Condition(setRawArgumentsProperties.Count is 0, b => b
+                .AddRawStatement("// 1. There is no [RawArguments] property to be assigned."))
+            .Otherwise(b => b
+                .AddRawStatement("// 1. [RawArguments]")
+                .AddRawStatements(setRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, false))))
+            .EndCondition()
 
-    return result;
-    """;
+            // 2. [Option]
+            .AddLineSeparator()
+            .Condition(setOptionProperties.Count is 0, b => b
+                .AddRawStatement("// 2. There is no [Option] property to be assigned."))
+            .Otherwise(b => b
+                .AddRawStatement("// 2. [Option]")
+                .AddRawStatements(setOptionProperties.Select(GenerateSetProperty)))
+            .EndCondition()
+
+            // 3. [Value]
+            .AddLineSeparator()
+            .Condition(setPositionalArgumentProperties.Count is 0, b => b
+                .AddRawStatement("// 3. There is no [Value] property to be assigned."))
+            .Otherwise(b => b
+                .AddRawStatement("// 3. [Value]")
+                .AddRawStatements(setPositionalArgumentProperties.Select(GenerateSetProperty)))
+            .EndCondition()
+            .AddLineSeparator()
+
+            // 返回。
+            .AddRawStatement("return result;");
     }
 
-    private string GenerateBuildDefaultCode(CommandObjectGeneratingModel model)
+    private MethodDeclarationSourceTextBuilder GenerateBuildDefaultCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequiredOrInit).ToList();
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequiredOrInit).ToList();
         var initPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => x.IsRequiredOrInit).ToList();
+
         if (initOptionProperties.Any(x => x.IsRequired)
             || initPositionalArgumentProperties.Any(x => x.IsRequired))
         {
             // 存在必须赋值的属性，不能生成默认值创建代码。
-            return """
-    throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
-    """;
+            builder.AddRawStatement("""
+throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
+""");
+            return builder;
         }
 
-        return $$"""
-    var result = new {{model.CommandObjectType.ToUsingString()}}
-    {
-        // 1. [RawArguments]
-    {{(
-        initRawArgumentsProperties.Count is 0
-            ? "    // There is no [RawArguments] property to be initialized."
-            : string.Join("\n", initRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, true)))
-    )}}
+        return builder
+            .AddBracketScope($"var result = new {model.CommandObjectType.ToUsingString()}", "{", "};", c => c
 
-        // 2. [Option]
-    {{(
-        initOptionProperties.Count is 0
-            ? "    // There is no [Option] property to be initialized."
-            : string.Join("\n", initOptionProperties.Select(x => GenerateInitProperty(x, true)))
-    )}}
+                // 1. [RawArguments]
+                .Condition(initRawArgumentsProperties.Count is 0, b => b.Ignore())
+                .Otherwise(b => b
+                    .AddRawStatements(initRawArgumentsProperties.Select(x => GenerateRawArgumentProperty(x, true))))
+                .EndCondition()
 
-        // 3. [Value]
-    {{(
-        initPositionalArgumentProperties.Count is 0
-            ? "    // There is no [Value] property to be initialized."
-            : string.Join("\n", initPositionalArgumentProperties.Select(x => GenerateInitProperty(x, true)))
-    )}}
-    };
-    return result;
-    """;
+                // 2. [Option]
+                .AddLineSeparator()
+                .Condition(initOptionProperties.Count is 0, b => b.Ignore())
+                .Otherwise(b => b
+                    .AddRawStatements(initOptionProperties.Select(x => GenerateInitProperty(x, true))))
+                .EndCondition()
+
+                // 3. [Value]
+                .AddLineSeparator()
+                .Condition(initPositionalArgumentProperties.Count is 0, b => b.Ignore())
+                .Otherwise(b => b
+                    .AddRawStatements(initPositionalArgumentProperties.Select(x => GenerateInitProperty(x, true))))
+                .EndCondition())
+
+            // 返回。
+            .AddRawStatement("return result;");
     }
 
     private string GenerateInitProperty(PropertyGeneratingModel model, bool forDefault)
@@ -405,13 +419,13 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         if (!forDefault)
         {
             // 正常传入了命令行参数时的通用赋值。
-            return $"    {model.PropertyName} = {model.PropertyName}.To{toTarget}(){(fallback is "" ? "" : $" ?? {fallback}")},";
+            return $"{model.PropertyName} = {model.PropertyName}.To{toTarget}(){(fallback is "" ? "" : $" ?? {fallback}")},";
         }
 
         if (fallback is not "")
         {
             // 未传命令行参数时，给非集合类型赋值。
-            return $"    {model.PropertyName} = {fallback},";
+            return $"{model.PropertyName} = {fallback},";
         }
 
         // 未传命令行参数时，给集合类型赋值为空集合。
@@ -427,7 +441,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 #else
                 {model.PropertyName} = new {GetArgumentPropertyTypeName(model)}().To{toTarget}(),
                 #endif
-            """,
+                """,
         };
     }
 
@@ -458,7 +472,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
         var assignment = $"{model.PropertyName} = (commandLine.CommandLineArguments as {model.Type.ToDisplayString()}) ?? [..commandLine.CommandLineArguments]";
         return model.IsRequiredOrInit
-            ? $"    {assignment},"
+            ? $"{assignment},"
             : $"result.{assignment};";
     }
 
