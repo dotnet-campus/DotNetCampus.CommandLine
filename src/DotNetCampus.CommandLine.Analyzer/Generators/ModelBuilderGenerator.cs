@@ -121,13 +121,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private MethodDeclarationSourceTextBuilder GenerateMatchLongOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        if (optionProperties.Count is 0)
-        {
-            builder.AddRawStatement("// 没有长名称选项，无需匹配。");
-        }
-        else
-        {
-            builder
+        return builder
+            .Condition(optionProperties.Count is 0, b => b
+                .AddRawStatement("// 没有长名称选项，无需匹配。"))
+            .Otherwise(b => b
                 .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
                 .AddBracketScope("switch (longOption)", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionCaseCode(x, x.GetOrdinalLongNames()))))
@@ -137,9 +134,8 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetOrdinalLongNames()))))
                 .AddRawStatement("// 3. 最后根据其他命名法匹配一遍（能应对所有不规范命令行大小写，并支持所有风格）。")
                 .AddBracketScope("if (namingPolicy.SupportsPascalCase())", s => s
-                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames()))));
-        }
-        return builder
+                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames())))))
+            .EndCondition()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateLongOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
@@ -164,22 +160,17 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private MethodDeclarationSourceTextBuilder GenerateMatchShortOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        if (optionProperties.Count is 0)
-        {
-            builder.AddRawStatement("// 没有短名称选项，无需匹配。");
-        }
-        else
-        {
-            builder
+        return builder
+            .Condition(optionProperties.Count is 0, b => b
+                .AddRawStatement("// 没有短名称选项，无需匹配。"))
+            .Otherwise(b => b
                 .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
                 .AddBracketScope("switch (shortOption)", s => s
                     .AddRawStatements(optionProperties.Select(x => GenerateOptionCaseCode(x, x.GetShortNames()))))
                 .AddDefaultStringComparisonIfNeeded(optionProperties)
                 .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
-                .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetOrdinalLongNames())));
-        }
-
-        return builder
+                .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetShortNames()))))
+            .EndCondition()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
