@@ -12,7 +12,7 @@ namespace DotNetCampus.Cli;
 /// </summary>
 public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
 {
-    private readonly IReadOnlyList<string> _values;
+    private readonly IReadOnlyList<string>? _values;
     private readonly MultiValueHandling _multiValueHandling;
 
     internal CommandLinePropertyValue(IReadOnlyList<string> values, MultiValueHandling multiValueHandling)
@@ -21,10 +21,10 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
         _multiValueHandling = multiValueHandling;
     }
 
-    IEnumerator<string> IEnumerable<string>.GetEnumerator() => _values.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
-    int IReadOnlyCollection<string>.Count => _values.Count;
-    string IReadOnlyList<string>.this[int index] => _values[index];
+    IEnumerator<string> IEnumerable<string>.GetEnumerator() => (_values ?? []).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => (_values ?? []).GetEnumerator();
+    int IReadOnlyCollection<string>.Count => _values?.Count ?? 0;
+    string IReadOnlyList<string>.this[int index] => _values?[index] ?? throw new IndexOutOfRangeException();
 
     /// <summary>
     /// 将从命令行解析出来的属性值转换为 <see cref="bool"/>。
@@ -69,7 +69,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator byte(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => byte.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -81,7 +81,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator sbyte(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => sbyte.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -93,7 +93,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator char(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => char.TryParse(values[0], out var result) ? result : '\0',
     };
 
@@ -102,7 +102,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator decimal(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => decimal.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -114,7 +114,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator double(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => double.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -126,7 +126,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator float(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => float.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -138,7 +138,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator int(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => int.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -150,7 +150,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator uint(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => uint.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -163,7 +163,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator nint(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => nint.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -177,7 +177,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator nuint(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => nuint.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -190,7 +190,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator long(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => long.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -202,7 +202,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator ulong(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => ulong.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -214,7 +214,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator short(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => short.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -226,7 +226,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator ushort(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => ushort.TryParse(values[0], out var result)
             ? result
             : throw new CommandLineParseValueException(
@@ -238,7 +238,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator string(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => "",
+        null or { Count: 0 } => "",
         { } values => propertyValue._multiValueHandling switch
         {
             MultiValueHandling.First => values[0],
@@ -259,7 +259,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator string[](CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => [],
+        null or { Count: 0 } => [],
         { } values => [..SplitValues(values)],
     };
 
@@ -270,10 +270,10 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public static implicit operator ImmutableArray<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
 #if NET8_0_OR_GREATER
-        { Count: 0 } => [],
+        null or { Count: 0 } => [],
         { } values => [..SplitValues(values)],
 #else
-        { Count: 0 } => ImmutableArray<string>.Empty,
+        null or { Count: 0 } => ImmutableArray<string>.Empty,
         { } values => SplitValues(values).ToImmutableArray(),
 #endif
     };
@@ -286,10 +286,10 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     public static implicit operator ImmutableHashSet<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
 #if NET8_0_OR_GREATER
-        { Count: 0 } => [],
+        null or { Count: 0 } => [],
         { } values => [..SplitValues(values)],
 #else
-        { Count: 0 } => ImmutableHashSet<string>.Empty,
+        null or { Count: 0 } => ImmutableHashSet<string>.Empty,
         { } values => SplitValues(values).ToImmutableHashSet(),
 #endif
     };
@@ -300,7 +300,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public static implicit operator Collection<string>(CommandLinePropertyValue propertyValue) => propertyValue._values switch
     {
-        { Count: 0 } => [],
+        null or { Count: 0 } => [],
         { } values => [..SplitValues(values)],
     };
 
@@ -324,7 +324,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public T ToEnum<T>() where T : unmanaged, Enum => _values switch
     {
-        { Count: 0 } => default,
+        null or { Count: 0 } => default,
         { } values => Enum.TryParse<T>(values[0], true, out var result) ? result : default!,
     };
 
@@ -333,7 +333,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public List<string> ToList() => _values switch
     {
-        { Count: 0 } => [],
+        null or { Count: 0 } => [],
         { } values => [..SplitValues(values)],
     };
 
@@ -342,7 +342,7 @@ public readonly struct CommandLinePropertyValue : IReadOnlyList<string>
     /// </summary>
     public Dictionary<string, string> ToDictionary() => _values switch
     {
-        { Count: 0 } => new Dictionary<string, string>(),
+        null or { Count: 0 } => new Dictionary<string, string>(),
         { } values => values
             .SelectMany(x => x.Split(
 #if NETCOREAPP3_1_OR_GREATER

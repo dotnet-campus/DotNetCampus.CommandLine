@@ -150,16 +150,16 @@
     <value>Not supported command-line property type</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
-    <value>The command-line option definition names should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The command-line option/command definition names should be kebab-case, even though you can use any kind of style in the command line environment.</value>
   </data>
   <data name="DCL101_Fix1" xml:space="preserve">
     <value>Convert to kebab-case</value>
   </data>
   <data name="DCL101_Message" xml:space="preserve">
-    <value>The option definition long name '{0}' should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The option/command definition long name '{0}' should be kebab-case, even though you can use any kind of style in the command line environment.</value>
   </data>
   <data name="DCL101" xml:space="preserve">
-    <value>Option long name should be kebab-case</value>
+    <value>Option/Command long name should be kebab-case</value>
   </data>
   <data name="DCL201_Description" xml:space="preserve">
     <value>This property has a recommended option property type '{0}'.</value>
@@ -178,5 +178,14 @@
   </data>
   <data name="DCL203_Description" xml:space="preserve">
     <value>To receive raw command-line arguments (typically string[]), you should also use the same property type string[] or the interface IReadOnlyList&lt;string&gt;.</value>
+  </data>
+  <data name="DCL102" xml:space="preserve">
+    <value>Option/Command long name may not be kebab-case</value>
+  </data>
+  <data name="DCL102_Message" xml:space="preserve">
+    <value>The option/command definition long name '{0}' may not be kebab-case.</value>
+  </data>
+  <data name="DCL102_Description" xml:space="preserve">
+    <value>The command-line option/command definition names may not be kebab-case.</value>
   </data>
 </root>

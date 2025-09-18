@@ -37,7 +37,7 @@ internal static class CommandModelProvider
                 // 判断是否符合命令行选项五个特征中的任何一个：
                 // 1. 实现 ICommandOptions 接口
                 // 2. 实现 ICommandHandler 接口
-                // 3. 拥有 [Verb] 特性
+                // 3. 拥有 [Command] 或 [Verb] 特性
                 // 4. 拥有 [Option] 特性的属性
                 // 5. 拥有 [Value] 特性的属性
                 // 6. 拥有 [RawArguments] 特性的属性
@@ -48,9 +48,12 @@ internal static class CommandModelProvider
                 // 2. 实现 ICommandHandler 接口。
                 var isHandler = typeSymbol.AllInterfaces.Any(i =>
                     i.IsSubclassOrImplementOf(["DotNetCampus.Cli.ICommandHandler"], true));
-                // 3. 拥有 [Verb] 特性。
-                var attribute = typeSymbol.GetAttributes()
-                    .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>());
+                // 3. 拥有 [Command] 或 [Verb] 特性。
+                var attribute = typeSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
+#pragma warning disable CS0618 // 类型或成员已过时
+                                ?? typeSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
+#pragma warning restore CS0618 // 类型或成员已过时
+                    ;
                 // 4. 拥有 [Option] 特性的属性。
                 var optionProperties = typeSymbol
                     .GetAttributedProperties(OptionPropertyGeneratingModel.TryParse);
@@ -68,7 +71,7 @@ internal static class CommandModelProvider
                 }
 
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
-                var verbName = attribute?.ConstructorArguments[0].Value?.ToString();
+                var commandNames = attribute?.ConstructorArguments[0].Value?.ToString();
                 var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
 
                 return new CommandObjectGeneratingModel
@@ -76,7 +79,7 @@ internal static class CommandModelProvider
                     Namespace = @namespace,
                     CommandObjectType = typeSymbol,
                     IsPublic = isPublic,
-                    VerbName = verbName,
+                    CommandNames = commandNames,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
                     ValueProperties = valueProperties,
@@ -125,7 +128,7 @@ internal record CommandObjectGeneratingModel
 
     public required bool IsPublic { get; init; }
 
-    public required string? VerbName { get; init; }
+    public required string? CommandNames { get; init; }
 
     public required bool IsHandler { get; init; }
 
@@ -136,6 +139,22 @@ internal record CommandObjectGeneratingModel
     public required ImmutableArray<RawArgumentsPropertyGeneratingModel> RawArgumentsProperties { get; init; }
 
     public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
+
+    public int GetCommandLevel() => CommandNames switch
+    {
+        null => 0,
+        { } names => names.Count(x => x == ' ') + 1,
+    };
+
+    public string? GetKebabCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+    }
 
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
@@ -313,7 +332,12 @@ internal record ValuePropertyGeneratingModel
         }
 
         var index = valueAttribute.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        var length = valueAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(ValueAttribute.Length)).Value.Value?.ToString();
+        var length =
+            // 优先从命名属性中拿。
+            valueAttribute.NamedArguments
+                .FirstOrDefault(a => a.Key == nameof(ValueAttribute.Length)).Value.Value?.ToString()
+            // 其次从构造函数参数中拿。
+            ?? valueAttribute.ConstructorArguments.ElementAtOrDefault(1).Value?.ToString();
 
         return new ValuePropertyGeneratingModel
         {
@@ -384,14 +408,14 @@ file static class Extensions
         where TModel : class
     {
         return typeSymbol
-            .EnumerateBaseTypesRecursively()                                                 // 递归获取所有基类
-            .Reverse()                                                                       // （注意我们先给父类属性赋值，再给子类属性赋值）
-            .SelectMany(x => x.GetMembers())                                   //                 的所有成员，
-            .OfType<IPropertySymbol>()                                                       //                             然后取出属性，
+            .EnumerateBaseTypesRecursively() // 递归获取所有基类
+            .Reverse() // （注意我们先给父类属性赋值，再给子类属性赋值）
+            .SelectMany(x => x.GetMembers()) //                 的所有成员，
+            .OfType<IPropertySymbol>() //                             然后取出属性，
             .Select(x => (PropertyName: x.Name, Model: propertyParser(x))) // 解析出 OptionPropertyGeneratingModel。
             .Where(x => x.Model is not null)
-            .GroupBy(x => x.PropertyName)                            // 按属性名去重。
-            .Select(x => x.Last().Model)           // 随后，取子类的属性（去除父类的重名属性）。
+            .GroupBy(x => x.PropertyName) // 按属性名去重。
+            .Select(x => x.Last().Model) // 随后，取子类的属性（去除父类的重名属性）。
             .Cast<TModel>()
             .ToImmutableArray();
     }

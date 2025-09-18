@@ -6,10 +6,12 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.Posix"/>
 internal sealed class PosixStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = false;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var shortOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
         OptionName? lastOption = null;
@@ -22,11 +24,12 @@ internal sealed class PosixStyleParser : ICommandLineParser
             var tempLastType = lastType;
             lastType = result.Type;
 
-            if (result.Type is PosixParsedType.VerbOrPositionalArgument)
+            if (result.Type is PosixParsedType.CommandNameOrPositionalArgument)
             {
                 lastOption = null;
-                guessedVerbName = result.Value.ToString();
-                arguments.Add(guessedVerbName);
+                possibleCommandNamesLength++;
+                var commandNameOrPositionalArgument = result.Value.ToString();
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -77,7 +80,8 @@ internal sealed class PosixStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             OptionDictionary.Empty, // POSIX 风格不支持长选项
             shortOptions,
             arguments.ToReadOnlyList());
@@ -132,13 +136,18 @@ internal readonly ref struct PosixArgument(PosixParsedType type)
             return new PosixArgument(PosixParsedType.MultiShortOptions) { Option = new OptionName(argument, Range.StartAt(1)) };
         }
 
-        if (lastType is PosixParsedType.Start)
+        if (lastType is PosixParsedType.Start or PosixParsedType.CommandNameOrPositionalArgument)
         {
-            // 如果是第一个参数，则可能是或位置参数。
-            return new PosixArgument(PosixParsedType.VerbOrPositionalArgument) { Value = argument.AsSpan() };
+            // 如果是第一个参数，则后续可能是命令名或位置参数。
+            // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
+            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            return new PosixArgument(isValidName ? PosixParsedType.CommandNameOrPositionalArgument : PosixParsedType.PositionalArgument)
+            {
+                Value = argument.AsSpan(),
+            };
         }
 
-        if (lastType is PosixParsedType.VerbOrPositionalArgument or PosixParsedType.PositionalArgument)
+        if (lastType is PosixParsedType.PositionalArgument)
         {
             // 如果上一个是位置参数，则这个也是位置参数。
             return new PosixArgument(PosixParsedType.PositionalArgument) { Value = argument.AsSpan() };
@@ -173,9 +182,9 @@ internal enum PosixParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。

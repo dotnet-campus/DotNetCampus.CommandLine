@@ -6,11 +6,15 @@ namespace DotNetCampus.Cli.Utils.Handlers;
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {
     private CommandObjectCreator? _defaultHandlerCreator;
-    private readonly ConcurrentDictionary<string, CommandObjectCreator> _verbHandlers = [];
+    private readonly ConcurrentDictionary<string, CommandObjectCreator> _commandHandlerCreators = [];
 
-    public void AddHandler(string? verbName, CommandObjectCreator handlerCreator)
+    public void AddHandler(string? commandNames, CommandObjectCreator handlerCreator)
     {
-        if (verbName is null)
+        if (
+#if !NETCOREAPP3_1_OR_GREATER
+            commandNames is null ||
+#endif
+            string.IsNullOrEmpty(commandNames))
         {
             if (_defaultHandlerCreator is not null)
             {
@@ -20,19 +24,15 @@ internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollec
         }
         else
         {
-            if (!_verbHandlers.TryAdd(verbName, handlerCreator))
+            if (!_commandHandlerCreators.TryAdd(commandNames, handlerCreator))
             {
-                throw new InvalidOperationException($"Duplicate handler with verb {verbName}. Existed: {_verbHandlers}, new: {handlerCreator}");
+                throw new InvalidOperationException($"Duplicate handler with command {commandNames}. Existed: {_commandHandlerCreators}, new: {handlerCreator}");
             }
         }
     }
 
-    public ICommandHandler? TryMatch(string? verb, CommandLine commandLine)
+    public ICommandHandler? TryMatch(string possibleCommandNames, CommandLine commandLine)
     {
-        return verb is null
-            ? (ICommandHandler?)_defaultHandlerCreator?.Invoke(commandLine)
-            : _verbHandlers.TryGetValue(verb, out var handlerCreator)
-                ? (ICommandHandler)handlerCreator.Invoke(commandLine)
-                : null;
+        return commandLine.TryMatch(possibleCommandNames, _defaultHandlerCreator, _commandHandlerCreators);
     }
 }

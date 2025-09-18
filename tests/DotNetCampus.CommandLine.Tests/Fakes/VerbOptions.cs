@@ -1,7 +1,7 @@
 ﻿namespace DotNetCampus.Cli.Tests.Fakes;
 
 [dotnetCampus.Cli.Verb("Edit")]
-[DotNetCampus.Cli.Compiler.Verb("Edit")]
+[DotNetCampus.Cli.Compiler.Command("Edit")]
 public class EditOptions
 {
     [dotnetCampus.Cli.Value(0), dotnetCampus.Cli.Option('f', "File")]
@@ -10,7 +10,7 @@ public class EditOptions
 }
 
 [dotnetCampus.Cli.Verb("Print")]
-[DotNetCampus.Cli.Compiler.Verb("Print")]
+[DotNetCampus.Cli.Compiler.Command("Print")]
 public class PrintOptions
 {
     [DotNetCampus.Cli.Compiler.Value(0), Compiler.Option('f', "File")]
@@ -21,7 +21,7 @@ public class PrintOptions
 }
 
 [dotnetCampus.Cli.Verb("Share")]
-[DotNetCampus.Cli.Compiler.Verb("Share")]
+[DotNetCampus.Cli.Compiler.Command("Share")]
 public class ShareOptions
 {
     [DotNetCampus.Cli.Compiler.Option('t', "Target")]

@@ -18,8 +18,8 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     );
 
     private readonly CommandLine _commandLine;
-    private readonly DictionaryCommandHandlerCollection _dictionaryVerbHandlers = new();
-    private readonly ConcurrentDictionary<ICommandHandlerCollection, ICommandHandlerCollection> _assemblyVerbHandlers = [];
+    private readonly DictionaryCommandHandlerCollection _dictionaryCommandHandlers = new();
+    private readonly ConcurrentDictionary<ICommandHandlerCollection, ICommandHandlerCollection> _assemblyCommandHandlers = [];
 
     internal CommandRunner(CommandLine commandLine)
     {
@@ -32,16 +32,16 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     }
 
     /// <summary>
-    /// 供源生成器调用，注册一个专门用来处理谓词 <paramref name="verbName"/> 的命令处理器。
+    /// 供源生成器调用，注册一个专门用来处理主命令（Main Command）或子命令/多级子命令（Sub Command）的命令处理器。
     /// </summary>
-    /// <param name="verbName">关联的谓词。</param>
+    /// <param name="commandNames">关联的命令。</param>
     /// <param name="creator">命令处理器的创建方法。</param>
     /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void Register<T>(string? verbName, CommandObjectCreator creator)
+    public static void Register<T>(string? commandNames, CommandObjectCreator creator)
         where T : class
     {
-        CommandObjectCreationInfos[typeof(T)] = new CommandObjectCreationInfo(verbName, creator);
+        CommandObjectCreationInfos[typeof(T)] = new CommandObjectCreationInfo(commandNames, creator);
     }
 
     /// <summary>
@@ -87,22 +87,22 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
         }
 
-        _dictionaryVerbHandlers.AddHandler(info.VerbName, cl => (T)info.Creator(cl));
+        _dictionaryCommandHandlers.AddHandler(info.CommandNames, cl => (T)info.Creator(cl));
         return this;
     }
 
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
-    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandler<T>(string? verbName, CommandObjectCreator creator)
+    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator)
         where T : class, ICommandHandler
     {
-        _dictionaryVerbHandlers.AddHandler(verbName, creator);
+        _dictionaryCommandHandlers.AddHandler(command, creator);
         return this;
     }
 
@@ -120,7 +120,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
         }
 
-        _dictionaryVerbHandlers.AddHandler(info.VerbName, cl => new TaskCommandHandler<T>(
+        _dictionaryCommandHandlers.AddHandler(info.CommandNames, cl => new TaskCommandHandler<T>(
             () => (T)info.Creator(cl),
             handler));
         return this;
@@ -129,15 +129,15 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
-    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>返回一个命令处理器构建器。</returns>
-    internal CommandRunner AddHandler<T>(string? verbName, CommandObjectCreator creator, Func<T, Task<int>> handler)
+    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator, Func<T, Task<int>> handler)
         where T : class
     {
-        _dictionaryVerbHandlers.AddHandler(verbName, cl => new TaskCommandHandler<T>(
+        _dictionaryCommandHandlers.AddHandler(command, cl => new TaskCommandHandler<T>(
             () => (T)creator(cl),
             handler));
         return this;
@@ -147,37 +147,37 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         where T : ICommandHandlerCollection, new()
     {
         var c = new T();
-        _assemblyVerbHandlers.TryAdd(c, c);
+        _assemblyCommandHandlers.TryAdd(c, c);
         return this;
     }
 
     private ICommandHandler? MatchHandler()
     {
-        var verbName = _commandLine.GuessedVerbName;
+        var possibleCommandNames = _commandLine.PossibleCommandNames;
 
         // 优先寻找单独添加的处理器。
-        if (_dictionaryVerbHandlers.TryMatch(verbName, _commandLine) is { } h1)
+        if (_dictionaryCommandHandlers.TryMatch(possibleCommandNames, _commandLine) is { } h1)
         {
             return h1;
         }
 
         // 其次寻找程序集中自动搜集到的处理器。
-        foreach (var handler in _assemblyVerbHandlers)
+        foreach (var handler in _assemblyCommandHandlers)
         {
-            if (handler.Value.TryMatch(verbName, _commandLine) is { } h2)
+            if (handler.Value.TryMatch(possibleCommandNames, _commandLine) is { } h2)
             {
                 return h2;
             }
         }
 
-        // 如果没有找到，那么很可能此命令没有谓词，需要使用默认的处理器。
-        if (_dictionaryVerbHandlers.TryMatch(null, _commandLine) is { } h3)
+        // 如果没有找到，那么很可能此命令没有命令名称，需要使用默认的处理器。
+        if (_dictionaryCommandHandlers.TryMatch("", _commandLine) is { } h3)
         {
             return h3;
         }
-        foreach (var handler in _assemblyVerbHandlers)
+        foreach (var handler in _assemblyCommandHandlers)
         {
-            if (handler.Value.TryMatch(null, _commandLine) is { } h4)
+            if (handler.Value.TryMatch("", _commandLine) is { } h4)
             {
                 return h4;
             }
@@ -200,13 +200,13 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
         if (handler is null)
         {
-            throw new CommandVerbNotFoundException(
-                $"No command handler found for verb '{_commandLine.GuessedVerbName}'. Please ensure that the command handler is registered correctly.",
-                _commandLine.GuessedVerbName);
+            throw new CommandNameNotFoundException(
+                $"No command handler found for command '{_commandLine.PossibleCommandNames}'. Please ensure that the command handler is registered correctly.",
+                _commandLine.PossibleCommandNames);
         }
 
         return handler.RunAsync();
     }
 
-    private readonly record struct CommandObjectCreationInfo(string? VerbName, CommandObjectCreator Creator);
+    private readonly record struct CommandObjectCreationInfo(string? CommandNames, CommandObjectCreator Creator);
 }

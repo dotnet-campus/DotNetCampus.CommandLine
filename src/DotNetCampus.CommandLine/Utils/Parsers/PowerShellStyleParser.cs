@@ -5,10 +5,12 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.PowerShell"/>
 internal sealed class PowerShellStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = true;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
         OptionName? lastOption = null;
@@ -18,14 +20,14 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
         {
             var commandLineArgument = commandLineArguments[i];
             var result = PowerShellArgument.Parse(commandLineArgument, lastType);
-            var tempLastType = lastType;
             lastType = result.Type;
 
-            if (result.Type is PowerShellParsedType.VerbOrPositionalArgument)
+            if (result.Type is PowerShellParsedType.CommandNameOrPositionalArgument)
             {
                 lastOption = null;
-                guessedVerbName = result.Value.ToString();
-                arguments.Add(guessedVerbName);
+                possibleCommandNamesLength++;
+                var commandNameOrPositionalArgument = result.Value.ToString();
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -60,7 +62,8 @@ internal sealed class PowerShellStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             // PowerShell 风格不使用短选项，所以直接使用空字典。
             OptionDictionary.Empty,
@@ -96,18 +99,23 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
             var optionSpan = argument.AsSpan(1);
             return new PowerShellArgument(PowerShellParsedType.Option)
             {
-                Option = new OptionName(OptionName.MakeKebabCase(optionSpan), Range.All),
+                Option = OptionName.MakeKebabCase(optionSpan, PowerShellStyleParser.ConvertPascalCaseToKebabCase),
             };
         }
 
         // 处理各种类型的位置参数和选项值
-        if (lastType is PowerShellParsedType.Start)
+        if (lastType is PowerShellParsedType.Start or PowerShellParsedType.CommandNameOrPositionalArgument)
         {
-            // 如果是第一个参数，则视为谓词或位置参数。
-            return new PowerShellArgument(PowerShellParsedType.VerbOrPositionalArgument) { Value = argument.AsSpan() };
+            // 如果是第一个参数，则后续可能是命令名或位置参数。
+            // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
+            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            return new PowerShellArgument(isValidName ? PowerShellParsedType.CommandNameOrPositionalArgument : PowerShellParsedType.PositionalArgument)
+            {
+                Value = argument.AsSpan(),
+            };
         }
 
-        if (lastType is PowerShellParsedType.VerbOrPositionalArgument or PowerShellParsedType.PositionalArgument)
+        if (lastType is PowerShellParsedType.PositionalArgument)
         {
             // 如果前一个是位置参数，则当前也是位置参数。
             return new PowerShellArgument(PowerShellParsedType.PositionalArgument) { Value = argument.AsSpan() };
@@ -121,8 +129,8 @@ internal readonly ref struct PowerShellArgument(PowerShellParsedType type)
 
         if (lastType is PowerShellParsedType.OptionValue)
         {
-            // PowerShell 允许选项后面的多个选项值。
-            return new PowerShellArgument(PowerShellParsedType.OptionValue) { Value = argument.AsSpan() };
+            // 如果前一个已经是选项值了，那么后一个是位置参数。
+            return new PowerShellArgument(PowerShellParsedType.PositionalArgument) { Value = argument.AsSpan() };
         }
 
         if (lastType is PowerShellParsedType.PositionalArgumentSeparator or PowerShellParsedType.PostPositionalArgument)
@@ -144,9 +152,9 @@ internal enum PowerShellParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。

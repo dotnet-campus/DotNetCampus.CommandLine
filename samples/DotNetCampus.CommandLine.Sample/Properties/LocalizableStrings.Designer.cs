@@ -90,9 +90,9 @@ namespace DotNetCampus.Cli.Properties {
         /// <summary>
         ///   查找类似 Use sample command line action to output some text. 的本地化字符串。
         /// </summary>
-        internal static string SampleVerbDescription {
+        internal static string SampleCommandDescription {
             get {
-                return ResourceManager.GetString("SampleVerbDescription", resourceCulture);
+                return ResourceManager.GetString("SampleCommandDescription", resourceCulture);
             }
         }
     }

@@ -269,6 +269,33 @@ internal readonly record struct OptionName(string Argument, Range Range) : IEnum
 
     public static implicit operator OptionName(char optionName) => new OptionName(optionName.ToString(), Range.All);
 
+    public static bool IsValidOptionName(ReadOnlySpan<char> span)
+    {
+        if (span.Length == 0)
+        {
+            return false;
+        }
+        if (!char.IsLetterOrDigit(span[0]))
+        {
+            return false;
+        }
+        for (var i = 1; i < span.Length; i++)
+        {
+            var c = span[i];
+            if (!(char.IsLetterOrDigit(c) || c is '-' or '_'))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static OptionName MakeKebabCase(ReadOnlySpan<char> span, bool isUpperSeparator)
+    {
+        var name = NamingHelper.MakeKebabCase(span.ToString(), isUpperSeparator, false);
+        return new OptionName(name, Range.All);
+    }
+
     public static string MakeKebabCase(ReadOnlySpan<char> span)
     {
         Span<char> builder = stackalloc char[span.Length * 2];

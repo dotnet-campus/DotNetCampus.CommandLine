@@ -17,7 +17,11 @@ namespace DotNetCampus.CommandLine.CodeFixes;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionLongNameMustBeKebabCaseCodeFixProvider)), Shared]
 public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
 {
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [Diagnostics.OptionLongNameMustBeKebabCase];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds =>
+    [
+        Diagnostics.OptionLongNameMustBeKebabCase,
+        Diagnostics.OptionLongNameCanBeKebabCase,
+    ];
 
     public sealed override FixAllProvider GetFixAllProvider()
     {
@@ -42,24 +46,29 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
             ExpressionSyntax expressionSyntax => expressionSyntax,
             _ => null,
         };
+        // 判断此 syntax 是属于 CommandAttribute 还是 OptionAttribute。
+        var attributeSyntax = syntax?.FirstAncestorOrSelf<AttributeSyntax>();
+        var name = attributeSyntax?.Name.ToString() ?? "";
+        var hasSeparator = name.EndsWith("Command") || name.EndsWith("CommandAttribute") || name.EndsWith("Verb") || name.EndsWith("VerbAttribute");
 
         if (syntax != null)
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
                     title: Localizations.DCL101_Fix1,
-                    createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, c),
+                    createChangedSolution: c => MakeKebabCaseAsync(context.Document, syntax, hasSeparator, c),
                     equivalenceKey: Localizations.DCL101_Fix1),
                 diagnostic);
         }
     }
 
-    private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
+    private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax,
+        bool hasSeparator, CancellationToken cancellationToken)
     {
         var expression = expressionSyntax.ToString();
         // 去掉引号。
         var oldName = expression.Substring(1, expression.Length - 2);
-        var newName = NamingHelper.MakeKebabCase(oldName);
+        var newName = MakeKebabCase(oldName, hasSeparator);
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
@@ -72,5 +81,18 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
                 SyntaxKind.StringLiteralExpression,
                 SyntaxFactory.Literal(newName)));
         return document.Project.Solution.WithDocumentSyntaxRoot(document.Id, newRoot);
+    }
+
+    private string MakeKebabCase(string oldName, bool hasSeparator)
+    {
+        if (hasSeparator)
+        {
+            return string.Join(" ", oldName.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => NamingHelper.MakeKebabCase(x)));
+        }
+        else
+        {
+            return NamingHelper.MakeKebabCase(oldName);
+        }
     }
 }

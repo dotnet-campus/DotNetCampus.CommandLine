@@ -398,8 +398,8 @@ public class UrlCommandLineParserTests
         CollectionAssert.AreEqual(new[] { "documents", "reports", "annual" }, paths);
     }
 
-    [TestMethod("5.2. 路径首部分作为谓词，其余作为位置参数")]
-    public void FirstPathSegmentAsVerb_RemainingAsPositional()
+    [TestMethod("5.2. 路径首部分作为命令名称，其余作为位置参数")]
+    public void FirstPathSegmentAsCommand_RemainingAsPositional()
     {
         // Arrange
         string[] args = ["myapp://open/document.txt?readOnly=true"];
@@ -408,7 +408,7 @@ public class UrlCommandLineParserTests
 
         // Act
         CommandLine.Parse(args, Scheme)
-            .AddHandler<Url18_VerbPathOptions>(o =>
+            .AddHandler<Url18_CommandPathOptions>(o =>
             {
                 filePath = o.FilePath;
                 readOnly = o.ReadOnly;
@@ -658,8 +658,8 @@ internal record Url17_PathAsPositionalOptions
     public required string[] Paths { get; init; }
 }
 
-[Verb("open")]
-internal record Url18_VerbPathOptions
+[Command("open")]
+internal record Url18_CommandPathOptions
 {
     [Value(0)]
     public string FilePath { get; init; } = string.Empty;

@@ -126,7 +126,7 @@
   <data name="SamplePropertyDescription" xml:space="preserve">
     <value>Output any text passed to this option.</value>
   </data>
-  <data name="SampleVerbDescription" xml:space="preserve">
+  <data name="SampleCommandDescription" xml:space="preserve">
     <value>Use sample command line action to output some text.</value>
   </data>
 </root>

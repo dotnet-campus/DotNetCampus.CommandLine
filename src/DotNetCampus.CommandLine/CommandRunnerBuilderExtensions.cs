@@ -25,17 +25,17 @@ public static class CommandRunnerBuilderExtensions
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator)
+        string? command, CommandObjectCreator creator)
         where T : class, ICommandHandler
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(verbName, creator);
+            .AddHandler<T>(command, creator);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
@@ -53,11 +53,11 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Action<T> handler)
+        string? command, CommandObjectCreator creator, Action<T> handler)
         where T : class
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(verbName, creator, t =>
+            .AddHandler<T>(command, creator, t =>
             {
                 handler(t);
                 return Task.FromResult(0);
@@ -74,10 +74,10 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Action<T> handler)
+        string? command, CommandObjectCreator creator, Action<T> handler)
         where T : class
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(verbName, creator, handler);
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(command, creator, handler);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
@@ -91,11 +91,11 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Func<T, int> handler)
+        string? command, CommandObjectCreator creator, Func<T, int> handler)
         where T : class
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(verbName, creator, t => Task.FromResult(handler(t)));
+            .AddHandler<T>(command, creator, t => Task.FromResult(handler(t)));
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
@@ -108,10 +108,10 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Func<T, int> handler)
+        string? command, CommandObjectCreator creator, Func<T, int> handler)
         where T : class
     {
-        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(verbName, creator, handler);
+        return (IAsyncCommandRunnerBuilder)((ICoreCommandRunnerBuilder)builder).AddHandler<T>(command, creator, handler);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
@@ -129,11 +129,11 @@ public static class CommandRunnerBuilderExtensions
     /// <inheritdoc cref="AddHandler{T}(ICoreCommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Func<T, Task> handler)
+        string? command, CommandObjectCreator creator, Func<T, Task> handler)
         where T : class
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(verbName, creator, async t =>
+            .AddHandler<T>(command, creator, async t =>
             {
                 await handler(t);
                 return 0;
@@ -158,18 +158,18 @@ public static class CommandRunnerBuilderExtensions
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="verbName">由拦截器传入的的命令处理器的谓词。</param>
+    /// <param name="command">由拦截器传入的的命令处理器的命令名称。</param>
     /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder,
-        string? verbName, CommandObjectCreator creator, Func<T, Task<int>> handler)
+        string? command, CommandObjectCreator creator, Func<T, Task<int>> handler)
         where T : class
     {
         return builder.GetOrCreateRunner()
-            .AddHandler<T>(verbName, creator, handler);
+            .AddHandler<T>(command, creator, handler);
     }
 
     /// <summary>

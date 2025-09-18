@@ -6,11 +6,13 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// <inheritdoc cref="CommandLineStyle.Gnu"/>
 internal sealed class GnuStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = false;
+
     public CommandLineParsedResult Parse(IReadOnlyList<string> commandLineArguments)
     {
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        var possibleCommandNamesLength = 0;
         List<string> arguments = [];
 
         OptionName? lastOption = null;
@@ -24,11 +26,12 @@ internal sealed class GnuStyleParser : ICommandLineParser
             var tempLastType = lastType;
             lastType = result.Type;
 
-            if (result.Type is GnuParsedType.VerbOrPositionalArgument)
+            if (result.Type is GnuParsedType.CommandNameOrPositionalArgument)
             {
                 lastOption = null;
-                guessedVerbName = result.Value.ToString();
-                arguments.Add(guessedVerbName);
+                possibleCommandNamesLength++;
+                var commandNameOrPositionalArgument = result.Value.ToString();
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -120,7 +123,8 @@ internal sealed class GnuStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            CommandLineParsedResult.MakePossibleCommandNames(commandLineArguments, possibleCommandNamesLength, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -203,13 +207,18 @@ internal readonly ref struct GnuArgument(GnuParsedType type)
                 { Option = new OptionName(argument, Range.StartAt(1)), Value = spans[1..] };
         }
 
-        if (lastType is GnuParsedType.Start)
+        if (lastType is GnuParsedType.Start or GnuParsedType.CommandNameOrPositionalArgument)
         {
-            // 如果是第一个参数，则可能是或位置参数。
-            return new GnuArgument(GnuParsedType.VerbOrPositionalArgument) { Value = argument.AsSpan() };
+            // 如果是第一个参数，则后续可能是命令名或位置参数。
+            // 如果可能是命令名或位置参数，则后续也可能是命令名或位置参数。
+            var isValidName = OptionName.IsValidOptionName(argument.AsSpan());
+            return new GnuArgument(isValidName ? GnuParsedType.CommandNameOrPositionalArgument : GnuParsedType.PositionalArgument)
+            {
+                Value = argument.AsSpan(),
+            };
         }
 
-        if (lastType is GnuParsedType.VerbOrPositionalArgument or GnuParsedType.PositionalArgument)
+        if (lastType is GnuParsedType.PositionalArgument)
         {
             // 如果是位置参数，则必定是位置参数。
             return new GnuArgument(GnuParsedType.PositionalArgument) { Value = argument.AsSpan() };
@@ -243,9 +252,9 @@ internal enum GnuParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。

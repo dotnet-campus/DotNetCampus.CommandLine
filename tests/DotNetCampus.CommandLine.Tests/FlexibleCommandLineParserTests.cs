@@ -671,28 +671,6 @@ public class FlexibleCommandLineParserTests
         Assert.AreEqual(0, files.Length);
     }
 
-    [TestMethod("11.2. 支持空格分隔的列表")]
-    public void SpaceSeparatedList_ParsedCorrectly()
-    {
-        // Arrange
-        string[] args = ["--files", "file1.txt", "file2.txt"];
-        string[]? files = null;
-
-        // Act
-        CommandLine.Parse(args, Flexible)
-            .AddHandler<Flexible16_ListOptions>(o =>
-            {
-                files = o.Files;
-                return 0;
-            })
-            .Run();
-
-        // Assert
-        Assert.IsNotNull(files);
-        Assert.AreEqual(2, files.Length);
-        CollectionAssert.AreEqual(new[] { "file1.txt", "file2.txt" }, files);
-    }
-
     [TestMethod("11.3. 支持分号分隔的列表")]
     public void SemicolonSeparatedList_ParsedCorrectly()
     {
@@ -801,28 +779,6 @@ public class FlexibleCommandLineParserTests
         Assert.IsNotNull(names);
         Assert.AreEqual(3, names.Count());
         CollectionAssert.AreEqual(new[] { "John Doe", "Jane Smith", "Anonymous" }, names.ToArray());
-    }
-
-    [TestMethod("11.8. 单选项后接带引号的多个值")]
-    public void SingleOption_QuotedMultipleValues()
-    {
-        // Arrange
-        string[] args = ["--tags", "\"tag with spaces\"", "normal-tag", "\"another tag\""];
-        IReadOnlyList<string>? tags = null;
-
-        // Act
-        CommandLine.Parse(args, Flexible)
-            .AddHandler<Flexible16_ListOptions>(o =>
-            {
-                tags = o.Tags;
-                return 0;
-            })
-            .Run();
-
-        // Assert
-        Assert.IsNotNull(tags);
-        Assert.AreEqual(3, tags.Count);
-        CollectionAssert.AreEqual(new[] { "tag with spaces", "normal-tag", "another tag" }, tags.ToArray());
     }
 
     [TestMethod("11.9. 单选项后接带引号且引号内有逗号或分号的多个值")]

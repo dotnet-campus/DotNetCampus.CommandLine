@@ -11,6 +11,7 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 /// </summary>
 internal sealed class UrlStyleParser : ICommandLineParser
 {
+    internal static bool ConvertPascalCaseToKebabCase { get; } = false;
     private const string FragmentName = "fragment";
     private readonly string _scheme;
 
@@ -34,7 +35,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
 
         var longOptions = new OptionDictionary(true);
         var shortOptions = new OptionDictionary(true);
-        string? guessedVerbName = null;
+        List<string> possibleCommandNames = [];
         List<string> arguments = [];
 
         string? lastParameterName = null;
@@ -45,11 +46,12 @@ internal sealed class UrlStyleParser : ICommandLineParser
             var result = UrlPart.ReadNext(url, ref i, lastType);
             lastType = result.Type;
 
-            if (result.Type is UrlParsedType.VerbOrPositionalArgument)
+            if (result.Type is UrlParsedType.CommandNameOrPositionalArgument)
             {
                 lastParameterName = null;
-                guessedVerbName = result.Value;
-                arguments.Add(guessedVerbName);
+                var commandNameOrPositionalArgument = result.Value;
+                possibleCommandNames.Add(commandNameOrPositionalArgument);
+                arguments.Add(commandNameOrPositionalArgument);
                 continue;
             }
 
@@ -87,7 +89,8 @@ internal sealed class UrlStyleParser : ICommandLineParser
             }
         }
 
-        return new CommandLineParsedResult(guessedVerbName,
+        return new CommandLineParsedResult(
+            CommandLineParsedResult.MakePossibleCommandNames(possibleCommandNames, ConvertPascalCaseToKebabCase),
             longOptions,
             shortOptions,
             arguments.ToReadOnlyList());
@@ -104,7 +107,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         {
             if (lastType is UrlParsedType.Start)
             {
-                // 取出第一个位置参数（或谓词）
+                // 取出第一个位置参数（或命令名）
                 var startIndex = -1;
                 for (var i = index; i < url.Length - 3; i++)
                 {
@@ -116,11 +119,13 @@ internal sealed class UrlStyleParser : ICommandLineParser
                 }
                 if (startIndex < 0)
                 {
+                    // 如果是开始，则必须包含 scheme://
                     throw new CommandLineParseException($"Invalid URL format: {url}. Missing '://'");
                 }
                 var endIndex = url.IndexOfAny(['/', '?', '#', '&'], startIndex);
                 if (endIndex < 0)
                 {
+                    // 此 URL 没有选项，最后一个值是位置参数或命令名
                     endIndex = url.Length;
                     index = endIndex + 1;
                 }
@@ -128,19 +133,35 @@ internal sealed class UrlStyleParser : ICommandLineParser
                 {
                     index = endIndex;
                 }
+
                 var value = HttpUtility.UrlDecode(url.AsSpan(startIndex, endIndex - startIndex).ToString());
-                return new UrlPart(UrlParsedType.VerbOrPositionalArgument)
+                var isValidName = OptionName.IsValidOptionName(value.AsSpan());
+                return new UrlPart(isValidName ? UrlParsedType.CommandNameOrPositionalArgument : UrlParsedType.PositionalArgument)
                 {
                     Value = value,
                 };
             }
 
-            if (lastType is UrlParsedType.VerbOrPositionalArgument or UrlParsedType.PositionalArgument)
+            if (lastType is UrlParsedType.CommandNameOrPositionalArgument)
+            {
+                return url[index] switch
+                {
+                    // 取出非第一个位置参数（或命令名）
+                    '/' => ReadNextPositionalArgument(url, ref index, lastType),
+                    // 查询参数名。
+                    '?' => ReadNextParameterName(url, ref index),
+                    // 片段。
+                    '#' => ReadFragment(url, ref index),
+                    _ => throw new CommandLineParseException($"Invalid URL format: {url}. Expected '/', '?' or '#' after a positional argument."),
+                };
+            }
+
+            if (lastType is UrlParsedType.PositionalArgument)
             {
                 return url[index] switch
                 {
                     // 新的位置参数。
-                    '/' => ReadNextPositionalArgument(url, ref index),
+                    '/' => ReadNextPositionalArgument(url, ref index, lastType),
                     // 查询参数名。
                     '?' => ReadNextParameterName(url, ref index),
                     // 片段。
@@ -179,7 +200,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static UrlPart ReadNextPositionalArgument(string url, ref int index)
+        private static UrlPart ReadNextPositionalArgument(string url, ref int index, UrlParsedType lastType)
         {
             var startIndex = index;
             var endIndex = url.IndexOfAny(['/', '?', '#', '&'], startIndex + 1);
@@ -193,8 +214,12 @@ internal sealed class UrlStyleParser : ICommandLineParser
                 index = endIndex;
             }
             var value = HttpUtility.UrlDecode(url.AsSpan(startIndex + 1, endIndex - startIndex - 1).ToString());
+            var isValidName = OptionName.IsValidOptionName(value.AsSpan());
+            var type = lastType is UrlParsedType.PositionalArgument
+                ? UrlParsedType.PositionalArgument
+                : UrlParsedType.CommandNameOrPositionalArgument;
             index = endIndex;
-            return new UrlPart(UrlParsedType.PositionalArgument)
+            return new UrlPart(isValidName ? type : UrlParsedType.PositionalArgument)
             {
                 Value = value,
             };
@@ -252,7 +277,7 @@ internal sealed class UrlStyleParser : ICommandLineParser
         private static UrlPart ReadFragment(string url, ref int index)
         {
             var startIndex = index;
-            index =  url.Length + 1;
+            index = url.Length + 1;
             return new UrlPart(UrlParsedType.Fragment)
             {
                 Name = FragmentName,
@@ -270,9 +295,9 @@ internal enum UrlParsedType
     Start,
 
     /// <summary>
-    /// 第一个位置参数，也可能是谓词。
+    /// 前几个位置参数，也可能是命令名。
     /// </summary>
-    VerbOrPositionalArgument,
+    CommandNameOrPositionalArgument,
 
     /// <summary>
     /// 位置参数。

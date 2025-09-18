@@ -91,7 +91,7 @@ Advanced features include:
 - Support for various data types including collections and dictionaries
 - Positional arguments with `ValueAttribute`
 - Required properties with C# `required` modifier
-- Command handling with verb support
+- Command handling with command support
 - URL protocol parsing
 - High performance thanks to source generators
 
