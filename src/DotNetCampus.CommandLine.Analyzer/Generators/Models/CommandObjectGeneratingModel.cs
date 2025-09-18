@@ -36,7 +36,7 @@ internal record CommandObjectGeneratingModel
         { } names => names.Count(x => x == ' ') + 1,
     };
 
-    public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentPropertiesExcludingSameNameOptions()
+    public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentExcludingSameNameOptions()
     {
         var optionNames = OptionProperties.Select(x => x.PropertyName).ToList();
         foreach (var positionalArgumentProperty in PositionalArgumentProperties)

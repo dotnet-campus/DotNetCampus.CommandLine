@@ -45,7 +45,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     m => m
                         .AddRawStatements($"return new {model.Namespace}.{model.GetBuilderTypeName()}(commandLine).Build();"))
                 .AddRawMembers(model.OptionProperties.Select(GenerateArgumentPropertyCode))
-                .AddRawMembers(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
+                .AddRawMembers(model.EnumeratePositionalArgumentExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
@@ -55,15 +55,16 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     m => GenerateMatchShortOptionCode(m, model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
-                    m => m
-                        .AddRawStatements(GenerateMatchPositionalArgumentsCode(model))
-                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;"))
+                    m => GenerateMatchPositionalArgumentsCode(m, model))
                 .AddMethodDeclaration(
                     "private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
                     m => m
-                        .AddBracketScope("switch (propertyIndex)", l => l
-                            .AddRawStatements(model.OptionProperties.Select(GenerateAssignPropertyValueCode))
-                            .AddRawStatements(model.EnumeratePositionalArgumentPropertiesExcludingSameNameOptions().Select(GenerateAssignPropertyValueCode))))
+                        .Condition(model.OptionProperties.Count > 0 || model.PositionalArgumentProperties.Count > 0, b => b
+                            .AddBracketScope("switch (propertyIndex)", l => l
+                                .AddRawStatements(model.OptionProperties.Select(GenerateAssignPropertyValueCode))
+                                .AddRawStatements(model.EnumeratePositionalArgumentExcludingSameNameOptions().Select(GenerateAssignPropertyValueCode))))
+                        .Otherwise(b => b.AddRawStatement("// 没有可赋值的属性。"))
+                        .EndCondition())
                 .AddMethodDeclaration(
                     $"private {model.CommandObjectType.ToUsingString()} BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => GenerateBuildCoreCode(m, model))
@@ -135,9 +136,9 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddLineSeparator()
                 .AddRawStatement("// 3. 最后根据其他命名法匹配一遍（能应对所有不规范命令行大小写，并支持所有风格）。")
                 .AddBracketScope("if (namingPolicy.SupportsPascalCase())", s => s
-                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames())))))
+                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames()))))
+                .AddLineSeparator())
             .EndCondition()
-            .AddLineSeparator()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateLongOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
@@ -174,9 +175,9 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddDefaultStringComparisonIfNeeded(optionProperties)
                 .AddLineSeparator()
                 .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
-                .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetShortNames()))))
+                .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetShortNames())))
+                .AddLineSeparator())
             .EndCondition()
-            .AddLineSeparator()
             .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
         static string GenerateOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
@@ -210,14 +211,18 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         }
     }
 
-    private string GenerateMatchPositionalArgumentsCode(CommandObjectGeneratingModel model)
+    private MethodDeclarationSourceTextBuilder GenerateMatchPositionalArgumentsCode(MethodDeclarationSourceTextBuilder builder,
+        CommandObjectGeneratingModel model)
     {
         var positionalArgumentProperties = model.PositionalArgumentProperties;
-        return positionalArgumentProperties.Count is 0
-            ? "// 没有位置参数，无需匹配。"
-            : $$"""
-        {{string.Join("\n", positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))}}
-        """;
+        return builder
+            .Condition(positionalArgumentProperties.Count is 0, b => b
+                .AddRawStatement("// 没有位置参数，无需匹配。"))
+            .Otherwise(b => b
+                .AddRawStatements(positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))
+                .AddLineSeparator())
+            .EndCondition()
+            .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;");
     }
 
     private string GenerateMatchPositionalArgumentCode(PositionalArgumentPropertyGeneratingModel model, int index, int length)
