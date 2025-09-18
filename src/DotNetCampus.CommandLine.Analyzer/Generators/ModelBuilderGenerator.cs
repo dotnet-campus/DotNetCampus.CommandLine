@@ -49,14 +49,10 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, CommandNamingPolicy namingPolicy)",
-                    m => m
-                        .AddRawStatements(GenerateMatchLongOptionCode(model))
-                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;"))
+                    m => GenerateMatchLongOptionCode(m, model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
-                    m => m
-                        .AddRawStatements(GenerateMatchShortOptionCode(model))
-                        .AddRawStatements("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;"))
+                    m => GenerateMatchShortOptionCode(m, model))
                 .AddMethodDeclaration(
                     "private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
                     m => m
@@ -122,56 +118,71 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     }
     """;
 
-    private string GenerateMatchLongOptionCode(CommandObjectGeneratingModel model)
+    private MethodDeclarationSourceTextBuilder GenerateMatchLongOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return optionProperties.Count is 0
-            ? "// 没有长名称选项，无需匹配。"
-            : $$"""
-        var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
-
-        // 先原样匹配一遍。
-        if (namingPolicy.SupportsOrdinal())
+        if (optionProperties.Count is 0)
         {
-        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetOrdinalLongNames())))}}
+            builder.AddRawStatement("// 没有长名称选项，无需匹配。");
+        }
+        else
+        {
+            builder
+                .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
+                .AddBracketScope("switch (longOption)", s => s
+                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionCaseCode(x, x.GetOrdinalLongNames()))))
+                .AddDefaultStringComparisonIfNeeded(optionProperties)
+                .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
+                .AddBracketScope("if (namingPolicy.SupportsOrdinal())", s => s
+                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetOrdinalLongNames()))))
+                .AddRawStatement("// 3. 最后根据其他命名法匹配一遍（能应对所有不规范命令行大小写，并支持所有风格）。")
+                .AddBracketScope("if (namingPolicy.SupportsPascalCase())", s => s
+                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames()))));
+        }
+        return builder
+            .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
+
+        static string GenerateLongOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
+        {
+            return string.Join("\n", names.Select(name => $"""
+            case "{name}":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({model.PropertyName}), {model.PropertyIndex}, {model.Type.AsCommandValueKind().ToCommandValueTypeName()});
+            """));
         }
 
-        // 再根据命名法匹配一遍（只匹配与上述名称不同的名称）。
-        if (namingPolicy.SupportsPascalCase())
+        static string GenerateLongOptionEqualsCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
-        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetPascalCaseLongNames())))}}
-        }
-        """;
-
-        static string GenerateOptionMatchCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
-        {
-            var comparison = model.CaseSensitive switch
-            {
-                true => "global::System.StringComparison.Ordinal",
-                false => "global::System.StringComparison.OrdinalIgnoreCase",
-                null => "defaultComparison",
-            };
             return string.Join("\n", names.Select(name => $$"""
-            if (longOption.Equals("{{name}}".AsSpan(), {{comparison}}))
+            if (longOption.Equals("{{name}}".AsSpan(), {{model.GetStringComparisonExpression()}}))
             {
                 return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({{model.PropertyName}}), {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
-        """));
+            """));
         }
     }
 
-    private string GenerateMatchShortOptionCode(CommandObjectGeneratingModel model)
+    private MethodDeclarationSourceTextBuilder GenerateMatchShortOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return optionProperties.Count is 0
-            ? "// 没有短名称选项，无需匹配。"
-            : $$"""
-        var defaultComparison = defaultCaseSensitive ? global::System.StringComparison.Ordinal : global::System.StringComparison.OrdinalIgnoreCase;
+        if (optionProperties.Count is 0)
+        {
+            builder.AddRawStatement("// 没有短名称选项，无需匹配。");
+        }
+        else
+        {
+            builder
+                .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
+                .AddBracketScope("switch (shortOption)", s => s
+                    .AddRawStatements(optionProperties.Select(x => GenerateOptionCaseCode(x, x.GetShortNames()))))
+                .AddDefaultStringComparisonIfNeeded(optionProperties)
+                .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
+                .AddRawStatements(optionProperties.Select(x => GenerateOptionEqualsCode(x, x.GetOrdinalLongNames())));
+        }
 
-        {{string.Join("\n", optionProperties.Select(x => GenerateOptionMatchCode(x, x.GetShortNames())))}}
-        """;
+        return builder
+            .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;");
 
-        static string GenerateOptionMatchCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
+        static string GenerateOptionCaseCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
         {
             if (names.Count == 0)
             {
@@ -179,14 +190,22 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             // 属性 {model.PropertyName} 没有短名称，无需匹配。
             """;
             }
-            var comparison = model.CaseSensitive switch
+            return string.Join("\n", names.Select(name => $"""
+            case "{name}":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({model.PropertyName}), {model.PropertyIndex}, {model.Type.AsCommandValueKind().ToCommandValueTypeName()});
+        """));
+        }
+
+        static string GenerateOptionEqualsCode(OptionalArgumentPropertyGeneratingModel model, IReadOnlyList<string> names)
+        {
+            if (names.Count == 0)
             {
-                true => "global::System.StringComparison.Ordinal",
-                false => "global::System.StringComparison.OrdinalIgnoreCase",
-                null => "defaultComparison",
-            };
+                return $"""
+            // 属性 {model.PropertyName} 没有短名称，无需匹配。
+            """;
+            }
             return string.Join("\n", names.Select(name => $$"""
-            if (shortOption.Equals("{{name}}".AsSpan(), {{comparison}}))
+            if (shortOption.Equals("{{name}}".AsSpan(), {{model.GetStringComparisonExpression()}}))
             {
                 return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof({{model.PropertyName}}), {{model.PropertyIndex}}, {{model.Type.AsCommandValueKind().ToCommandValueTypeName()}});
             }
@@ -383,7 +402,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             },
             (_, true, true, _) => "",
             (_, true, false, true) => "null",
-            (_, true, false, false) => $"default({model.Type.ToDisplayString()})",
+            (_, true, false, false) => $"default({model.Type.ToDisplayString()})!",
             _ => "/* 非 init 属性，在下面单独赋值 */",
         };
 
@@ -501,4 +520,34 @@ private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
         .Replace("namespace DotNetCampus.Cli.Utils.Parsers;", $"namespace {model.Namespace};")
         .Replace("public readonly ref struct CommandLineParser", $"partial struct {model.GetBuilderTypeName()}")
         .ToString();
+}
+
+file static class Extensions
+{
+    public static string GetStringComparisonExpression(this OptionalArgumentPropertyGeneratingModel model)
+    {
+        return model.CaseSensitive switch
+        {
+            true => "global::System.StringComparison.Ordinal",
+            false => "global::System.StringComparison.OrdinalIgnoreCase",
+            null => "defaultComparison",
+        };
+    }
+
+    public static TBuilder AddDefaultStringComparisonIfNeeded<TBuilder>(this TBuilder builder,
+        IReadOnlyList<OptionalArgumentPropertyGeneratingModel> optionProperties)
+        where TBuilder : IAllowStatements
+    {
+        var needStringComparison = optionProperties.Any(x => x.CaseSensitive is null);
+        if (needStringComparison)
+        {
+            builder.AddRawStatement(
+                """
+                var defaultComparison = defaultCaseSensitive
+                    ? global::System.StringComparison.Ordinal
+                    : global::System.StringComparison.OrdinalIgnoreCase;
+                """);
+        }
+        return builder;
+    }
 }
