@@ -15,6 +15,29 @@ internal static class GeneratingModelExtensions
     );
 
     /// <summary>
+    /// 尝试判断 <paramref name="symbol"/> 是否是一个枚举类型（含可空枚举类型）。
+    /// 如果是，则返回 <see langword="true"/>，并通过 <paramref name="enumTypeSymbol"/> 返回枚举类型本身。
+    /// 否则返回 <see langword="false"/>，并将 <paramref name="enumTypeSymbol"/> 设为 <paramref name="symbol"/>。
+    /// </summary>
+    /// <param name="symbol">命令行对象中一个枚举属性的属性类型。</param>
+    /// <param name="enumTypeSymbol">如果返回值为 <see langword="true"/>，则为枚举类型本身；否则为 <paramref name="symbol"/>。</param>
+    /// <returns>辅助类型的名称。</returns>
+    public static bool TryGetEnumType(this ITypeSymbol symbol, out ITypeSymbol enumTypeSymbol)
+    {
+        if (symbol is { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
+        {
+            enumTypeSymbol = typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
+                // 获取 Nullable<T> 中的 T。
+                ? namedType.TypeArguments[0]
+                // 处理直接带有可空标记的类型 (int? 这种形式)。
+                : typeSymbol;
+            return enumTypeSymbol.TypeKind is TypeKind.Enum;
+        }
+        enumTypeSymbol = symbol;
+        return symbol.TypeKind is TypeKind.Enum;
+    }
+
+    /// <summary>
     /// 假定 <paramref name="symbol"/> 是一个命令行对象中一个枚举属性的属性类型，
     /// 现在我们要为这个枚举生成一个用来赋值命令行值的辅助类型，
     /// 此方法返回这个辅助类型的名称。
@@ -23,22 +46,9 @@ internal static class GeneratingModelExtensions
     /// <returns>辅助类型的名称。</returns>
     public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
     {
-        string typeName;
-
-        if (symbol is { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
-        {
-            typeName = typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
-                // 获取 Nullable<T> 中的 T。
-                ? namedType.TypeArguments[0].ToDisplayString()
-                // 处理直接带有可空标记的类型 (int? 这种形式)。
-                : typeSymbol.WithNullableAnnotation(NullableAnnotation.None).ToDisplayString();
-        }
-        else
-        {
-            typeName = symbol.ToDisplayString();
-        }
-
-        return $"__GeneratedEnumArgument__{typeName.Replace('.', '_')}__";
+        return symbol.TryGetEnumType(out var enumTypeSymbol)
+            ? $"__GeneratedEnumArgument__{enumTypeSymbol.ToDisplayString().Replace('.', '_')}__"
+            : symbol.ToDisplayString();
     }
 
     public static string ToCommandValueTypeName(this CommandValueKind type) => type switch

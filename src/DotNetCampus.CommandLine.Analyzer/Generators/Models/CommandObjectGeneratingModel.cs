@@ -61,18 +61,19 @@ internal record CommandObjectGeneratingModel
     public IEnumerable<ITypeSymbol> EnumerateEnumPropertyTypes()
     {
         var enums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
         foreach (var option in OptionProperties)
         {
-            if (option.Type.TypeKind is TypeKind.Enum)
+            if (option.Type.TryGetEnumType(out var enumTypeSymbol))
             {
-                enums.Add(option.Type);
+                enums.Add(enumTypeSymbol);
             }
         }
         foreach (var value in PositionalArgumentProperties)
         {
-            if (value.Type.TypeKind is TypeKind.Enum)
+            if (value.Type.TryGetEnumType(out var enumTypeSymbol))
             {
-                enums.Add(value.Type);
+                enums.Add(enumTypeSymbol);
             }
         }
         return enums;
