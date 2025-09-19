@@ -20,6 +20,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="DotNetCampus.CommandLine.Temp40" />
     <PackageReference Include="System.CommandLine" Condition="'$(DotNetCampusIsUsingAot)'=='false'" />
   </ItemGroup>
 

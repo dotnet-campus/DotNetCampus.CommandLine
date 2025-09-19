@@ -3,7 +3,6 @@ using BenchmarkDotNet.Jobs;
 using ConsoleAppFramework;
 using DotNetCampus.Cli.Performance.Fakes;
 using static DotNetCampus.Cli.Performance.Fakes.CommandLineArguments;
-using static DotNetCampus.Cli.CommandLineParsingOptions;
 
 #if IS_NOT_USING_AOT
 using System.Collections.Generic;
@@ -24,28 +23,42 @@ public class ParseGnuArgs
     [Benchmark(Description = "parse [GNU] -v=4.1 -p=flexible")]
     public void Parse41_Flexible()
     {
-        var commandLine = CommandLine.Parse(GnuArgs, Flexible);
-        commandLine.As<BenchmarkOptions4>();
+        var commandLine = CommandLine41.Parse(GnuArgs, Options41.Flexible);
+        commandLine.As<BenchmarkOptions41>();
     }
 
     [Benchmark(Description = "parse [GNU] -v=4.1 -p=gnu")]
     public void Parse41_PowerShell()
     {
-        var commandLine = CommandLine.Parse(GnuArgs, Gnu);
-        commandLine.As<BenchmarkOptions4>();
+        var commandLine = CommandLine41.Parse(GnuArgs, Options41.Gnu);
+        commandLine.As<BenchmarkOptions41>();
+    }
+
+    [Benchmark(Description = "parse [GNU] -v=4.0 -p=flexible")]
+    public void Parse40_Flexible()
+    {
+        var commandLine = CommandLine40.Parse(GnuArgs, Options40.Flexible);
+        commandLine.As<BenchmarkOptions40>();
+    }
+
+    [Benchmark(Description = "parse [GNU] -v=4.0 -p=gnu")]
+    public void Parse40_PowerShell()
+    {
+        var commandLine = CommandLine40.Parse(GnuArgs, Options40.Gnu);
+        commandLine.As<BenchmarkOptions40>();
     }
 
     [Benchmark(Description = "parse [GNU] -v=3.x -p=parser")]
     public void Parse3x_Parser()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(GnuArgs);
+        var commandLine = CommandLine3.Parse(GnuArgs);
         commandLine.As(new BenchmarkOption3Parser());
     }
 
     [Benchmark(Description = "parse [GNU] -v=3.x -p=runtime")]
     public void Parse3x_Runtime()
     {
-        var commandLine = dotnetCampus.Cli.CommandLine.Parse(GnuArgs);
+        var commandLine = CommandLine3.Parse(GnuArgs);
         commandLine.As<RuntimeBenchmarkOptions3>();
     }
 

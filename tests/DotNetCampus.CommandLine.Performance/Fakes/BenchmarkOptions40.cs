@@ -1,31 +1,9 @@
 using System.Collections.Generic;
-using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Temp40.Compiler;
 
 namespace DotNetCampus.Cli.Performance.Fakes;
 
-[Command("", ExperimentalUseFullStackParser = true)]
-public readonly record struct FullStackBenchmarkOptions4()
-{
-    [Option("debug")]
-    public required bool IsDebugMode { get; init; }
-
-    [Option('c', "count")]
-    public required int TestCount { get; init; }
-
-    [Option('n', "test-name")]
-    public string? TestName { get; init; }
-
-    [Option("test-category")]
-    public string? TestCategory { get; init; }
-
-    [Option('d', "detail-level")]
-    public DetailLevel DetailLevel { get; init; }
-
-    [Value(0, int.MaxValue)]
-    public IReadOnlyList<string> TestItems { get; init; } = null!;
-}
-
-public class BenchmarkOptions4
+public class BenchmarkOptions40
 {
     [Option("debug")]
     public required bool IsDebugMode { get; init; }
@@ -46,7 +24,7 @@ public class BenchmarkOptions4
     public IReadOnlyList<string> TestItems { get; init; } = null!;
 }
 
-public class NullableBenchmarkOptions4
+public class NullableBenchmarkOptions40
 {
     [Option("debug")]
     public bool IsDebugMode { get; set; }
