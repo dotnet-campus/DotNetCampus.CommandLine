@@ -141,11 +141,7 @@ internal static class CommandLineConverter
         }
 
         var parts = argument.ToString().Split(['/'], StringSplitOptions.RemoveEmptyEntries);
-        var result = new List<string>(parts.Length);
-        foreach (var part in parts)
-        {
-            result.Add(Uri.UnescapeDataString(part));
-        }
+        var result = parts.Select(Uri.UnescapeDataString).ToList();
         return result;
     }
 
