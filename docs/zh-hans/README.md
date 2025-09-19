@@ -616,9 +616,41 @@ public sealed class BenchmarkOptions41Builder(global::DotNetCampus.Cli.CommandLi
 
 ## 性能数据
 
-源代码生成器实现提供了极高的命令行解析性能：
+源代码生成器实现提供了极高的命令行解析性能。
 
-*数据等待生成中*
+解析空白命令行参数：
+
+| Method                        | Mean         | Error      | StdDev     | Gen0   | Allocated |
+|------------------------------ |-------------:|-----------:|-----------:|-------:|----------:|
+| 'parse [] -v=4.1 -p=flexible' |     27.25 ns |   0.485 ns |   0.454 ns | 0.0143 |     240 B |
+| 'parse [] -v=4.1 -p=dotnet'   |     27.35 ns |   0.471 ns |   0.440 ns | 0.0143 |     240 B |
+| 'parse [] -v=4.0 -p=flexible' |     97.16 ns |   0.708 ns |   0.628 ns | 0.0134 |     224 B |
+| 'parse [] -v=4.0 -p=dotnet'   |     95.90 ns |   0.889 ns |   0.742 ns | 0.0134 |     224 B |
+| 'parse [] -v=3.x -p=parser'   |     49.73 ns |   0.931 ns |   0.870 ns | 0.0239 |     400 B |
+| 'parse [] -v=3.x -p=runtime'  | 19,304.17 ns | 194.337 ns | 162.280 ns | 0.4272 |    7265 B |
+
+解析 GNU 风格命令行参数：
+
+```bash
+test DotNetCampus.CommandLine.Performance.dll DotNetCampus.CommandLine.Sample.dll DotNetCampus.CommandLine.Test.dll -c 20 --test-name BenchmarkTest --detail-level High --debug
+```
+
+| Method                           | Job           | Runtime       | Mean        | Error     | StdDev    | Gen0   | Allocated |
+|--------------------------------- |-------------- |-------------- |------------:|----------:|----------:|-------:|----------:|
+| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     | .NET 10.0     |    355.9 ns |   4.89 ns |   4.58 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     | .NET 10.0     |    339.7 ns |   6.81 ns |   7.57 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     | .NET 10.0     |    945.9 ns |  14.87 ns |  13.19 ns | 0.1583 |    2656 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     | .NET 10.0     |    882.1 ns |  11.30 ns |  10.57 ns | 0.1631 |    2736 B |
+| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     | .NET 10.0     |    495.7 ns |   9.26 ns |   9.09 ns | 0.1040 |    1752 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     | .NET 10.0     | 18,025.5 ns | 194.73 ns | 162.61 ns | 0.4883 |    8730 B |
+| 'NuGet: ConsoleAppFramework'     | .NET 10.0     | .NET 10.0     |    134.1 ns |   2.70 ns |   2.65 ns | 0.0215 |     360 B |
+| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 | NativeAOT 9.0 |    624.3 ns |   7.06 ns |   6.60 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 | NativeAOT 9.0 |    600.3 ns |   6.72 ns |   6.28 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 | NativeAOT 9.0 |  1,395.6 ns |  20.43 ns |  19.11 ns | 0.1507 |    2529 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 | NativeAOT 9.0 |  1,438.1 ns |  19.84 ns |  18.55 ns | 0.1545 |    2609 B |
+| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 | NativeAOT 9.0 |    720.8 ns |   7.47 ns |   6.99 ns | 0.1030 |    1737 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 | NativeAOT 9.0 |          NA |        NA |        NA |     NA |        NA |
+| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 | NativeAOT 9.0 |    195.3 ns |   3.76 ns |   3.69 ns | 0.0234 |     392 B |
 
 其中：
 
