@@ -3,7 +3,6 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
-using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
 
@@ -50,7 +49,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
     {
         RawArguments = arguments;
         ParsingOptions = parsingOptions ?? CommandLineParsingOptions.Flexible;
-        (MatchedUrlScheme, _urlNormalizedArguments) = CommandUrlParser.TryNormalizeUrlArguments(arguments, ParsingOptions);
+        (MatchedUrlScheme, _urlNormalizedArguments) = CommandLineConverter.TryNormalizeUrlArguments(arguments, ParsingOptions);
     }
 
     /// <summary>
