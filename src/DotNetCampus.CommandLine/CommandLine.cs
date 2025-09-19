@@ -111,13 +111,23 @@ public class CommandLine : ICoreCommandRunnerBuilder
     }
 
     /// <summary>
-    /// 输出传入的命令行参数字符串。
+    /// 输出传入的命令行参数字符串。如果命令行参数中传入的是 URL，此方法会将 URL 转换为普通的命令行参数再输出。
     /// </summary>
     /// <returns>传入的命令行参数字符串。</returns>
     [Pure]
     public override string ToString()
     {
         return string.Join(" ", CommandLineArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
+    }
+
+    /// <summary>
+    /// 输出原始版本的传入的命令行参数字符串。如果命令行参数中传入的是 URL，此方法会原样输出 URL。
+    /// </summary>
+    /// <returns>原始传入的命令行参数字符串。</returns>
+    [Pure]
+    public string ToRawString()
+    {
+        return string.Join(" ", RawArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);
