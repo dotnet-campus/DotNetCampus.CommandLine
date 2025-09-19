@@ -1,10 +1,10 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Exceptions;
-using DotNetCampus.Cli.Utils.Handlers;
+using DotNetCampus.Cli.Temp40.Compiler;
+using DotNetCampus.Cli.Temp40.Exceptions;
+using DotNetCampus.Cli.Temp40.Utils.Handlers;
 
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。

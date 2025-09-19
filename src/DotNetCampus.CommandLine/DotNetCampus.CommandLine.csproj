@@ -9,9 +9,10 @@
     -->
     <TargetFrameworks>net8.0;net6.0;net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <PackageId>DotNetCampus.CommandLine</PackageId>
+    <PackageId>DotNetCampus.CommandLine.Temp40</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <RootNamespace>DotNetCampus.Cli</RootNamespace>
+    <AssemblyName>DotNetCampus.CommandLine.Temp40</AssemblyName>
+    <RootNamespace>DotNetCampus.Cli.Temp40</RootNamespace>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -20,11 +21,11 @@
     <IsAotCompatible Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp3.1' or '$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0'">false</IsAotCompatible>
     <EmbedAllSources Condition="'$(Configuration)' != 'debug'">true</EmbedAllSources>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <NoWarn>$(NoWarn);CS8767</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="DotNetCampus.CommandLine.Tests" />
   </ItemGroup>

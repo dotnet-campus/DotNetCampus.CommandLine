@@ -1,4 +1,4 @@
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 在解析命令行参数时，指定命令行参数的解析方式。

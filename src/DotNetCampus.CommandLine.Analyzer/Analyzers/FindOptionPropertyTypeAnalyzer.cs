@@ -4,9 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace DotNetCampus.CommandLine.Analyzers;
+namespace DotNetCampus.CommandLine.Temp40.Analyzers;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+#pragma warning disable RS1001
+// [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
     private readonly HashSet<string> _nonGenericTypeNames =

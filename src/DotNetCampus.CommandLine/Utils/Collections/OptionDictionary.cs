@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace DotNetCampus.Cli.Utils.Collections;
+namespace DotNetCampus.Cli.Temp40.Utils.Collections;
 
 /// <summary>
 /// 为命令行选项特别优化的字典。优化了无值/单值的内存占用和拷贝，优化了多种不同的选项命名风格，优化了大小写敏感性。

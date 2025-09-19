@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli.Utils.Parsers;
+﻿namespace DotNetCampus.Cli.Temp40.Utils.Parsers;
 
 internal interface ICommandLineParser
 {

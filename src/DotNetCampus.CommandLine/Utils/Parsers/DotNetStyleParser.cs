@@ -1,9 +1,8 @@
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using DotNetCampus.Cli.Exceptions;
-using DotNetCampus.Cli.Utils.Collections;
+using DotNetCampus.Cli.Temp40.Exceptions;
+using DotNetCampus.Cli.Temp40.Utils.Collections;
 
-namespace DotNetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Temp40.Utils.Parsers;
 
 /// <inheritdoc cref="CommandLineStyle.DotNet"/>
 internal sealed class DotNetStyleParser : ICommandLineParser

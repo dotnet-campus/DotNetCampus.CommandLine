@@ -1,12 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Globalization;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Utils;
-using DotNetCampus.CommandLine.Utils.CodeAnalysis;
+using DotNetCampus.Cli.Temp40.Compiler;
+using DotNetCampus.Cli.Temp40.Utils;
+using DotNetCampus.CommandLine.Temp40.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.Generators.ModelProviding;
+namespace DotNetCampus.CommandLine.Temp40.Generators.ModelProviding;
 
 internal static class CommandModelProvider
 {
@@ -44,10 +44,10 @@ internal static class CommandModelProvider
 
                 // 1. 实现 ICommandOptions 接口。
                 var isOptions = typeSymbol.AllInterfaces.Any(i =>
-                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.ICommandOptions"], true));
+                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.Temp40.ICommandOptions"], true));
                 // 2. 实现 ICommandHandler 接口。
                 var isHandler = typeSymbol.AllInterfaces.Any(i =>
-                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.ICommandHandler"], true));
+                    i.IsSubclassOrImplementOf(["DotNetCampus.Cli.Temp40.ICommandHandler"], true));
                 // 3. 拥有 [Command] 或 [Verb] 特性。
                 var attribute = typeSymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
 #pragma warning disable CS0618 // 类型或成员已过时

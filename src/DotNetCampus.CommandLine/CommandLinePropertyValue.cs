@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
-using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Temp40.Exceptions;
+
 #if NETCOREAPP3_1_OR_GREATER
 using System.Collections.Immutable;
 #endif
 
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 包含从命令行解析出来的属性值，可供转换为各种常见类型。

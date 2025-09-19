@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>DotNetCampus.CommandLine</RootNamespace>
+    <AssemblyName>DotnetCampus.CommandLine.Temp40.Analyzer</AssemblyName>
+    <RootNamespace>DotNetCampus.CommandLine.Temp40</RootNamespace>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 

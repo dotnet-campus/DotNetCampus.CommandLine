@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Utils;
-using DotNetCampus.Cli.Utils.Collections;
+using DotNetCampus.Cli.Temp40.Compiler;
+using DotNetCampus.Cli.Temp40.Utils;
+using DotNetCampus.Cli.Temp40.Utils.Collections;
 
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。

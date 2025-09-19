@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 
-namespace DotNetCampus.Cli.Utils.Collections;
+namespace DotNetCampus.Cli.Temp40.Utils.Collections;
 
 /// <summary>
 /// 为 0 个和 1 个值特殊优化的列表。

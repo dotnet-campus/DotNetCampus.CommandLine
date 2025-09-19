@@ -1,10 +1,10 @@
 ﻿using System.Collections.Immutable;
-using DotNetCampus.CommandLine.Generators.ModelProviding;
-using DotNetCampus.CommandLine.Utils.CodeAnalysis;
+using DotNetCampus.CommandLine.Temp40.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Temp40.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace DotNetCampus.CommandLine.Generators;
+namespace DotNetCampus.CommandLine.Temp40.Generators;
 
 [Generator(LanguageNames.CSharp)]
 public class BuilderGenerator : IIncrementalGenerator
@@ -81,7 +81,7 @@ namespace {{model.Namespace}};
 /// </summary>
 {{(model.IsPublic ? "public" : "internal")}} sealed class {{model.GetBuilderTypeName()}}
 {
-    public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    public static object CreateInstance(global::DotNetCampus.Cli.Temp40.CommandLine commandLine)
     {
         var caseSensitive = commandLine.DefaultCaseSensitive;
         var result = new {{model.CommandObjectType.ToGlobalDisplayString()}}
@@ -123,7 +123,7 @@ namespace {{model.Namespace}};
             null => "",
         };
         var exception = property.IsRequired
-            ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            ? $"throw new global::DotNetCampus.Cli.Temp40.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required option '{property.GetDisplayCommandOption()}'. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : (property.IsNullable, property.IsValueType) switch
             {
                 (true, _) => "null",
@@ -185,7 +185,7 @@ namespace {{model.Namespace}};
             ({ } index, { } length) => $"{baseIndex + index}, {length}",
         };
         var exception = property.IsRequired
-            ? $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
+            ? $"throw new global::DotNetCampus.Cli.Temp40.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at {property.Index ?? 0}. Command line: {{commandLine}}\", \"{property.PropertyName}\")"
             : (property.IsNullable, property.IsValueType) switch
             {
                 (true, _) => "null",
@@ -286,7 +286,7 @@ internal static class CommandLineModuleInitializer
         var commandCode = model.GetKebabCaseCommandNames() is { } vn ? $"\"{vn}\"" : "null";
         return $$"""
         // {{model.CommandObjectType.Name}} { CommandName = {{commandCode}} }
-        global::DotNetCampus.Cli.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
+        global::DotNetCampus.Cli.Temp40.CommandRunner.Register<{{model.CommandObjectType.ToGlobalDisplayString()}}>(
             {{commandCode}},
             global::{{model.Namespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
 """;
@@ -303,7 +303,7 @@ namespace {{model.Namespace}};
 /// <summary>
 /// 提供一种辅助自动搜集并执行本程序集中所有命令行处理器的方式。
 /// </summary>
-partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.Cli.Utils.Handlers.GeneratedAssemblyCommandHandlerCollection
+partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.Cli.Temp40.Utils.Handlers.GeneratedAssemblyCommandHandlerCollection
 {
     public {{model.AssemblyCommandHandlerType.Name}}()
     {
@@ -324,7 +324,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
             {
                 var assignment = group.Key is { } commandName ? $"Creators[\"{commandName}\"]" : "Default";
                 return $"""
-        {assignment} = cl => (global::DotNetCampus.Cli.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl);
+        {assignment} = cl => (global::DotNetCampus.Cli.Temp40.ICommandHandler)global::{model.Namespace}.{model.GetBuilderTypeName()}.CreateInstance(cl);
 """;
             }
             else
@@ -338,7 +338,7 @@ partial class {{model.AssemblyCommandHandlerType.Name}} : global::DotNetCampus.C
         {
             var commandName = group.Key is { } cn ? $"\"{cn}\"" : "null";
             return $"""
-        throw new global::DotNetCampus.Cli.Exceptions.CommandNameAmbiguityException($"Multiple command handlers match the same command name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
+        throw new global::DotNetCampus.Cli.Temp40.Exceptions.CommandNameAmbiguityException($"Multiple command handlers match the same command name '{group.Key ?? "null"}': {string.Join(", ", models.Select(x => x.CommandObjectType.Name))}.", {commandName});
 """;
         }
     }

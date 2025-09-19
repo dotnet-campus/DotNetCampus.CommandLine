@@ -1,12 +1,12 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using DotNetCampus.CommandLine.Properties;
+using DotNetCampus.CommandLine.Temp40.Properties;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.CodeFixes.ConvertOptionProperty;
+namespace DotNetCampus.CommandLine.Temp40.CodeFixes.ConvertOptionProperty;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(OptionPropertyTypeToInt32CodeFix)), Shared]
 public class OptionPropertyTypeToInt32CodeFix : ConvertOptionPropertyTypeCodeFix

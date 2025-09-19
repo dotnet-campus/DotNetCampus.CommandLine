@@ -1,7 +1,7 @@
 using System.ComponentModel;
-using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Temp40.Compiler;
 
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 辅助创建命令行执行程序。

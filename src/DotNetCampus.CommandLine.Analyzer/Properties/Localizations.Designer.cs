@@ -7,10 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DotNetCampus.CommandLine.Properties {
-    using System;
-    
-    
+namespace DotNetCampus.CommandLine.Temp40.Properties {
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>

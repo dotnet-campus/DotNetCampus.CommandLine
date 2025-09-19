@@ -1,17 +1,18 @@
 using System.Collections.Immutable;
-using DotNetCampus.Cli.Utils;
+using DotNetCampus.Cli.Temp40.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace DotNetCampus.CommandLine.Analyzers;
+namespace DotNetCampus.CommandLine.Temp40.Analyzers;
 
 /// <summary>
 /// [Option("LongName")]
 /// The LongName must be kebab-case. If not, this analyzer report diagnostics.
 /// </summary>
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+#pragma warning disable RS1001
+// [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
 {
     /// <summary>

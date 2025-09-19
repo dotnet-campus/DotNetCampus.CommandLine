@@ -1,10 +1,10 @@
-﻿using DotNetCampus.CommandLine.Properties;
+﻿using DotNetCampus.CommandLine.Temp40.Properties;
 using Microsoft.CodeAnalysis;
-using static DotNetCampus.CommandLine.Properties.Localizations;
+using static DotNetCampus.CommandLine.Temp40.Properties.Localizations;
 
 // ReSharper disable InconsistentNaming
 
-namespace DotNetCampus.CommandLine;
+namespace DotNetCampus.CommandLine.Temp40;
 
 public static class Diagnostics
 {

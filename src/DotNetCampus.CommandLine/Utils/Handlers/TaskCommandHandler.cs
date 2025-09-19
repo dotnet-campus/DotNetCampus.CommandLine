@@ -1,4 +1,4 @@
-namespace DotNetCampus.Cli.Utils.Handlers;
+namespace DotNetCampus.Cli.Temp40.Utils.Handlers;
 
 internal sealed class TaskCommandHandler<TOptions>(
     Func<TOptions> optionsCreator,

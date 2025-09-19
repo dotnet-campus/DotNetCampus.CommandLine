@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Temp40.Compiler;
 
 /// <summary>
 /// 将一个类绑定一个命令行命令。使用空格（` `）分隔多级子命令。

@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli.Exceptions;
+﻿namespace DotNetCampus.Cli.Temp40.Exceptions;
 
 /// <summary>
 /// 在解析命令行参数的过程中发生的异常。

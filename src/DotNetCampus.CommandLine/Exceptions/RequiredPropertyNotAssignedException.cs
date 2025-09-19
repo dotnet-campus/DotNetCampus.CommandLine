@@ -1,4 +1,4 @@
-namespace DotNetCampus.Cli.Exceptions;
+namespace DotNetCampus.Cli.Temp40.Exceptions;
 
 /// <summary>
 /// 表示一个必须赋值的属性，没有在命令行参数中赋值的异常。

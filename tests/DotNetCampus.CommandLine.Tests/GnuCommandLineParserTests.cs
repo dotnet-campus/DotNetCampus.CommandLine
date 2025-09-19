@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Temp40;
+using DotNetCampus.Cli.Temp40.Compiler;
+using DotNetCampus.Cli.Temp40.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global

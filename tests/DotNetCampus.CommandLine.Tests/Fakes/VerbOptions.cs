@@ -1,30 +1,30 @@
 ﻿namespace DotNetCampus.Cli.Tests.Fakes;
 
 [dotnetCampus.Cli.Verb("Edit")]
-[DotNetCampus.Cli.Compiler.Command("Edit")]
+[DotNetCampus.Cli.Temp40.Compiler.Command("Edit")]
 public class EditOptions
 {
     [dotnetCampus.Cli.Value(0), dotnetCampus.Cli.Option('f', "File")]
-    [DotNetCampus.Cli.Compiler.Value(0), DotNetCampus.Cli.Compiler.Option('f', "File")]
+    [DotNetCampus.Cli.Temp40.Compiler.Value(0), DotNetCampus.Cli.Temp40.Compiler.Option('f', "File")]
     public string? FilePath { get; set; }
 }
 
 [dotnetCampus.Cli.Verb("Print")]
-[DotNetCampus.Cli.Compiler.Command("Print")]
+[DotNetCampus.Cli.Temp40.Compiler.Command("Print")]
 public class PrintOptions
 {
-    [DotNetCampus.Cli.Compiler.Value(0), Compiler.Option('f', "File")]
+    [DotNetCampus.Cli.Temp40.Compiler.Value(0), DotNetCampus.Cli.Temp40.Compiler.Option('f', "File")]
     public string? FilePath { get; set; }
 
-    [DotNetCampus.Cli.Compiler.Option('p', "Printer")]
+    [DotNetCampus.Cli.Temp40.Compiler.Option('p', "Printer")]
     public string? Printer { get; set; }
 }
 
 [dotnetCampus.Cli.Verb("Share")]
-[DotNetCampus.Cli.Compiler.Command("Share")]
+[DotNetCampus.Cli.Temp40.Compiler.Command("Share")]
 public class ShareOptions
 {
-    [DotNetCampus.Cli.Compiler.Option('t', "Target")]
+    [DotNetCampus.Cli.Temp40.Compiler.Option('t', "Target")]
     public string? Target { get; set; }
 }
 

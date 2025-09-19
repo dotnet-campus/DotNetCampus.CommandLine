@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli;
+﻿namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 命令行参数的风格规范。

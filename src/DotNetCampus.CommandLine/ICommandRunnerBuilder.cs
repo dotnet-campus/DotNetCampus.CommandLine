@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli;
+﻿namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 命令行执行器构造器，用于链式创建命令行执行器。

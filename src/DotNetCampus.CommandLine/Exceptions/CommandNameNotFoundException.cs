@@ -1,4 +1,4 @@
-﻿namespace DotNetCampus.Cli.Exceptions;
+﻿namespace DotNetCampus.Cli.Temp40.Exceptions;
 
 /// <summary>
 /// 表示输入的命令行在匹配多个命令行参数选项、子命令或处理器时，没有任何一个匹配到的异常。

@@ -1,6 +1,6 @@
-﻿using DotNetCampus.Cli.Utils.Parsers;
+﻿using DotNetCampus.Cli.Temp40.Utils.Parsers;
 
-namespace DotNetCampus.Cli.Utils;
+namespace DotNetCampus.Cli.Temp40.Utils;
 
 /// <summary>
 /// 命令行参数转换器。

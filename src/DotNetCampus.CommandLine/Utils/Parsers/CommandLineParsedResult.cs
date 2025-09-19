@@ -1,6 +1,6 @@
-using DotNetCampus.Cli.Utils.Collections;
+using DotNetCampus.Cli.Temp40.Utils.Collections;
 
-namespace DotNetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Temp40.Utils.Parsers;
 
 internal readonly record struct CommandLineParsedResult(
     string PossibleCommandNames,

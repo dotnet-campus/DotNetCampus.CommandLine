@@ -1,9 +1,9 @@
 using System.Runtime.CompilerServices;
 using System.Web;
-using DotNetCampus.Cli.Exceptions;
-using DotNetCampus.Cli.Utils.Collections;
+using DotNetCampus.Cli.Temp40.Exceptions;
+using DotNetCampus.Cli.Temp40.Utils.Collections;
 
-namespace DotNetCampus.Cli.Utils.Parsers;
+namespace DotNetCampus.Cli.Temp40.Utils.Parsers;
 
 /// <summary>
 /// URL风格的命令行参数解析器

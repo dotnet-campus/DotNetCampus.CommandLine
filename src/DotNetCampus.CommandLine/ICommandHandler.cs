@@ -1,4 +1,4 @@
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Temp40;
 
 /// <summary>
 /// 表示一个可以接收命令行参数的对象。

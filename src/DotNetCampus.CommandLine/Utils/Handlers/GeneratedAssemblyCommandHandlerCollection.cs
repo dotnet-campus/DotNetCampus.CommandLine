@@ -1,6 +1,6 @@
-using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Temp40.Compiler;
 
-namespace DotNetCampus.Cli.Utils.Handlers;
+namespace DotNetCampus.Cli.Temp40.Utils.Handlers;
 
 /// <summary>
 /// 由源生成器继承，用于收集某个特定程序集中所有的命令处理器，然后统一处理。

@@ -1,12 +1,12 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Collections.Immutable;
-using DotNetCampus.Cli.Utils;
-using DotNetCampus.CommandLine.Generators.ModelProviding;
-using DotNetCampus.CommandLine.Utils.CodeAnalysis;
+using DotNetCampus.Cli.Temp40.Utils;
+using DotNetCampus.CommandLine.Temp40.Generators.ModelProviding;
+using DotNetCampus.CommandLine.Temp40.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace DotNetCampus.CommandLine.Generators;
+namespace DotNetCampus.CommandLine.Temp40.Generators;
 
 [Generator(LanguageNames.CSharp)]
 public class InterceptorGenerator : IIncrementalGenerator
@@ -103,7 +103,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         return $$"""
 #nullable enable
 
-namespace DotNetCampus.Cli.Compiler
+namespace DotNetCampus.Cli.Temp40.Compiler
 {
     file static class Interceptors
     {
@@ -139,10 +139,10 @@ namespace System.Runtime.CompilerServices
         var model = models[0];
         return $$"""
         /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。
+        /// <see cref="global::DotNetCampus.Cli.Temp40.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static T CommandLine_As_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
+        public static T CommandLine_As_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.Temp40.CommandLine commandLine)
             where T : {{model.CommandObjectType.ToGlobalDisplayString()}}
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
@@ -157,15 +157,15 @@ namespace System.Runtime.CompilerServices
         var model = models[0];
         return $$"""
         /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
+        /// <see cref="global::DotNetCampus.Cli.Temp40.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.Temp40.ICoreCommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.ICoreCommandRunnerBuilder builder)
-            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}, global::DotNetCampus.Cli.ICommandHandler
+        public static global::DotNetCampus.Cli.Temp40.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.Temp40.ICoreCommandRunnerBuilder builder)
+            where T : {{model.CommandObjectType.ToGlobalDisplayString()}}, global::DotNetCampus.Cli.Temp40.ICommandHandler
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
+            return global::DotNetCampus.Cli.Temp40.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance);
         }
 """;
     }
@@ -175,16 +175,16 @@ namespace System.Runtime.CompilerServices
         var model = models[0];
         return $$"""
         /// <summary>
-        /// <see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
+        /// <see cref="global::DotNetCampus.Cli.Temp40.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.Temp40.ICoreCommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。
         /// </summary>
 {{string.Join("\n", models.Select(GenerateInterceptsLocationCode))}}
-        public static global::DotNetCampus.Cli.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.{{parameterThisName}} builder,
+        public static global::DotNetCampus.Cli.Temp40.{{returnName}} CommandBuilder_AddHandler_{{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}}<T>(this global::DotNetCampus.Cli.Temp40.{{parameterThisName}} builder,
             global::{{parameterTypeFullName}} handler)
             where T : class
         {
             // 请确保 {{model.CommandObjectType.Name}} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
             // 否则下面的 {{model.GetBuilderTypeName()}} 类型将不存在，导致编译不通过。
-            return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
+            return global::DotNetCampus.Cli.Temp40.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {{(model.GetKebabCaseCommandNames() is { } cn ? $"\"{cn}\"" : "null")}}, global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}.CreateInstance, handler);
         }
 """;
     }

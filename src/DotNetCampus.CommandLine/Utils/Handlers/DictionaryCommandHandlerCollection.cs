@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
-using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Temp40.Compiler;
 
-namespace DotNetCampus.Cli.Utils.Handlers;
+namespace DotNetCampus.Cli.Temp40.Utils.Handlers;
 
 internal sealed class DictionaryCommandHandlerCollection : ICommandHandlerCollection
 {

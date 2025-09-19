@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">true</DotNetCampusCommandLineUseInterceptor>
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.Cli.Compiler</InterceptorsNamespaces>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.Cli.Temp40.Compiler</InterceptorsNamespaces>
 
     <!--
       https://github.com/dotnet/roslyn/blob/main/docs/features/interceptors.md
@@ -12,7 +12,7 @@
       为了兼容性，属性 <InterceptorsPreviewNamespaces> 可用作 <InterceptorsNamespaces> 的别名。
       如果两个属性都具有非空值，则它们在传递给编译器时将按 $(InterceptorsNamespaces);$(InterceptorsPreviewNamespaces) 的顺序连接在一起。
     -->
-    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);DotNetCampus.Cli.Compiler</InterceptorsPreviewNamespaces>
+    <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);DotNetCampus.Cli.Temp40.Compiler</InterceptorsPreviewNamespaces>
   </PropertyGroup>
 
   <ItemGroup>

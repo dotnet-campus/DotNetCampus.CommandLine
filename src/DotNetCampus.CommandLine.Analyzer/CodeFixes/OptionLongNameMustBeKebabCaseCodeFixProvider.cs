@@ -1,14 +1,14 @@
 using System.Collections.Immutable;
 using System.Composition;
-using DotNetCampus.Cli.Utils;
-using DotNetCampus.CommandLine.Properties;
+using DotNetCampus.Cli.Temp40.Utils;
+using DotNetCampus.CommandLine.Temp40.Properties;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace DotNetCampus.CommandLine.CodeFixes;
+namespace DotNetCampus.CommandLine.Temp40.CodeFixes;
 
 /// <summary>
 /// [Option("LongName")]
