@@ -75,7 +75,7 @@ public class ParseGnuArgs
     [Benchmark(Description = "NuGet: CommandLineParser")]
     public void CommandLineParser()
     {
-        Parser.Default.ParseArguments<NullableBenchmarkOptions4>(GnuArgs).WithParsed(options => { });
+        Parser.Default.ParseArguments<NullableBenchmarkOptions41>(GnuArgs).WithParsed(options => { });
     }
 
     [Benchmark(Description = "NuGet: System.CommandLine")]

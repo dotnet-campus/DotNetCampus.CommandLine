@@ -5,7 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>DotNetCampus.Cli.Performance</RootNamespace>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <!-- 当 Benchmark 使用 AOT 测试时，一些对照组无法支持 AOT，需要去除 -->
     <DotNetCampusIsUsingAot>false</DotNetCampusIsUsingAot>
