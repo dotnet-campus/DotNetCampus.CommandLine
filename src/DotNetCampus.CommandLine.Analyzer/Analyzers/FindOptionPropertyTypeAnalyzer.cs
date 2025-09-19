@@ -71,44 +71,46 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 
         foreach (var attributeSyntax in propertyNode.AttributeLists.SelectMany(x => x.Attributes))
         {
-            string? attributeName = attributeSyntax.Name switch
+            var attributeName = attributeSyntax.Name switch
             {
                 IdentifierNameSyntax identifierName => identifierName.ToString(),
                 QualifiedNameSyntax qualifiedName => qualifiedName.ChildNodes().OfType<IdentifierNameSyntax>().LastOrDefault()?.ToString(),
                 _ => null,
             };
 
-            if (attributeName != null)
+            if (attributeName == null)
             {
-                var attributeType = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
-                var isOptionAttributeType = optionTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
-                var isRawArgumentsAttributeType = rawArgumentsTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
+                continue;
+            }
 
-                // [Option], [Value]
-                if (isOptionAttributeType)
+            var attributeType = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
+            var isOptionAttributeType = optionTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
+            var isRawArgumentsAttributeType = rawArgumentsTypes.Any(x => SymbolEqualityComparer.Default.Equals(x, attributeType));
+
+            // [Option], [Value]
+            if (isOptionAttributeType)
+            {
+                var isValidPropertyUsage = AnalyzeOptionPropertyType(context.SemanticModel, propertyNode);
+                var diagnostic = CreateDiagnosticForTypeSyntax(
+                    isValidPropertyUsage
+                        ? Diagnostics.DCL201_SupportedOptionPropertyType
+                        : Diagnostics.DCL202_NotSupportedOptionPropertyType,
+                    propertyNode);
+                context.ReportDiagnostic(diagnostic);
+                break;
+            }
+
+            // [RawArguments]
+            if (isRawArgumentsAttributeType)
+            {
+                var isValidPropertyUsage = AnalyzeRawArgumentsPropertyType(context.SemanticModel, propertyNode);
+                if (!isValidPropertyUsage)
                 {
-                    var isValidPropertyUsage = AnalyzeOptionPropertyType(context.SemanticModel, propertyNode);
                     var diagnostic = CreateDiagnosticForTypeSyntax(
-                        isValidPropertyUsage
-                            ? Diagnostics.DCL201_SupportedOptionPropertyType
-                            : Diagnostics.DCL202_NotSupportedOptionPropertyType,
+                        Diagnostics.DCL203_NotSupportedRawArgumentsPropertyType,
                         propertyNode);
                     context.ReportDiagnostic(diagnostic);
                     break;
-                }
-
-                // [RawArguments]
-                if (isRawArgumentsAttributeType)
-                {
-                    var isValidPropertyUsage = AnalyzeRawArgumentsPropertyType(context.SemanticModel, propertyNode);
-                    if (!isValidPropertyUsage)
-                    {
-                        var diagnostic = CreateDiagnosticForTypeSyntax(
-                            Diagnostics.DCL203_NotSupportedRawArgumentsPropertyType,
-                            propertyNode);
-                        context.ReportDiagnostic(diagnostic);
-                        break;
-                    }
                 }
             }
         }

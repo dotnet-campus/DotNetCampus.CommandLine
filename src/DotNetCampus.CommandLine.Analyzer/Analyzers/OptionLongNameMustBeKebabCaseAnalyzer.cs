@@ -43,6 +43,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.RegisterSyntaxNodeAction(AnalyzeProperty, SyntaxKind.PropertyDeclaration);
         context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeRecord, SyntaxKind.RecordDeclaration);
     }
 
     /// <summary>
@@ -52,6 +53,16 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     private void AnalyzeClass(SyntaxNodeAnalysisContext context)
     {
         var classNode = (ClassDeclarationSyntax)context.Node;
+        AnalyzeAttribute(context, classNode.AttributeLists, true);
+    }
+
+    /// <summary>
+    /// Find CommandAttribute from a property.
+    /// </summary>
+    /// <param name="context"></param>
+    private void AnalyzeRecord(SyntaxNodeAnalysisContext context)
+    {
+        var classNode = (RecordDeclarationSyntax)context.Node;
         AnalyzeAttribute(context, classNode.AttributeLists, true);
     }
 
@@ -77,18 +88,23 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
         {
             var attributeTypeSymbol = context.SemanticModel.GetTypeInfo(attributeSyntax).Type;
             var fullAttributeName = attributeTypeSymbol?.ToDisplayString();
-            if (fullAttributeName != null && _attributeNames.Contains(fullAttributeName))
+            if (fullAttributeName == null || !_attributeNames.Contains(fullAttributeName))
             {
-                var (name, location, type) = AnalyzeOptionAttributeArguments(attributeSyntax, hasSeparator);
-                if (name != null && location != null)
+                continue;
+            }
+
+            foreach (var (name, location, type) in AnalyzeOptionAttributeArguments(attributeSyntax, hasSeparator))
+            {
+                if (name is null || location is null)
                 {
-                    var descriptor = type is SuggestionType.Warning
-                        ? Diagnostics.DCL101_OptionLongNameMustBeKebabCase
-                        : Diagnostics.DCL102_OptionLongNameCanBeKebabCase;
-                    var diagnostic = Diagnostic.Create(descriptor, location, name);
-                    context.ReportDiagnostic(diagnostic);
+                    continue;
                 }
-                break;
+
+                var descriptor = type is SuggestionType.Warning
+                    ? Diagnostics.DCL101_OptionLongNameMustBeKebabCase
+                    : Diagnostics.DCL102_OptionLongNameCanBeKebabCase;
+                var diagnostic = Diagnostic.Create(descriptor, location, name);
+                context.ReportDiagnostic(diagnostic);
             }
         }
     }
@@ -102,38 +118,49 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// name: the LongName value.
     /// location: the syntax tree location of the LongName argument value.
     /// </returns>
-    private (string? Name, Location? Location, SuggestionType SuggestionType) AnalyzeOptionAttributeArguments(AttributeSyntax attributeSyntax,
-        bool hasSeparator)
+    private IEnumerable<(string? Name, Location? Location, SuggestionType SuggestionType)> AnalyzeOptionAttributeArguments(
+        AttributeSyntax attributeSyntax, bool hasSeparator)
     {
         var argumentList = attributeSyntax.ChildNodes().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
-        if (argumentList != null)
+        if (argumentList == null)
         {
-            var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
-            var longNameExpression = attributeArguments.FirstOrDefault()?.Expression as LiteralExpressionSyntax;
+            yield break;
+        }
+
+        var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
+        var optionNameArguments = attributeArguments.Where(x => x.NameEquals is null).ToList();
+        var longNameExpressions = optionNameArguments.Count switch
+        {
+            1 => optionNameArguments[0].DescendantNodes().OfType<LiteralExpressionSyntax>().ToList(),
+            2 => optionNameArguments[1].DescendantNodes().OfType<LiteralExpressionSyntax>().ToList(),
+            _ => [],
+        };
+        foreach (var longNameExpression in longNameExpressions)
+        {
             var longName = longNameExpression?.Token.ValueText;
-            var caseSensitiveExpression =
-                attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "CaseSensitive")?.Expression as LiteralExpressionSyntax;
+            var caseSensitiveExpression = attributeArguments
+                .FirstOrDefault(x => x.NameEquals?.Name.ToString() == "CaseSensitive")?
+                .Expression as LiteralExpressionSyntax;
             var caseSensitive = caseSensitiveExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
             if (!caseSensitive && longName is not null)
             {
                 // 严格检查。
-                var kebabCase = MakeKebabCase(longName, true, true, hasSeparator);
+                var kebabCase = MakeKebabCase(longName, true, false, hasSeparator);
                 var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
                 if (!isKebabCase)
                 {
-                    return (longName, longNameExpression?.GetLocation(), SuggestionType.Warning);
+                    yield return (longName, longNameExpression?.GetLocation(), SuggestionType.Warning);
                 }
 
-                // // 宽松检查。
-                // var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
-                // var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
-                // if (!isKebabCase2)
-                // {
-                //     return (longName, longNameExpression?.GetLocation(), SuggestionType.Hidden);
-                // }
+                // 宽松检查。
+                var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
+                var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
+                if (!isKebabCase2)
+                {
+                    yield return (longName, longNameExpression?.GetLocation(), SuggestionType.Info);
+                }
             }
         }
-        return (null, null, SuggestionType.Hidden);
     }
 
     private string MakeKebabCase(string oldName, bool isUpperSeparator, bool toLower, bool hasSeparator)
@@ -151,7 +178,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
 
     private enum SuggestionType
     {
-        Hidden,
+        Info,
         Warning,
     }
 }

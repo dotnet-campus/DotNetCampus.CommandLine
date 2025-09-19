@@ -150,13 +150,13 @@
     <value>Not supported command-line property type</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
-    <value>The command-line option/command definition names should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The option/command name should be kebab-case nomenclature to disambiguate</value>
   </data>
   <data name="DCL101_Fix1" xml:space="preserve">
     <value>Convert to kebab-case</value>
   </data>
   <data name="DCL101_Message" xml:space="preserve">
-    <value>The option/command definition long name '{0}' should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The option/command name should be kebab-case nomenclature to disambiguate</value>
   </data>
   <data name="DCL101" xml:space="preserve">
     <value>Option/Command long name should be kebab-case</value>
