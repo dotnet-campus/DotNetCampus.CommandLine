@@ -215,27 +215,35 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         CommandObjectGeneratingModel model)
     {
         var positionalArgumentProperties = model.PositionalArgumentProperties;
+        var matchAllProperty = positionalArgumentProperties.FirstOrDefault(x => x.Index is 0 && x.Length is int.MaxValue);
         return builder
             .Condition(positionalArgumentProperties.Count is 0, b => b
-                .AddRawStatement("// 没有位置参数，无需匹配。"))
+                .AddRawStatement("// 没有位置参数，无需匹配。")
+                .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;"))
+            .Condition(matchAllProperty is not null, b => b
+                .AddRawStatement($"// 属性 {matchAllProperty!.PropertyName} 覆盖了所有位置参数，直接匹配。")
+                .AddRawStatement($"""
+return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{matchAllProperty.PropertyName}", {matchAllProperty.PropertyIndex}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+"""))
             .Otherwise(b => b
                 .AddRawStatements(positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))
-                .AddLineSeparator())
-            .EndCondition()
-            .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;");
+                .AddLineSeparator()
+                .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;"))
+            .EndCondition();
     }
 
     private string GenerateMatchPositionalArgumentCode(PositionalArgumentPropertyGeneratingModel model, int index, int length)
     {
         return length switch
         {
+            <= 0 => "// 属性 {model.PropertyName} 的范围不包含任何位置参数，无法匹配。",
             1 => $$"""
         if (argumentIndex is {{index}})
         {
             return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
         }
         """,
-            _ when index + length <= 0 => $$"""
+            _ when (index + length) is <= 0 or int.MaxValue => $$"""
         if (argumentIndex >= {{index}})
         {
             return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
