@@ -1,6 +1,5 @@
 using System.Diagnostics.Contracts;
 using DotNetCampus.Cli.Utils;
-using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
 

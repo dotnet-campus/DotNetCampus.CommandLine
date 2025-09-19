@@ -39,12 +39,8 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     /// <param name="context"></param>
     public override void Initialize(AnalysisContext context)
     {
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
+        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.RegisterSyntaxNodeAction(AnalyzeProperty, SyntaxKind.PropertyDeclaration);
         context.RegisterSyntaxNodeAction(AnalyzeClass, SyntaxKind.ClassDeclaration);
     }
@@ -115,26 +111,26 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
             var longNameExpression = attributeArguments.FirstOrDefault()?.Expression as LiteralExpressionSyntax;
             var longName = longNameExpression?.Token.ValueText;
-            var ignoreCaseExpression =
-                attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "ExactSpelling")?.Expression as LiteralExpressionSyntax;
-            var exactSpelling = ignoreCaseExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
-            if (!exactSpelling && longName is not null)
+            var caseSensitiveExpression =
+                attributeArguments.FirstOrDefault(x => x.NameEquals?.Name.ToString() == "CaseSensitive")?.Expression as LiteralExpressionSyntax;
+            var caseSensitive = caseSensitiveExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
+            if (!caseSensitive && longName is not null)
             {
                 // 严格检查。
-                var kebabCase1 = MakeKebabCase(longName, true, false, hasSeparator);
-                var isKebabCase1 = string.Equals(kebabCase1, longName, StringComparison.Ordinal);
-                if (!isKebabCase1)
+                var kebabCase = MakeKebabCase(longName, true, true, hasSeparator);
+                var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
+                if (!isKebabCase)
                 {
                     return (longName, longNameExpression?.GetLocation(), SuggestionType.Warning);
                 }
 
-                // 宽松检查。
-                var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
-                var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
-                if (!isKebabCase2)
-                {
-                    return (longName, longNameExpression?.GetLocation(), SuggestionType.Hidden);
-                }
+                // // 宽松检查。
+                // var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
+                // var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
+                // if (!isKebabCase2)
+                // {
+                //     return (longName, longNameExpression?.GetLocation(), SuggestionType.Hidden);
+                // }
             }
         }
         return (null, null, SuggestionType.Hidden);
