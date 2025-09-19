@@ -31,10 +31,10 @@ public class ParseCmdArgs
         commandLine.As<BenchmarkOptions40>();
     }
 
-    [Benchmark(Description = "parse [CMD] -v=4.0 -p=powershell")]
+    [Benchmark(Description = "parse [CMD] -v=4.0 -p=dotnet")]
     public void Parse40_PowerShell()
     {
-        var commandLine = CommandLine40.Parse(CmdArgs, Options40.PowerShell);
+        var commandLine = CommandLine40.Parse(CmdArgs, Options40.DotNet);
         commandLine.As<BenchmarkOptions40>();
     }
 

@@ -28,14 +28,14 @@ public class ParseDotNetArgs
     [Benchmark(Description = "parse [NET] -v=4.0 -p=flexible")]
     public void Parse40_Flexible()
     {
-        var commandLine = CommandLine40.Parse(DotNetArgs, Options40.Flexible);
+        var commandLine = CommandLine40.Parse(DotNetArgsFor40, Options40.Flexible);
         commandLine.As<BenchmarkOptions40>();
     }
 
     [Benchmark(Description = "parse [NET] -v=4.0 -p=dotnet")]
     public void Parse40_Dotnet()
     {
-        var commandLine = CommandLine40.Parse(DotNetArgs, Options40.DotNet);
+        var commandLine = CommandLine40.Parse(DotNetArgsFor40, Options40.DotNet);
         commandLine.As<BenchmarkOptions40>();
     }
 

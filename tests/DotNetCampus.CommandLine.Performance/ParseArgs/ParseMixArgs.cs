@@ -20,7 +20,7 @@ public class ParseMixArgs
     [Benchmark(Description = "parse [MIX] -v=4.0 -p=flexible")]
     public void Parse40_Flexible()
     {
-        var commandLine = CommandLine40.Parse(MixArgs, Options40.Flexible);
+        var commandLine = CommandLine40.Parse(MixArgsFor40, Options40.Flexible);
         commandLine.As<BenchmarkOptions40>();
     }
 

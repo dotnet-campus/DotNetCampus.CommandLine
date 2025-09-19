@@ -27,14 +27,14 @@ public class ParsePowerShellArgs
     [Benchmark(Description = "parse [PS1] -v=4.0 -p=flexible")]
     public void Parse40_Flexible()
     {
-        var commandLine = CommandLine40.Parse(PowerShellArgs, Options40.Flexible);
+        var commandLine = CommandLine40.Parse(PowerShellArgsFor40, Options40.Flexible);
         commandLine.As<BenchmarkOptions40>();
     }
 
     [Benchmark(Description = "parse [PS1] -v=4.0 -p=powershell")]
     public void Parse40_PowerShell()
     {
-        var commandLine = CommandLine40.Parse(PowerShellArgs, Options40.PowerShell);
+        var commandLine = CommandLine40.Parse(PowerShellArgsFor40, Options40.PowerShell);
         commandLine.As<BenchmarkOptions40>();
     }
 
