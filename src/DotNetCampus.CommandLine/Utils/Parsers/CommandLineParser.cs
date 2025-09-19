@@ -124,18 +124,18 @@ public readonly ref struct CommandLineParser
                     // 如果当前是一个选项，则记录下来，供后面解析选项值时使用。
                     var optionMatch = state switch
                     {
-                        Cat.LongOption => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy),
-                        Cat.ShortOption => MatchShortOption(optionName.Name, _caseSensitive),
-                        _ => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy) switch
+                        Cat.LongOption => MatchLongOption(optionName, _caseSensitive, _namingPolicy),
+                        Cat.ShortOption => MatchShortOption(optionName, _caseSensitive),
+                        _ => MatchLongOption(optionName, _caseSensitive, _namingPolicy) switch
                         {
-                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName.Name, _caseSensitive),
+                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName, _caseSensitive),
                             var t => t,
                         },
                     };
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName);
                     }
                     if (optionMatch.ValueType is OptionValueType.Boolean)
                     {
@@ -172,18 +172,18 @@ public readonly ref struct CommandLineParser
                 {
                     var optionMatch = state switch
                     {
-                        Cat.LongOptionWithValue => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy),
-                        Cat.ShortOptionWithValue => MatchShortOption(optionName.Name, _caseSensitive),
-                        _ => MatchLongOption(optionName.Name, _caseSensitive, _namingPolicy) switch
+                        Cat.LongOptionWithValue => MatchLongOption(optionName, _caseSensitive, _namingPolicy),
+                        Cat.ShortOptionWithValue => MatchShortOption(optionName, _caseSensitive),
+                        _ => MatchLongOption(optionName, _caseSensitive, _namingPolicy) switch
                         {
-                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName.Name, _caseSensitive),
+                            { ValueType: OptionValueType.NotExist } => MatchShortOption(optionName, _caseSensitive),
                             var t => t,
                         },
                     };
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName.Name);
+                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName);
                     }
                     result = AssignOptionValue(optionMatch, value).Combine(result);
                     break;
@@ -195,7 +195,7 @@ public readonly ref struct CommandLineParser
                 }
                 case Cat.MultiShortOptions:
                 {
-                    var name = optionName.Name;
+                    var name = optionName;
                     if (SupportsMultiCharShortOption)
                     {
                         // 如果支持多字符短选项，则优先作为多字符短选项处理。
@@ -211,9 +211,9 @@ public readonly ref struct CommandLineParser
                     if (SupportsShortOptionCombination)
                     {
                         // 如果不支持，则尝试逐个处理多个短选项。
-                        for (var i = 0; i < optionName.Name.Length; i++)
+                        for (var i = 0; i < optionName.Length; i++)
                         {
-                            var n = optionName.Name[i..(i + 1)];
+                            var n = optionName[i..(i + 1)];
                             var optionMatch = MatchShortOption(n, _caseSensitive);
                             if (optionMatch.ValueType is OptionValueType.NotExist)
                             {
@@ -425,7 +425,7 @@ internal ref struct CommandArgumentPart
     /// <summary>
     /// 如果此参数是一个选项（长选项或短选项），则为此选项的名称；否则为默认值。
     /// </summary>
-    public OptionName Option { get; private set; }
+    public ReadOnlySpan<char> Option { get; private set; }
 
     /// <summary>
     /// 如果此参数包含值（位置参数或选项值），则为此值；否则为默认值。
@@ -438,7 +438,7 @@ internal ref struct CommandArgumentPart
     /// <param name="type">此参数的类型。</param>
     /// <param name="optionName">如果此参数是一个选项（长选项或短选项），则为此选项的名称；否则为默认值。</param>
     /// <param name="value">如果此参数包含值（位置参数或选项值），则为此值；否则为默认值。</param>
-    public void Deconstruct(out Cat type, out OptionName optionName, out ReadOnlySpan<char> value)
+    public void Deconstruct(out Cat type, out ReadOnlySpan<char> optionName, out ReadOnlySpan<char> value)
     {
         type = Type;
         optionName = Option;
@@ -606,13 +606,13 @@ internal ref struct CommandArgumentPart
         {
             // 带值的长选项。
             Type = Cat.LongOptionWithValue;
-            Option = new OptionName(true, argument[..index]);
+            Option = argument[..index];
             Value = argument[(index + 1)..];
             return true;
         }
         // 不带值的长选项。
         Type = Cat.LongOption;
-        Option = new OptionName(true, argument);
+        Option = argument;
         return true;
     }
 
@@ -633,7 +633,7 @@ internal ref struct CommandArgumentPart
         {
             // 单独的短选项。
             Type = Cat.ShortOption;
-            Option = new OptionName(false, argument);
+            Option = argument;
             return true;
         }
         if (index > 0)
@@ -642,7 +642,7 @@ internal ref struct CommandArgumentPart
             {
                 // 带值的短选项。
                 Type = Cat.ShortOptionWithValue;
-                Option = new OptionName(false, argument[..index]);
+                Option = argument[..index];
                 Value = argument[(index + 1)..];
                 return true;
             }
@@ -653,7 +653,7 @@ internal ref struct CommandArgumentPart
 
         // 直接返回，延迟处理。
         Type = Cat.MultiShortOptions;
-        Option = new OptionName(false, argument);
+        Option = argument;
         return true;
     }
 
@@ -674,13 +674,13 @@ internal ref struct CommandArgumentPart
         {
             // 带值的选项。
             Type = Cat.OptionWithValue;
-            Option = new OptionName(true, argument[..index]);
+            Option = argument[..index];
             Value = argument[(index + 1)..];
             return true;
         }
         // 不带值的选项。
         Type = Cat.Option;
-        Option = new OptionName(true, argument);
+        Option = argument;
         return true;
     }
 

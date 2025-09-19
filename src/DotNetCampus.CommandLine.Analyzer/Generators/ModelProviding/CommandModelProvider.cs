@@ -100,33 +100,6 @@ internal static class CommandModelProvider
             .Where(m => m is not null)
             .Select((m, ct) => m!);
     }
-
-    public static IncrementalValuesProvider<AssemblyCommandsGeneratingModel> SelectAssemblyCommands(this IncrementalGeneratorInitializationContext context)
-    {
-        return context.SyntaxProvider.ForAttributeWithMetadataName(typeof(CollectCommandHandlersFromThisAssemblyAttribute).FullName!, (node, ct) =>
-        {
-            if (node is not ClassDeclarationSyntax cds)
-            {
-                // 必须是类型。
-                return false;
-            }
-
-            return true;
-        }, (c, ct) =>
-        {
-            var typeSymbol = c.TargetSymbol;
-            var rootNamespace = typeSymbol.ContainingNamespace.ToDisplayString();
-            var typeName = typeSymbol.Name;
-            var attribute = typeSymbol.GetAttributes()
-                .FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CollectCommandHandlersFromThisAssemblyAttribute>());
-
-            return new AssemblyCommandsGeneratingModel
-            {
-                Namespace = rootNamespace,
-                AssemblyCommandHandlerType = (INamedTypeSymbol)typeSymbol,
-            };
-        });
-    }
 }
 
 file static class Extensions
