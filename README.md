@@ -9,9 +9,9 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-DotNetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Thanks to the power of source code generators, it provides efficient parsing capabilities with a developer-friendly experience.
+DotNetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Powered by source generators (and interceptors), it delivers efficient parsing and a friendly development experience across multiple command line styles.
 
-Parsing a typical command line takes only about 0.8μs (microseconds), making it one of the fastest command line parsers available in .NET.
+Parsing a typical command line takes only about 0.8μs (microseconds) in benchmarks, placing it among the fastest .NET command line parsers while still pursuing full-featured syntax support.
 
 ## Get Started
 
@@ -80,20 +80,15 @@ $ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A 
 
 ## Command Styles and Features
 
-The library supports multiple command line styles through `CommandLineStyle` enum:
-- Flexible (default): Intelligently recognizes multiple styles
-- GNU: GNU standard compliant
-- POSIX: POSIX standard compliant
-- DotNet: .NET CLI style
-- PowerShell: PowerShell style
-
-Advanced features include:
-- Support for various data types including collections and dictionaries
-- Positional arguments with `ValueAttribute`
-- Required properties with C# `required` modifier
-- Command handling with command support
-- URL protocol parsing
-- High performance thanks to source generators
+The library supports multiple command line styles via `CommandLineStyle` (Flexible/DotNet/Gnu/Posix/PowerShell) and a Flexible default that offers broad compatibility (case sensitivity depends on style). Key capabilities include:
+- Rich option syntax (long/short options, multiple separators `= : space`)
+- Booleans with multiple literal forms (true/false, yes/no, on/off, 1/0)
+- Collections (repeat, comma, semicolon, space forms) and dictionaries
+- Positional arguments via `ValueAttribute` (ranges allowed)
+- Required / nullable / immutable (`required` / `init`) property semantics
+- Command & subcommand handling (multi-word `[Command]` supported)
+- Optional URL protocol parsing (`schema://...` form)
+- High performance from source generators and interceptors
 
 ## Engage, Contribute and Provide Feedback
 
