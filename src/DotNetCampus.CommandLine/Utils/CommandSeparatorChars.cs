@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace DotNetCampus.Cli;
+namespace DotNetCampus.Cli.Utils;
 
 /// <summary>
 /// 允许用户在命令行中使用的分隔符字符集合。最多只能支持 <see cref="CommandSeparatorChars"/> 个字符。
