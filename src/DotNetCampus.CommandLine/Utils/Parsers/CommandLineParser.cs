@@ -480,7 +480,9 @@ internal ref struct CommandArgumentPart
     /// </summary>
     private bool ParseOptionAndPositionalArgumentRegion()
     {
-        var isPostPositionalArgument = string.Equals(_argument, "--", StringComparison.Ordinal);
+        // 只有使用双前缀的风格才支持后置位置参数区。
+        var isPostPositionalArgument = _parser.OptionPrefix is CommandOptionPrefix.DoubleDash or CommandOptionPrefix.Any
+                                       && string.Equals(_argument, "--", StringComparison.Ordinal);
         if (isPostPositionalArgument)
         {
             Type = Cat.PositionalArgumentSeparator;
