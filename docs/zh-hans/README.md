@@ -91,6 +91,8 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 | 风格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
 | ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
+| 位置参数          | 支持           | 支持           | 支持              | 支持       | 支持         | 支持              |
+| 后置位置参数 `--` | 支持           | 支持           | 支持              | 支持       | 不支持       | 不支持            |
 | 大小写            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
 | 长选项            | 支持           | 支持           | 支持              | 不支持     | 支持         | 支持              |
 | 短选项            | 支持           | 支持           | 支持              | 支持       | 支持         | 不支持            |
@@ -128,8 +130,6 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 | 命名法            | -camelCase     |                |                   |            | -camelCase   |                   |
 | 命名法            | /PascalCase    |                |                   |            | /PascalCase  |                   |
 | 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
-| 位置参数          | 支持           | 支持           | 支持              | 支持       | 支持         | 支持              |
-| 后置位置参数 `--` | 支持           | 支持           | 支持              | 支持       | 不支持       | 不支持            |
 
 [^1]: GNU 风格并不支持布尔选项显式带值，但因为这种情况并没有歧义，所以我们考虑额外支持它。
 

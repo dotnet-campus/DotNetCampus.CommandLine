@@ -89,35 +89,60 @@ Supported styles include:
 
 By default, their detailed differences are:
 
-| Style                               | Flexible      | DotNet        | Gnu           | Posix         | PowerShell    | URL               |
-| ----------------------------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ----------------- |
-| Case                                | Insensitive   | Sensitive     | Sensitive     | Sensitive     | Insensitive   | Insensitive       |
-| Long options                        | Supported     | Supported     | Supported     | Not supported | Supported     | Supported         |
-| Short options                       | Supported     | Supported     | Supported     | Supported     | Supported     | Not supported     |
-| Option value `=`                    | -o=value      | -o=value      | -o=value      |               |               | option=value      |
-| Option value `:`                    | -o:value      | -o:value      |               |               |               |                   |
-| Option value (space)                | -o value      | -o value      | -o value      | -o value      | -o value      |                   |
-| Boolean option (implicit true)      | -o            | -o            | -o            | -o            | -o            | option            |
-| Boolean option (with value)         | -o=true       | -o=true       |               |               | -o:true       | option=true       |
-| Boolean values                      | true/false    | true/false    | true/false    | true/false    | true/false    | true/false        |
-| Boolean values                      | yes/no        | yes/no        | yes/no        | yes/no        | yes/no        | yes/no            |
-| Boolean values                      | on/off        | on/off        | on/off        | on/off        | on/off        | on/off            |
-| Boolean values                      | 1/0           | 1/0           | 1/0           | 1/0           | 1/0           | 1/0               |
-| Collection option                   | -o A -o B     | -o A -o B     | -o A -o B     | -o A -o B     | -o A -o B     | option=A&option=B |
-| Collection option `,`               | -o A,B,C      | -o A,B,C      | -o A,B,C      | -o A,B,C      | -o A,B,C      | -o A,B,C          |
-| Collection option `;`               | -o A;B;C      | -o A;B;C      | -o A;B;C      | -o A;B;C      | -o A;B;C      | -o A;B;C          |
-| Collection option (space separated) | -o A B C      | -o A B C      |               |               | -o A B C      |                   |
-| Dictionary option                   | -o:A=X;B=Y    | -o:A=X;B=Y    |               |               | -o:A=X;B=Y    |                   |
-| Combined short booleans             | Not supported | Not supported | -abc          | -abc          | Not supported | Not supported     |
-| Single short option multi chars     | -ab           | -ab           | Not supported | Not supported | -ab           | Not supported     |
-| Short option directly with value    | Not supported | Not supported | -o1.txt       | Not supported | Not supported | Not supported     |
-| Long option prefixes                | `--` `-` `/`  | `--`          | `--`          | (None)        | `-` `/`       |                   |
-| Short option prefixes               | `-` `/`       | `-`           | `-`           | `-`           | `-` `/`       |                   |
-| Naming                              | --kebab-case  | --kebab-case  | --kebab-case  |               |               | kebab-case        |
-| Naming                              | -PascalCase   |               |               |               | -PascalCase   |                   |
-| Naming                              | -camelCase    |               |               |               | -camelCase    |                   |
-| Naming                              | /PascalCase   |               |               |               | /PascalCase   |                   |
-| Naming                              | /camelCase    |               |               |               | /camelCase    |                   |
+| Style                 | Flexible       | DotNet         | Gnu               | Posix         | PowerShell    | URL               |
+| --------------------- | -------------- | -------------- | ----------------- | ------------- | ------------- | ----------------- |
+| Positional args       | Supported      | Supported      | Supported         | Supported     | Supported     | Supported         |
+| Trailing args `--`    | Supported      | Supported      | Supported         | Supported     | Not supported | Not supported     |
+| Case                  | Insensitive    | Sensitive      | Sensitive         | Sensitive     | Insensitive   | Insensitive       |
+| Long options          | Supported      | Supported      | Supported         | Not supported | Supported     | Supported         |
+| Short options         | Supported      | Supported      | Supported         | Supported     | Supported     | Not supported     |
+| Long option prefixes  | `--` `-` `/`   | `--`           | `--`              | (None)        | `-` `/`       |                   |
+| Short option prefixes | `-` `/`        | `-`            | `-`               | `-`           | `-` `/`       |                   |
+| Long option (space)   | --option value | --option value | -o value          | -o value      | -o value      |                   |
+| Long option `=`       | --option=value | --option=value | --option=value    |               | -o=value      | option=value      |
+| Long option `:`       | --option:value | --option:value |                   |               | -o:value      |                   |
+| Short option (space)  | -o value       | -o value       | -o value          | -o value      | -o value      |                   |
+| Short option `=`      | -o=value       | -o=value       |                   |               | -o=value      | option=value      |
+| Short option `:`      | -o:value       | -o:value       |                   |               | -o:value      |                   |
+| Short option inline   |                |                | -ovalue           |               |               |                   |
+| Multi-char short opt  | -abc value     | -abc value     |                   |               | -abc value    |                   |
+| Long boolean option   | --option       | --option       | --option          |               | -Option       | option            |
+| Long boolean ` `      | --option true  | --option true  |                   |               | -Option true  |                   |
+| Long boolean `=`      | --option=true  | --option=true  | --option=true[^1] |               | -Option=true  |                   |
+| Long boolean `:`      | --option:true  | --option:true  |                   |               | -Option:true  |                   |
+| Short boolean option  | -o             | -o             | -o                | -o            | -o            |                   |
+| Short boolean ` `     | -o true        | -o true        |                   |               | -o true       |                   |
+| Short boolean `=`     | -o=true        | -o=true        |                   |               | -o=true       | option=true       |
+| Short boolean `:`     | -o:true        | -o:true        |                   |               | -o:true       |                   |
+| Short boolean inline  |                |                | -o1               |               |               |                   |
+| Boolean values        | true/false     | true/false     | true/false        | true/false    | true/false    | true/false        |
+| Boolean values        | yes/no         | yes/no         | yes/no            | yes/no        | yes/no        | yes/no            |
+| Boolean values        | on/off         | on/off         | on/off            | on/off        | on/off        | on/off            |
+| Boolean values        | 1/0            | 1/0            | 1/0               | 1/0           | 1/0           | 1/0               |
+| Combined short bools  |                |                | -abc              | -abc          |               |                   |
+| Collection option     | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B     | -o A -o B     | option=A&option=B |
+| Collection (space)    | -o A B C       | -o A B C       |                   |               | -o A B C      |                   |
+| Collection `,`        | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C      | -o A,B,C      |                   |
+| Collection `;`        | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C      | -o A;B;C      |                   |
+| Dictionary option     | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |               | -o:A=X;B=Y    |                   |
+| Naming                | --kebab-case   | --kebab-case   | --kebab-case      |               |               | kebab-case        |
+| Naming                | -PascalCase    |                |                   |               | -PascalCase   |                   |
+| Naming                | -camelCase     |                |                   |               | -camelCase    |                   |
+| Naming                | /PascalCase    |                |                   |               | /PascalCase   |                   |
+| Naming                | /camelCase     |                |                   |               | /camelCase    |                   |
+
+[^1]: GNU style does not officially support supplying an explicit value to a boolean option, but since the syntax is unambiguous we additionally allow it.
+
+Notes:
+
+1. Except for PowerShell style, all other styles support using `--` to mark the start of trailing positional arguments; everything after is treated as a positional argument. URL style cannot express trailing positionals.
+2. Before `--`, options and positional arguments may be interleaved. The rule: an option greedily consumes following tokens as long as they can be accepted by that option; once it can no longer take a token, the remaining tokens (until the next option or `--`) are treated as positional arguments.
+
+An option takes the immediate values greedily:
+
+For example, if `--option` is a boolean option, then in `--option true text` or `--option 1 text`, the `true` or `1` is consumed by `--option`, and `text` becomes a positional argument.
+Another example: if `--option` is a boolean option, `--option text` leaves `text` as a positional argument because it is not a boolean value.
+Another example: if a style supports space separated collections (see table), then when `--option a b c` is a collection option, `a` `b` `c` are consumed until the next option or `--`. GNU does not support space separated collections.
 
 ## Naming
 

@@ -89,35 +89,60 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 預設情況下，這些風格的詳細差異如下：
 
-| 風格           | Flexible     | DotNet       | Gnu          | Posix      | PowerShell  | URL               |
-| -------------- | ------------ | ------------ | ------------ | ---------- | ----------- | ----------------- |
-| 大小寫         | 不敏感       | 敏感         | 敏感         | 敏感       | 不敏感      | 不敏感            |
-| 長選項         | 支援         | 支援         | 支援         | 不支援     | 支援        | 支援              |
-| 短選項         | 支援         | 支援         | 支援         | 支援       | 支援        | 不支援            |
-| 選項值 `=`     | -o=value     | -o=value     | -o=value     |            |             | option=value      |
-| 選項值 `:`     | -o:value     | -o:value     |              |            |             |                   |
-| 選項值 空白    | -o value     | -o value     | -o value     | -o value   | -o value    |                   |
-| 布林選項       | -o           | -o           | -o           | -o         | -o          | option            |
-| 布林選項帶值   | -o=true      | -o=true      |              |            | -o:true     | option=true       |
-| 布林值         | true/false   | true/false   | true/false   | true/false | true/false  | true/false        |
-| 布林值         | yes/no       | yes/no       | yes/no       | yes/no     | yes/no      | yes/no            |
-| 布林值         | on/off       | on/off       | on/off       | on/off     | on/off      | on/off            |
-| 布林值         | 1/0          | 1/0          | 1/0          | 1/0        | 1/0         | 1/0               |
-| 集合選項       | -o A -o B    | -o A -o B    | -o A -o B    | -o A -o B  | -o A -o B   | option=A&option=B |
-| 集合選項 `,`   | -o A,B,C     | -o A,B,C     | -o A,B,C     | -o A,B,C   | -o A,B,C    | -o A,B,C          |
-| 集合選項 `;`   | -o A;B;C     | -o A;B;C     | -o A;B;C     | -o A;B;C   | -o A;B;C    | -o A;B;C          |
-| 集合選項 空白  | -o A B C     | -o A B C     |              |            | -o A B C    |                   |
-| 字典選項       | -o:A=X;B=Y   | -o:A=X;B=Y   |              |            | -o:A=X;B=Y  |                   |
-| 多短布林合併   | 不支援       | 不支援       | -abc         | -abc       | 不支援      | 不支援            |
-| 單短選項多字元 | -ab          | -ab          | 不支援       | 不支援     | -ab         | 不支援            |
-| 短選項直接帶值 | 不支援       | 不支援       | -o1.txt      | 不支援     | 不支援      | 不支援            |
-| 長選項前綴     | `--` `-` `/` | `--`         | `--`         | 不支援     | `-` `/`     |                   |
-| 短選項前綴     | `-` `/`      | `-`          | `-`          | `-`        | `-` `/`     |                   |
-| 命名法         | --kebab-case | --kebab-case | --kebab-case |            |             | kebab-case        |
-| 命名法         | -PascalCase  |              |              |            | -PascalCase |                   |
-| 命名法         | -camelCase   |              |              |            | -camelCase  |                   |
-| 命名法         | /PascalCase  |              |              |            | /PascalCase |                   |
-| 命名法         | /camelCase   |              |              |            | /camelCase  |                   |
+| 風格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
+| ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
+| 位置參數          | 支援           | 支援           | 支援              | 支援       | 支援         | 支援              |
+| 後置位置參數 `--` | 支援           | 支援           | 支援              | 支援       | 不支援       | 不支援            |
+| 大小寫            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
+| 長選項            | 支援           | 支援           | 支援              | 不支援     | 支援         | 支援              |
+| 短選項            | 支援           | 支援           | 支援              | 支援       | 支援         | 不支援            |
+| 長選項前綴        | `--` `-` `/`   | `--`           | `--`              | 不支援     | `-` `/`      |                   |
+| 短選項前綴        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
+| 長選項 ` `        | --option value | --option value | -o value          | -o value   | -o value     |                   |
+| 長選項 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
+| 長選項 `:`        | --option:value | --option:value |                   |            | -o:value     |                   |
+| 短選項 ` `        | -o value       | -o value       | -o value          | -o value   | -o value     |                   |
+| 短選項 `=`        | -o=value       | -o=value       |                   |            | -o=value     | option=value      |
+| 短選項 `:`        | -o:value       | -o:value       |                   |            | -o:value     |                   |
+| 短選項 `null`     |                |                | -ovalue           |            |              |                   |
+| 多字元短選項      | -abc value     | -abc value     |                   |            | -abc value   |                   |
+| 長布林選項        | --option       | --option       | --option          |            | -Option      | option            |
+| 長布林選項 ` `    | --option true  | --option true  |                   |            | -Option true |                   |
+| 長布林選項 `=`    | --option=true  | --option=true  | --option=true[^1] |            | -Option=true |                   |
+| 長布林選項 `:`    | --option:true  | --option:true  |                   |            | -Option:true |                   |
+| 短布林選項        | -o             | -o             | -o                | -o         | -o           |                   |
+| 短布林選項 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
+| 短布林選項 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
+| 短布林選項 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
+| 短布林選項 `null` |                |                | -o1               |            |              |                   |
+| 布林/開關值       | true/false     | true/false     | true/false        | true/false | true/false   | true/false        |
+| 布林/開關值       | yes/no         | yes/no         | yes/no            | yes/no     | yes/no       | yes/no            |
+| 布林/開關值       | on/off         | on/off         | on/off            | on/off     | on/off       | on/off            |
+| 布林/開關值       | 1/0            | 1/0            | 1/0               | 1/0        | 1/0          | 1/0               |
+| 多短布林合併      |                |                | -abc              | -abc       |              |                   |
+| 集合選項          | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B  | -o A -o B    | option=A&option=B |
+| 集合選項 ` `      | -o A B C       | -o A B C       |                   |            | -o A B C     |                   |
+| 集合選項 `,`      | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C   | -o A,B,C     |                   |
+| 集合選項 `;`      | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C   | -o A;B;C     |                   |
+| 字典選項          | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |            | -o:A=X;B=Y   |                   |
+| 命名法            | --kebab-case   | --kebab-case   | --kebab-case      |            |              | kebab-case        |
+| 命名法            | -PascalCase    |                |                   |            | -PascalCase  |                   |
+| 命名法            | -camelCase     |                |                   |            | -camelCase   |                   |
+| 命名法            | /PascalCase    |                |                   |            | /PascalCase  |                   |
+| 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
+
+[^1]: GNU 風格並不支援布林選項顯式帶值，但因為這種情況沒有歧義，所以我們額外支援它。
+
+說明：
+
+1. 除 PowerShell 風格外，其他風格都支援使用 `--` 作為後置位置參數標記，其後所有參數皆視為位置參數；另外，URL 風格無法表達後置位置參數。
+2. 在 `--` 之前，選項與位置參數可以交錯出現，規則如下。
+
+選項會優先取得緊跟的值；凡是能放進該選項的值都會被取走。一旦放不下，後面若還有值，就視為位置參數。
+
+例如，`--option` 是布林選項時，`--option true text` 或 `--option 1 text` 中的 `true` 與 `1` 會被 `--option` 取走，之後的 `text` 為位置參數。
+再例如，`--option` 是布林選項時，`--option text` 因為 `text` 不是布林值，所以 `text` 直接視為位置參數。
+再例如，若風格支援空白分隔集合（見上表），則當 `--option a b c` 是集合選項時，`a` `b` `c` 都會被取走，直到遇到下一個選項或 `--`。GNU 不支援空白分隔集合。
 
 ## 命名法
 
