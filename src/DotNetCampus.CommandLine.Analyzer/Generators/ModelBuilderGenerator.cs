@@ -3,6 +3,7 @@ using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Generators.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotNetCampus.CommandLine.Generators;
 
@@ -20,8 +21,20 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private void Execute(SourceProductionContext context, CommandObjectGeneratingModel model)
     {
+        var fileName = model.CommandObjectType.ToDisplayString();
+        if (fileName.Contains('<'))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Diagnostics.DCL301_GenericCommandObjectTypeNotSupported,
+                model.CommandObjectType.DeclaringSyntaxReferences.FirstOrDefault()?
+                    .GetSyntax().DescendantNodesAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault()?
+                    .Identifier.GetLocation(),
+                fileName));
+            return;
+        }
+
         var code = GenerateCommandObjectCreatorCode(model);
-        context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.cs", code);
+        context.AddSource($"CommandLine.Models/{model.CommandObjectType.ToDisplayString()}.cs", code);
 
         // if (model.UseFullStackParser)
         // {

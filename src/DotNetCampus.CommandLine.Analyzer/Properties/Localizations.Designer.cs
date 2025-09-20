@@ -256,5 +256,32 @@ namespace DotNetCampus.CommandLine.Properties {
                 return ResourceManager.GetString("DCL203_Message", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type must not be a generic type or be declared in a generic type.
+        /// </summary>
+        public static string DCL301 {
+            get {
+                return ResourceManager.GetString("DCL301", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type {0} must not be a generic type or be declared in a generic type..
+        /// </summary>
+        public static string DCL301_Description {
+            get {
+                return ResourceManager.GetString("DCL301_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type {0} must not be a generic type or be declared in a generic type..
+        /// </summary>
+        public static string DCL301_Message {
+            get {
+                return ResourceManager.GetString("DCL301_Message", resourceCulture);
+            }
+        }
     }
 }

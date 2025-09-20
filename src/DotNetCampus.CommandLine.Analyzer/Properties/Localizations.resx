@@ -188,4 +188,13 @@
   <data name="DCL102_Description" xml:space="preserve">
     <value>The command-line option/command definition names may not be kebab-case.</value>
   </data>
+  <data name="DCL301" xml:space="preserve">
+    <value>The command type must not be a generic type or be declared in a generic type</value>
+  </data>
+  <data name="DCL301_Message" xml:space="preserve">
+    <value>The command type {0} must not be a generic type or be declared in a generic type.</value>
+  </data>
+  <data name="DCL301_Description" xml:space="preserve">
+    <value>The command type {0} must not be a generic type or be declared in a generic type.</value>
+  </data>
 </root>

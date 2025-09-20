@@ -66,11 +66,26 @@ public static class Diagnostics
 
     #endregion
 
+    #region Generator 301-399
+
+    public static readonly DiagnosticDescriptor DCL301_GenericCommandObjectTypeNotSupported = new DiagnosticDescriptor(
+        nameof(DCL301),
+        Localize(nameof(DCL301)),
+        Localize(nameof(DCL301_Message)),
+        Categories.Mechanism,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: Localize(nameof(DCL301_Description)),
+        helpLinkUri: Url(NotSupportedRawArgumentsPropertyType));
+
+    #endregion
+
     public const string OptionLongNameMustBeKebabCase = "DCL101";
     public const string OptionLongNameCanBeKebabCase = "DCL102";
     public const string SupportedOptionPropertyType = "DCL201";
     public const string NotSupportedOptionPropertyType = "DCL202";
     public const string NotSupportedRawArgumentsPropertyType = "DCL203";
+    public const string GenericCommandObjectTypeNotSupported = "DCL301";
 
     private static class Categories
     {

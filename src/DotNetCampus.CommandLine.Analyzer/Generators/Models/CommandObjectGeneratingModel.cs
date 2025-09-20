@@ -5,6 +5,11 @@ namespace DotNetCampus.CommandLine.Generators.Models;
 
 internal record CommandObjectGeneratingModel
 {
+    private static readonly SymbolDisplayFormat SimpleContainingTypeFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
     public required string Namespace { get; init; }
 
     public required INamedTypeSymbol CommandObjectType { get; init; }
@@ -27,7 +32,8 @@ internal record CommandObjectGeneratingModel
 
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {
-        return $"{commandObjectType.Name}Builder";
+        var name = commandObjectType.ToDisplayString(SimpleContainingTypeFormat).Replace('.', '_');
+        return $"{name}Builder";
     }
 
     public int GetCommandLevel() => CommandNames switch
