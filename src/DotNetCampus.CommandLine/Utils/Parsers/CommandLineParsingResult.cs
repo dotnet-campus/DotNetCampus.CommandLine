@@ -82,7 +82,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         ReadOnlySpan<char> optionName, bool? isLongOption)
     {
         var isUrl = commandLine.MatchedUrlScheme is not null;
-        var possibleSeparatorIndex = optionName.IndexOfAnyNonLetterOrDigit();
+        var possibleSeparatorIndex = optionName.IndexOfAnyPossibleSeparators();
         var reason = (isLongOption, possibleSeparatorIndex) switch
         {
             (_, < 0) => CommandLineParsingError.OptionalArgumentNotFound,
@@ -183,11 +183,11 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
 
 file static class Extensions
 {
-    internal static int IndexOfAnyNonLetterOrDigit(this ReadOnlySpan<char> span)
+    internal static int IndexOfAnyPossibleSeparators(this ReadOnlySpan<char> span)
     {
         for (var i = 0; i < span.Length; i++)
         {
-            if (!char.IsLetterOrDigit(span[i]))
+            if (!char.IsLetterOrDigit(span[i]) && span[i] is not '-' and not '_' and not '.')
             {
                 return i;
             }
