@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <RootNamespace>DotNetCampus.Cli.Tests</RootNamespace>
   </PropertyGroup>
 
