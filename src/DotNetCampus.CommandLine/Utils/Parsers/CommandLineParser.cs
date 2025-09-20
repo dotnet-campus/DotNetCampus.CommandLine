@@ -206,10 +206,18 @@ public readonly ref struct CommandLineParser
                         var optionMatch = MatchShortOption(name, _caseSensitive);
                         if (optionMatch.ValueType is not OptionValueType.NotExist)
                         {
-                            // 是一个多字符短选项。
-                            result = AssignOptionValue(optionMatch, []).Combine(result);
+                            // 多字符短选项存在，则作为多字符短选项处理。
+                            if (optionMatch.ValueType is OptionValueType.Boolean)
+                            {
+                                // 布尔选项必须立即赋值，因为后面是不一定需要跟值的。
+                                result = AssignOptionValue(optionMatch, []).Combine(result);
+                            }
+                            // 短选项已经无歧义地确定为了正常短选项了。
+                            lastState = Cat.ShortOption;
+                            currentOption = optionMatch;
                             break;
                         }
+                        // 如果选项不存在，则可能是其他短选项类型。
                     }
                     if (!SupportsShortOptionCombination && !SupportsShortOptionValueWithoutSeparator)
                     {

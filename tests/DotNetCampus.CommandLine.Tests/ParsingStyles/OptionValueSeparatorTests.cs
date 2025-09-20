@@ -129,9 +129,49 @@ public class OptionValueSeparatorTests
         Assert.Contains("URL", exception.Message);
     }
 
+    [TestMethod]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab value")]
+    public void SupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<MultiCharShortOptions>();
+
+        // Assert
+        Assert.AreEqual("value", options.OptionA);
+        Assert.IsNull(options.OptionB);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ab value")]
+    public void DoesNotSupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
+    }
+
     public record TestOptions
     {
         [Option('o', "option")]
         public string? Option { get; set; }
+    }
+
+    public record MultiCharShortOptions
+    {
+        [Option("ab", "option-ab")]
+        public string? OptionA { get; set; }
+
+        [Option('b', "option-b")]
+        public string? OptionB { get; set; }
     }
 }
