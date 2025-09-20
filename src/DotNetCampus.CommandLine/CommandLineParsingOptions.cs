@@ -13,6 +13,7 @@ public readonly record struct CommandLineParsingOptions
     {
         Style = new CommandLineStyleDetails(FlexibleMagic)
         {
+            Name = "Flexible",
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -20,6 +21,7 @@ public readonly record struct CommandLineParsingOptions
 
     private static CommandLineStyleDetails FlexibleDefinition => new CommandLineStyleDetails
     {
+        Name = "Flexible",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -37,6 +39,7 @@ public readonly record struct CommandLineParsingOptions
     {
         Style = new CommandLineStyleDetails(DotNetMagic)
         {
+            Name = "DotNet",
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -44,6 +47,7 @@ public readonly record struct CommandLineParsingOptions
 
     private static CommandLineStyleDetails DotNetDefinition => new CommandLineStyleDetails
     {
+        Name = "DotNet",
         CaseSensitive = true,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -61,6 +65,7 @@ public readonly record struct CommandLineParsingOptions
     {
         Style = new CommandLineStyleDetails(GnuMagic)
         {
+            Name = "Gnu",
             OptionValueSeparators = CommandSeparatorChars.Create('='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -68,6 +73,7 @@ public readonly record struct CommandLineParsingOptions
 
     private static CommandLineStyleDetails GnuDefinition => new CommandLineStyleDetails
     {
+        Name = "Gnu",
         CaseSensitive = true,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -85,6 +91,7 @@ public readonly record struct CommandLineParsingOptions
     {
         Style = new CommandLineStyleDetails(PosixMagic)
         {
+            Name = "Posix",
             OptionValueSeparators = CommandSeparatorChars.Create(),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -92,6 +99,7 @@ public readonly record struct CommandLineParsingOptions
 
     private static CommandLineStyleDetails PosixDefinition => new CommandLineStyleDetails
     {
+        Name = "Posix",
         CaseSensitive = true,
         SupportsLongOption = false,
         SupportsShortOption = true,
@@ -111,6 +119,7 @@ public readonly record struct CommandLineParsingOptions
     {
         Style = new CommandLineStyleDetails(PowerShellMagic)
         {
+            Name = "PowerShell",
             OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
             CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
         },
@@ -119,6 +128,7 @@ public readonly record struct CommandLineParsingOptions
     /// <inheritdoc cref="CommandLineStyle.PowerShell" />
     private static CommandLineStyleDetails PowerShellDefinition => new CommandLineStyleDetails
     {
+        Name = "PowerShell",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -136,6 +146,7 @@ public readonly record struct CommandLineParsingOptions
     /// </summary>
     public static CommandLineStyleDetails UrlStyle => new CommandLineStyleDetails(UrlMagic)
     {
+        Name = "Url",
         OptionValueSeparators = CommandSeparatorChars.Create('='),
         CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
     };
@@ -145,6 +156,7 @@ public readonly record struct CommandLineParsingOptions
     /// </summary>
     private static CommandLineStyleDetails UrlDefinition => new CommandLineStyleDetails
     {
+        Name = "Url",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = false,
@@ -405,6 +417,11 @@ public readonly record struct CommandLineStyleDetails()
     /// 如 ',', ';', ' ' 分别对应: --option value1,value2, --option value1;value2, --option value1 value2。
     /// </summary>
     public CommandSeparatorChars CollectionValueSeparators { get; init; }
+
+    /// <summary>
+    /// 此命令行风格的名称，用于调试和日志记录。
+    /// </summary>
+    public string Name { get; init; } = "Custom";
 
     /// <summary>
     /// 获取用于存储样式细节的魔术数字。

@@ -43,11 +43,12 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
 
         throw ErrorType switch
         {
-            CommandLineParsingError.OptionalArgumentNotFound => new CommandLineParseException(ErrorMessage!),
-            CommandLineParsingError.OptionalArgumentParseError => new CommandLineParseException(ErrorMessage!),
-            CommandLineParsingError.PositionalArgumentNotFound => new CommandLineParseException(ErrorMessage!),
-            CommandLineParsingError.BooleanValueParseError => new CommandLineParseValueException(ErrorMessage!),
-            CommandLineParsingError.DictionaryValueParseError => new CommandLineParseValueException(ErrorMessage!),
+            CommandLineParsingError.OptionalArgumentNotFound => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.OptionalArgumentSeparatorNotSupported => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.OptionalArgumentParseError => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.PositionalArgumentNotFound => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.BooleanValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.DictionaryValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
             CommandLineParsingError.None => throw new CommandLineException("解析过程中没有发生任何错误。"),
             _ => throw new CommandLineException("未知的命令行解析错误类型。"),
         };
@@ -75,8 +76,14 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <returns>表示选项未找到的解析结果。</returns>
     public static CommandLineParsingResult OptionalArgumentNotFound(CommandLine commandLine, int index, string commandObjectName, ReadOnlySpan<char> optionName)
     {
-        var message = $"命令行对象 {commandObjectName} 不包含选项 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
-        return new CommandLineParsingResult(CommandLineParsingError.OptionalArgumentNotFound, message);
+        var possibleSeparatorIndex = optionName.IndexOfAnyNonLetterOrDigit();
+        var reason = possibleSeparatorIndex >= 0
+            ? CommandLineParsingError.OptionalArgumentSeparatorNotSupported
+            : CommandLineParsingError.OptionalArgumentNotFound;
+        var message = possibleSeparatorIndex >= 0
+            ? $"当前解析选项 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。"
+            : $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+        return new CommandLineParsingResult(reason, message);
     }
 
     /// <summary>
@@ -131,6 +138,22 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     }
 }
 
+file static class Extensions
+{
+    internal static int IndexOfAnyNonLetterOrDigit(this ReadOnlySpan<char> span)
+    {
+        for (var i = 0; i < span.Length; i++)
+        {
+            if (!char.IsLetterOrDigit(span[i]))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+}
+
 /// <summary>
 /// 命令行参数解析错误类型。
 /// </summary>
@@ -145,6 +168,11 @@ public enum CommandLineParsingError : byte
     /// 没有任何选项能够匹配当前的命令行参数。
     /// </summary>
     OptionalArgumentNotFound,
+
+    /// <summary>
+    /// 没有任何选项能够匹配当前的命令行参数，可能是因为当前的命令行参数使用了不被支持的选项值分隔符。
+    /// </summary>
+    OptionalArgumentSeparatorNotSupported,
 
     /// <summary>
     /// 当前的命令行参数无法解析出选项名。
