@@ -91,17 +91,17 @@ internal static class CommandLineConverter
     /// <summary>
     /// 将 URL 转换为普通的命令行参数列表。<br/>
     /// </summary>
-    /// <param name="schema">URL 的 Scheme 部分。</param>
+    /// <param name="scheme">URL 的 Scheme 部分。</param>
     /// <param name="argument">URL 字符串。</param>
     /// <returns>普通的命令行参数列表。</returns>
-    private static IReadOnlyList<string> NormalizeUrlArguments(string schema, string argument)
+    private static IReadOnlyList<string> NormalizeUrlArguments(string scheme, string argument)
     {
-        // schema://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
+        // scheme://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
 
         var span = argument.AsSpan();
 
-        // 1. 跳过 schema://
-        span = span[(schema.Length + 3)..];
+        // 1. 跳过 scheme://
+        span = span[(scheme.Length + 3)..];
 
         // 2. 分成三个部分，分别解析。
         var questionMarkIndex = span.IndexOf('?');

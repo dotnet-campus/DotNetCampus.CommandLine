@@ -282,7 +282,7 @@ commandLine
 可解析 URL 協議字串：
 
 ```ini
-// schema://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
+// scheme://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
 ```
 
 開頭示例命令列可寫成：

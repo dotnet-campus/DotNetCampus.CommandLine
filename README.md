@@ -87,7 +87,7 @@ The library supports multiple command line styles via `CommandLineStyle` (Flexib
 - Positional arguments via `ValueAttribute` (ranges allowed)
 - Required / nullable / immutable (`required` / `init`) property semantics
 - Command & subcommand handling (multi-word `[Command]` supported)
-- Optional URL protocol parsing (`schema://...` form)
+- Optional URL protocol parsing (`scheme://...` form)
 - High performance from source generators and interceptors
 
 ## Engage, Contribute and Provide Feedback
