@@ -137,18 +137,19 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .Condition(optionProperties.Count is 0, b => b
                 .AddRawStatement("// 没有长名称选项，无需匹配。"))
             .Otherwise(b => b
-                .AddRawStatement("// 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
-                .AddBracketScope("switch (longOption)", s => s
-                    .AddRawStatements(optionProperties.Select(x => GenerateLongOptionCaseCode(x, x.GetOrdinalLongNames()))))
-                .AddLineSeparator()
-                .AddDefaultStringComparisonIfNeeded(optionProperties)
-                .AddLineSeparator()
-                .AddRawStatement("// 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。")
+                .AddRawStatement("// 1. 先匹配 kebab-case 命名法（原样字符串）")
                 .AddBracketScope("if (namingPolicy.SupportsOrdinal())", s => s
+                    .AddRawStatement("// 1.1 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。")
+                    .AddBracketScope("switch (longOption)", c => c
+                        .AddRawStatements(optionProperties.Select(x => GenerateLongOptionCaseCode(x, x.GetOrdinalLongNames()))))
+                    .AddLineSeparator()
+                    .AddRawStatement("// 1.2 再按指定大小写匹配一遍（能应对不规范命令行大小写）。")
+                    .AddDefaultStringComparisonIfNeeded(optionProperties)
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetOrdinalLongNames()))))
                 .AddLineSeparator()
-                .AddRawStatement("// 3. 最后根据其他命名法匹配一遍（能应对所有不规范命令行大小写，并支持所有风格）。")
+                .AddRawStatement("// 2. 再匹配其他命名法（能应对所有不规范命令行大小写，并支持所有风格）。")
                 .AddBracketScope("if (namingPolicy.SupportsPascalCase())", s => s
+                    .AddDefaultStringComparisonIfNeeded(optionProperties)
                     .AddRawStatements(optionProperties.Select(x => GenerateLongOptionEqualsCode(x, x.GetPascalCaseLongNames()))))
                 .AddLineSeparator())
             .EndCondition()
