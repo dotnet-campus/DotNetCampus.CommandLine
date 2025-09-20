@@ -89,35 +89,60 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 默认情况下，这些风格的详细区别如下：
 
-| 风格             | Flexible     | DotNet       | Gnu          | Posix      | PowerShell  | URL               |
-| ---------------- | ------------ | ------------ | ------------ | ---------- | ----------- | ----------------- |
-| 大小写           | 不敏感       | 敏感         | 敏感         | 敏感       | 不敏感      | 不敏感            |
-| 长选项           | 支持         | 支持         | 支持         | 不支持     | 支持        | 支持              |
-| 短选项           | 支持         | 支持         | 支持         | 支持       | 支持        | 不支持            |
-| 选项值 `=`       | -o=value     | -o=value     | -o=value     |            |             | option=value      |
-| 选项值 `:`       | -o:value     | -o:value     |              |            |             |                   |
-| 选项值 ` `       | -o value     | -o value     | -o value     | -o value   | -o value    |                   |
-| 布尔选项         | -o           | -o           | -o           | -o         | -o          | option            |
-| 布尔选项         | -o=true      | -o=true      |              |            | -o:true     | option=true       |
-| 布尔值           | true/false   | true/false   | true/false   | true/false | true/false  | true/false        |
-| 布尔值           | yes/no       | yes/no       | yes/no       | yes/no     | yes/no      | yes/no            |
-| 布尔值           | on/off       | on/off       | on/off       | on/off     | on/off      | on/off            |
-| 布尔值           | 1/0          | 1/0          | 1/0          | 1/0        | 1/0         | 1/0               |
-| 集合选项         | -o A -o B    | -o A -o B    | -o A -o B    | -o A -o B  | -o A -o B   | option=A&option=B |
-| 集合选项 `,`     | -o A,B,C     | -o A,B,C     | -o A,B,C     | -o A,B,C   | -o A,B,C    | -o A,B,C          |
-| 集合选项 `;`     | -o A;B;C     | -o A;B;C     | -o A;B;C     | -o A;B;C   | -o A;B;C    | -o A;B;C          |
-| 集合选项 ` `     | -o A B C     | -o A B C     |              |            | -o A B C    |                   |
-| 字典选项         | -o:A=X;B=Y   | -o:A=X;B=Y   |              |            | -o:A=X;B=Y  |                   |
-| 多短布尔选项合并 | 不支持       | 不支持       | -abc         | -abc       | 不支持      | 不支持            |
-| 单短选项多字符   | -ab          | -ab          | 不支持       | 不支持     | -ab         | 不支持            |
-| 短选项直接带值   | 不支持       | 不支持       | -o1.txt      | 不支持     | 不支持      | 不支持            |
-| 长选项前缀       | `--` `-` `/` | `--`         | `--`         | 不支持     | `-` `/`     |                   |
-| 短选项前缀       | `-` `/`      | `-`          | `-`          | `-`        | `-` `/`     |                   |
-| 命名法           | --kebab-case | --kebab-case | --kebab-case |            |             | kebab-case        |
-| 命名法           | -PascalCase  |              |              |            | -PascalCase |                   |
-| 命名法           | -camelCase   |              |              |            | -camelCase  |                   |
-| 命名法           | /PascalCase  |              |              |            | /PascalCase |                   |
-| 命名法           | /camelCase   |              |              |            | /camelCase  |                   |
+| 风格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
+| ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
+| 大小写            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
+| 长选项            | 支持           | 支持           | 支持              | 不支持     | 支持         | 支持              |
+| 短选项            | 支持           | 支持           | 支持              | 支持       | 支持         | 不支持            |
+| 长选项前缀        | `--` `-` `/`   | `--`           | `--`              | 不支持     | `-` `/`      |                   |
+| 短选项前缀        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
+| 长选项 ` `        | --option value | --option value | -o value          | -o value   | -o value     |                   |
+| 长选项 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
+| 长选项 `:`        | --option:value | --option:value |                   |            | -o:value     |                   |
+| 短选项 ` `        | -o value       | -o value       | -o value          | -o value   | -o value     |                   |
+| 短选项 `=`        | -o=value       | -o=value       |                   |            | -o=value     | option=value      |
+| 短选项 `:`        | -o:value       | -o:value       |                   |            | -o:value     |                   |
+| 短选项 `null`     |                |                | -ovalue           |            |              |                   |
+| 多字符短选项      | -abc value     | -abc value     |                   |            | -abc value   |                   |
+| 长布尔选项        | --option       | --option       | --option          |            | -Option      | option            |
+| 长布尔选项 ` `    | --option true  | --option true  |                   |            | -Option true |                   |
+| 长布尔选项 `=`    | --option=true  | --option=true  | --option=true[^1] |            | -Option=true |                   |
+| 长布尔选项 `:`    | --option:true  | --option:true  |                   |            | -Option:true |                   |
+| 短选项选项        | -o             | -o             | -o                | -o         | -o           |                   |
+| 短选项选项 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
+| 短选项选项 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
+| 短选项选项 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
+| 短选项选项 `null` |                |                | -o1               |            |              |                   |
+| 布尔/开关值       | true/false     | true/false     | true/false        | true/false | true/false   | true/false        |
+| 布尔/开关值       | yes/no         | yes/no         | yes/no            | yes/no     | yes/no       | yes/no            |
+| 布尔/开关值       | on/off         | on/off         | on/off            | on/off     | on/off       | on/off            |
+| 布尔/开关值       | 1/0            | 1/0            | 1/0               | 1/0        | 1/0          | 1/0               |
+| 短布尔选项合并    |                |                | -abc              | -abc       |              |                   |
+| 集合选项          | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B  | -o A -o B    | option=A&option=B |
+| 集合选项 ` `      | -o A B C       | -o A B C       |                   |            | -o A B C     |                   |
+| 集合选项 `,`      | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C   | -o A,B,C     |                   |
+| 集合选项 `;`      | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C   | -o A;B;C     |                   |
+| 字典选项          | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |            | -o:A=X;B=Y   |                   |
+| 命名法            | --kebab-case   | --kebab-case   | --kebab-case      |            |              | kebab-case        |
+| 命名法            | -PascalCase    |                |                   |            | -PascalCase  |                   |
+| 命名法            | -camelCase     |                |                   |            | -camelCase   |                   |
+| 命名法            | /PascalCase    |                |                   |            | /PascalCase  |                   |
+| 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
+| 位置参数          | 支持           | 支持           | 支持              | 支持       | 支持         | 支持              |
+| 后置位置参数 `--` | 支持           | 支持           | 支持              | 支持       | 不支持       | 不支持            |
+
+[^1]: GNU 风格并不支持布尔选项显式带值，但因为这种情况并没有歧义，所以我们考虑额外支持它。
+
+说明：
+
+1. 除 PowerShell 风格外，其他风格均支持 `--` 作为后置位置参数的标记，之后的所有参数均视为位置参数；另外，URL 风格写不出来后置位置参数。
+1. 在 `--` 之前，选项和位置参数是可以混合使用的，规则如下。
+
+选项会优先取出紧跟着的值，但凡能放入该选项的，均会放入该选项，一旦放不下了，后面如果还有值，就会算作位置参数。
+
+例如，`--option` 是个布尔选项时，`--option true text` 或 `--option 1 text` 后面的 `true` 和 `1` 会被 `--option` 选项取走，再后面的 `text` 则就位置参数。
+再例如，`--option` 是个布尔选项时，`--option text` 由于 `text` 不是布尔值，所以 `text` 直接就是位置参数。
+再例如，如果风格支持空格分隔集合（见上表），那么当 `--option a b c` 是个集合选项时，`a` `b` `c` 都会被取走，直到遇到下一个选项或 `--`。GNU 不支持空格分隔集合。
 
 ## 命名法
 
@@ -290,7 +315,7 @@ commandLine
 DotNetCampus.CommandLine 支持解析 URL 协议字符串，格式如下：
 
 ```ini
-// schema://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
+// scheme://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
 ```
 
 本文开头示例中的那个命令行，使用 URL 传入的话将是下面这样：
@@ -349,8 +374,8 @@ public class BenchmarkOptions41
 
 解析空白命令行参数：
 
-| Method                        | Mean         | Error      | StdDev     | Gen0   | Allocated |
-|------------------------------ |-------------:|-----------:|-----------:|-------:|----------:|
+| Method                        |         Mean |      Error |     StdDev |   Gen0 | Allocated |
+| ----------------------------- | -----------: | ---------: | ---------: | -----: | --------: |
 | 'parse [] -v=4.1 -p=flexible' |     27.25 ns |   0.485 ns |   0.454 ns | 0.0143 |     240 B |
 | 'parse [] -v=4.1 -p=dotnet'   |     27.35 ns |   0.471 ns |   0.440 ns | 0.0143 |     240 B |
 | 'parse [] -v=4.0 -p=flexible' |     97.16 ns |   0.708 ns |   0.628 ns | 0.0134 |     224 B |
@@ -364,8 +389,8 @@ public class BenchmarkOptions41
 test DotNetCampus.CommandLine.Performance.dll DotNetCampus.CommandLine.Sample.dll DotNetCampus.CommandLine.Test.dll -c 20 --test-name BenchmarkTest --detail-level High --debug
 ```
 
-| Method                           | Job           | Runtime       | Mean        | Error     | StdDev    | Gen0   | Allocated |
-|--------------------------------- |-------------- |-------------- |------------:|----------:|----------:|-------:|----------:|
+| Method                           | Job           | Runtime       |        Mean |     Error |    StdDev |   Gen0 | Allocated |
+| -------------------------------- | ------------- | ------------- | ----------: | --------: | --------: | -----: | --------: |
 | 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     | .NET 10.0     |    355.9 ns |   4.89 ns |   4.58 ns | 0.0548 |     920 B |
 | 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     | .NET 10.0     |    339.7 ns |   6.81 ns |   7.57 ns | 0.0548 |     920 B |
 | 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     | .NET 10.0     |    945.9 ns |  14.87 ns |  13.19 ns | 0.1583 |    2656 B |

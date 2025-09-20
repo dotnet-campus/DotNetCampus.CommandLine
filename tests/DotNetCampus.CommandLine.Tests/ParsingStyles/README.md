@@ -17,35 +17,49 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 默认情况下，这些风格的详细区别如下：
 
-| 风格             | Flexible     | DotNet       | Gnu          | Posix      | PowerShell  | URL               |
-| ---------------- | ------------ | ------------ | ------------ | ---------- | ----------- | ----------------- |
-| 大小写           | 不敏感       | 敏感         | 敏感         | 敏感       | 不敏感      | 不敏感            |
-| 长选项           | 支持         | 支持         | 支持         | 不支持     | 支持        | 支持              |
-| 短选项           | 支持         | 支持         | 支持         | 支持       | 支持        | 不支持            |
-| 选项值 `=`       | -o=value     | -o=value     | -o=value     |            |             | option=value      |
-| 选项值 `:`       | -o:value     | -o:value     |              |            |             |                   |
-| 选项值 ` `       | -o value     | -o value     | -o value     | -o value   | -o value    |                   |
-| 布尔选项         | -o           | -o           | -o           | -o         | -o          | option            |
-| 布尔选项         | -o=true      | -o=true      |              |            | -o:true     | option=true       |
-| 布尔值           | true/false   | true/false   | true/false   | true/false | true/false  | true/false        |
-| 布尔值           | yes/no       | yes/no       | yes/no       | yes/no     | yes/no      | yes/no            |
-| 布尔值           | on/off       | on/off       | on/off       | on/off     | on/off      | on/off            |
-| 布尔值           | 1/0          | 1/0          | 1/0          | 1/0        | 1/0         | 1/0               |
-| 集合选项         | -o A -o B    | -o A -o B    | -o A -o B    | -o A -o B  | -o A -o B   | option=A&option=B |
-| 集合选项 `,`     | -o A,B,C     | -o A,B,C     | -o A,B,C     | -o A,B,C   | -o A,B,C    | -o A,B,C          |
-| 集合选项 `;`     | -o A;B;C     | -o A;B;C     | -o A;B;C     | -o A;B;C   | -o A;B;C    | -o A;B;C          |
-| 集合选项 ` `     | -o A B C     | -o A B C     |              |            | -o A B C    |                   |
-| 字典选项         | -o:A=X;B=Y   | -o:A=X;B=Y   |              |            | -o:A=X;B=Y  |                   |
-| 多短布尔选项合并 | 不支持       | 不支持       | -abc         | -abc       | 不支持      | 不支持            |
-| 单短选项多字符   | -ab          | -ab          | 不支持       | 不支持     | -ab         | 不支持            |
-| 短选项直接带值   | 不支持       | 不支持       | -o1.txt      | 不支持     | 不支持      | 不支持            |
-| 长选项前缀       | `--` `-` `/` | `--`         | `--`         | 不支持     | `-` `/`     |                   |
-| 短选项前缀       | `-` `/`      | `-`          | `-`          | `-`        | `-` `/`     |                   |
-| 命名法           | --kebab-case | --kebab-case | --kebab-case |            |             | kebab-case        |
-| 命名法           | -PascalCase  |              |              |            | -PascalCase |                   |
-| 命名法           | -camelCase   |              |              |            | -camelCase  |                   |
-| 命名法           | /PascalCase  |              |              |            | /PascalCase |                   |
-| 命名法           | /camelCase   |              |              |            | /camelCase  |                   |
+| 风格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
+| ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
+| 大小写            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
+| 长选项            | 支持           | 支持           | 支持              | 不支持     | 支持         | 支持              |
+| 短选项            | 支持           | 支持           | 支持              | 支持       | 支持         | 不支持            |
+| 长选项前缀        | `--` `-` `/`   | `--`           | `--`              | 不支持     | `-` `/`      |                   |
+| 短选项前缀        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
+| 长选项 ` `        | --option value | --option value | -o value          | -o value   | -o value     |                   |
+| 长选项 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
+| 长选项 `:`        | --option:value | --option:value |                   |            | -o:value     |                   |
+| 短选项 ` `        | -o value       | -o value       | -o value          | -o value   | -o value     |                   |
+| 短选项 `=`        | -o=value       | -o=value       |                   |            | -o=value     | option=value      |
+| 短选项 `:`        | -o:value       | -o:value       |                   |            | -o:value     |                   |
+| 短选项 `null`     |                |                | -ovalue           |            |              |                   |
+| 多字符短选项      | -abc value     | -abc value     |                   |            | -abc value   |                   |
+| 长布尔选项        | --option       | --option       | --option          |            | -Option      | option            |
+| 长布尔选项 ` `    | --option true  | --option true  |                   |            | -Option true |                   |
+| 长布尔选项 `=`    | --option=true  | --option=true  | --option=true[^1] |            | -Option=true |                   |
+| 长布尔选项 `:`    | --option:true  | --option:true  |                   |            | -Option:true |                   |
+| 短选项选项        | -o             | -o             | -o                | -o         | -o           |                   |
+| 短选项选项 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
+| 短选项选项 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
+| 短选项选项 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
+| 短选项选项 `null` |                |                | -o1               |            |              |                   |
+| 布尔/开关值       | true/false     | true/false     | true/false        | true/false | true/false   | true/false        |
+| 布尔/开关值       | yes/no         | yes/no         | yes/no            | yes/no     | yes/no       | yes/no            |
+| 布尔/开关值       | on/off         | on/off         | on/off            | on/off     | on/off       | on/off            |
+| 布尔/开关值       | 1/0            | 1/0            | 1/0               | 1/0        | 1/0          | 1/0               |
+| 短布尔选项合并    |                |                | -abc              | -abc       |              |                   |
+| 集合选项          | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B  | -o A -o B    | option=A&option=B |
+| 集合选项 ` `      | -o A B C       | -o A B C       |                   |            | -o A B C     |                   |
+| 集合选项 `,`      | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C   | -o A,B,C     |                   |
+| 集合选项 `;`      | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C   | -o A;B;C     |                   |
+| 字典选项          | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |            | -o:A=X;B=Y   |                   |
+| 命名法            | --kebab-case   | --kebab-case   | --kebab-case      |            |              | kebab-case        |
+| 命名法            | -PascalCase    |                |                   |            | -PascalCase  |                   |
+| 命名法            | -camelCase     |                |                   |            | -camelCase   |                   |
+| 命名法            | /PascalCase    |                |                   |            | /PascalCase  |                   |
+| 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
+| 位置参数          | 支持           | 支持           | 支持              | 支持       | 支持         | 支持              |
+| 后置位置参数 `--` | 支持           | 支持           | 支持              | 支持       | 不支持       | 不支持            |
+
+[^1]: GNU 风格并不支持布尔选项显式带值，但因为这种情况并没有歧义，所以我们考虑额外支持它。
 
 ## 必需选项与默认值
 
