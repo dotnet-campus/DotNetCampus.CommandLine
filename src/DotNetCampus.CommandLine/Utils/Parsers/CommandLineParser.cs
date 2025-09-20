@@ -37,6 +37,7 @@ public readonly ref struct CommandLineParser
         SupportsMultiCharShortOption = Style.SupportsMultiCharShortOption;
         SupportsShortOptionValueWithoutSeparator = Style.SupportsShortOptionValueWithoutSeparator;
         SupportsSpaceSeparatedOptionValue = Style.SupportsSpaceSeparatedOptionValue;
+        SupportsExplicitBooleanOptionValue = Style.SupportsExplicitBooleanOptionValue;
         SupportsSpaceSeparatedCollectionValues = Style.SupportsSpaceSeparatedCollectionValues;
     }
 
@@ -65,6 +66,9 @@ public readonly ref struct CommandLineParser
 
     /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedOptionValue"/>
     internal bool SupportsSpaceSeparatedOptionValue { get; }
+
+    /// <inheritdoc cref="CommandLineStyleDetails.SupportsExplicitBooleanOptionValue"/>
+    internal bool SupportsExplicitBooleanOptionValue { get; }
 
     /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedCollectionValues"/>
     internal bool SupportsSpaceSeparatedCollectionValues { get; }
@@ -487,7 +491,9 @@ internal ref struct CommandArgumentPart
             Cat.LongOption or Cat.ShortOption or Cat.Option => (_lastOptionType switch
             {
                 // 如果是布尔选项，则后面只能跟布尔值，否则只能是新的选项或位置参数。
-                OptionValueType.Boolean => ParseBooleanOptionValueOrNewOptionOrPositionalArgument(),
+                OptionValueType.Boolean when _parser.SupportsExplicitBooleanOptionValue => ParseBooleanOptionValueOrNewOptionOrPositionalArgument(),
+                // 如果是布尔选项，但不支持显式布尔值，则只能是新的选项或位置参数。
+                OptionValueType.Boolean => ParseOptionOrPositionalArgument(),
                 // 如果是集合选项，则后面可以跟多个值，直到遇到新的选项或位置参数分隔符为止。
                 OptionValueType.List or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
                 // 如果是普通选项，则后面只能是选项值。
