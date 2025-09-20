@@ -63,6 +63,35 @@ public class OptionBooleanValueTests
     }
 
     [TestMethod]
+    [DataRow(new[] { "-o:true" }, true, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:true")]
+    [DataRow(new[] { "-o:yes" }, true, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:yes")]
+    [DataRow(new[] { "-o:on" }, true, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:on")]
+    [DataRow(new[] { "-o:1" }, true, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:1")]
+    [DataRow(new[] { "-o:false" }, false, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:false")]
+    [DataRow(new[] { "-o:no" }, false, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:no")]
+    [DataRow(new[] { "-o:off" }, false, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:off")]
+    [DataRow(new[] { "-o:0" }, false, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:0")]
+    [DataRow(new[] { "-otrue" }, true, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -otrue")]
+    [DataRow(new[] { "-oyes" }, true, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -oyes")]
+    [DataRow(new[] { "-oon" }, true, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -oon")]
+    [DataRow(new[] { "-o1" }, true, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o1")]
+    [DataRow(new[] { "-ofalse" }, false, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ofalse")]
+    [DataRow(new[] { "-ono" }, false, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ono")]
+    [DataRow(new[] { "-ooff" }, false, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ooff")]
+    [DataRow(new[] { "-o0" }, false, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o0")]
+    public void BooleanValue(string[] args, bool value, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.AreEqual(value, options.Option);
+    }
+
+    [TestMethod]
     [DataRow(new[] { "--option", "true" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option true")]
     [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o true")]
     public void GnuDoesNotSupportExplicitBooleanValue(string[] args, TestCommandLineStyle style)
@@ -77,9 +106,68 @@ public class OptionBooleanValueTests
         Assert.AreEqual(CommandLineParsingError.PositionalArgumentNotFound, exception.Reason);
     }
 
+    [TestMethod]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ab")]
+    public void BooleanOptionCombination(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestCombinationOptions>();
+
+        // Assert
+        Assert.IsTrue(options.OptionA);
+        Assert.IsTrue(options.OptionB);
+        Assert.IsNull(options.OptionC);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-abc" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -abc")]
+    public void OptionCombinationMustAllBoolean(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestCombinationOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.ArgumentCombinationIsNotBoolean, exception.Reason);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab")]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab")]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab")]
+    [DataRow(new[] { "/ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab")]
+    public void DoesNotSupportBooleanOptionCombination(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestCombinationOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
+    }
+
     public record TestOptions
     {
         [Option('o', "option")]
         public bool? Option { get; set; }
+    }
+
+    public record TestCombinationOptions
+    {
+        [Option('a', "option-a")]
+        public bool? OptionA { get; set; }
+
+        [Option('b', "option-b")]
+        public bool? OptionB { get; set; }
+
+        [Option('c', "option-c")]
+        public string? OptionC { get; set; }
     }
 }

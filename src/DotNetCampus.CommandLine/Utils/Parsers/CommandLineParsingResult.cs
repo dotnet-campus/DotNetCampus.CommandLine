@@ -47,6 +47,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
             CommandLineParsingError.OptionalArgumentSeparatorNotSupported => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.OptionalArgumentParseError => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.PositionalArgumentNotFound => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.ArgumentCombinationIsNotBoolean => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.BooleanValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
             CommandLineParsingError.DictionaryValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
             CommandLineParsingError.None => throw new CommandLineException("解析过程中没有发生任何错误。"),
@@ -90,14 +91,29 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     }
 
     /// <summary>
+    /// 创建一个表示选项组合不支持非布尔类型的解析结果。
+    /// </summary>
+    /// <param name="commandLine">整个命令行参数列表。</param>
+    /// <param name="index">当前正在解析的参数索引。</param>
+    /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
+    /// <param name="optionName">类型为非布尔类型的选项名称。</param>
+    /// <returns>表示选项组合不支持非布尔类型的解析结果。</returns>
+    public static CommandLineParsingResult OptionalArgumentCombinationIsNotBoolean(CommandLine commandLine, int index, string commandObjectName, ReadOnlySpan<char> optionName)
+    {
+        var message = $"命令行对象 {commandObjectName} 中，选项 {optionName.ToString()} 的类型不是布尔类型，因此不支持使用短布尔选项组合的方式来表示此选项。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+        return new CommandLineParsingResult(CommandLineParsingError.ArgumentCombinationIsNotBoolean, message);
+    }
+
+    /// <summary>
     /// 创建一个表示选项未找到的解析结果。
     /// </summary>
     /// <param name="commandLine">整个命令行参数列表。</param>
     /// <param name="index">当前正在解析的参数索引。</param>
+    /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
     /// <returns>表示选项未找到的解析结果。</returns>
-    public static CommandLineParsingResult OptionalArgumentParseError(CommandLine commandLine, int index)
+    public static CommandLineParsingResult OptionalArgumentParseError(CommandLine commandLine, int index, string commandObjectName)
     {
-        var message = $"参数 {commandLine.CommandLineArguments[index]} 未能解析出选项名。参数列表：{commandLine}，索引 {index}。";
+        var message = $"命令行对象 {commandObjectName} 不包含名称为 {commandLine.CommandLineArguments[index]} 的选项。参数列表：{commandLine}，索引 {index}。";
         return new CommandLineParsingResult(CommandLineParsingError.OptionalArgumentParseError, message);
     }
 
@@ -176,6 +192,11 @@ public enum CommandLineParsingError : byte
     /// 没有任何选项能够匹配当前的命令行参数，可能是因为当前的命令行参数使用了不被支持的选项值分隔符。
     /// </summary>
     OptionalArgumentSeparatorNotSupported,
+
+    /// <summary>
+    /// 当前的命令行参数正试图使用短布尔选项组合的方式来表示一个非布尔类型的选项。
+    /// </summary>
+    ArgumentCombinationIsNotBoolean,
 
     /// <summary>
     /// 当前的命令行参数无法解析出选项名。

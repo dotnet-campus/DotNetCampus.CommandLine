@@ -50,7 +50,7 @@ public class OptionValueSeparatorTests
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o value")]
     [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o value")]
     // ovalue
-    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ovalue")]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ovalue")]
     public void Supported(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -95,6 +95,23 @@ public class OptionValueSeparatorTests
 
         // Assert
         Assert.AreEqual(value, options.Option);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ovalue")]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ovalue")]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ovalue")]
+    [DataRow(new[] { "/ovalue" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ovalue")]
+    public void DoesNotSupportShortOptionWithoutSeparator(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
     }
 
     [TestMethod]

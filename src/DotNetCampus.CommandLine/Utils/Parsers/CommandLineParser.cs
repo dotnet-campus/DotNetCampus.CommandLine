@@ -195,7 +195,7 @@ public readonly ref struct CommandLineParser
                 case Cat.ErrorOption:
                 {
                     // 如果当前参数疑似选项但解析失败，则报告错误。
-                    return CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index);
+                    return CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index, _commandObjectName);
                 }
                 case Cat.MultiShortOptions:
                 {
@@ -208,46 +208,56 @@ public readonly ref struct CommandLineParser
                         {
                             // 是一个多字符短选项。
                             result = AssignOptionValue(optionMatch, []).Combine(result);
+                            break;
                         }
-                        break;
                     }
-                    var allCombined = SupportsShortOptionCombination;
-                    if (SupportsShortOptionCombination)
+                    if (!SupportsShortOptionCombination && !SupportsShortOptionValueWithoutSeparator)
                     {
-                        // 如果不支持，则尝试逐个处理多个短选项。
-                        for (var i = 0; i < optionName.Length; i++)
+                        // 如果既不支持组合短选项，也不支持无分隔符带值的短选项，则报告错误。
+                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name);
+                    }
+                    var first = name[..1];
+                    var others = name[1..];
+                    var firstOptionMatch = MatchShortOption(first, _caseSensitive);
+                    if (SupportsShortOptionCombination && firstOptionMatch.ValueType is OptionValueType.Boolean)
+                    {
+                        // 第一个字符是布尔选项，则可能是组合，也可能跟值。
+                        var parsedBoolean = ParseBoolean(others);
+                        // 后面是一个布尔值。
+                        if (parsedBoolean is { } @bool)
                         {
-                            var n = optionName[i..(i + 1)];
+                            result = AssignOptionValue(firstOptionMatch, @bool.ToBooleanSpan()).Combine(result);
+                            break;
+                        }
+                        // 后面不是布尔值。而由于第一个是布尔值，所以后面必须全是布尔值才能组合。                        // 后面不是布尔值。而由于第一个是布尔值，所以后面必须全是布尔值才能组合。
+                        AssignOptionValue(firstOptionMatch, []);
+                        for (var i = 0; i < others.Length; i++)
+                        {
+                            var n = others[i..(i + 1)];
                             var optionMatch = MatchShortOption(n, _caseSensitive);
                             if (optionMatch.ValueType is OptionValueType.Boolean)
                             {
+                                // 仍是布尔选项，继续赋值。
                                 AssignOptionValue(optionMatch, []);
+                            }
+                            else if (optionMatch.ValueType is OptionValueType.NotExist)
+                            {
+                                // 后面的某个组合选项不存在了，报告错误。
+                                return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n);
                             }
                             else
                             {
-                                // 只有布尔选项才允许组合。
-                                allCombined = false;
-                                break;
+                                // 后面的某个组合选项不是布尔选项，报告不可组合错误。
+                                return CommandLineParsingResult.OptionalArgumentCombinationIsNotBoolean(_commandLine, index, _commandObjectName, n);
                             }
                         }
-                    }
-                    if (allCombined)
-                    {
-                        // 短选项组合已处理完所有字符。
+                        // 所有字符都处理完毕，组合成功。
                         break;
                     }
-                    if (SupportsShortOptionValueWithoutSeparator)
+                    if (SupportsShortOptionValueWithoutSeparator && firstOptionMatch.ValueType is not OptionValueType.Boolean and not OptionValueType.NotExist)
                     {
-                        // 随后，尝试解析为单个字符无分隔符带值的短选项。
-                        var o = name[..1];
-                        var v = name[1..];
-                        var optionMatch = MatchShortOption(o, _caseSensitive);
-                        if (optionMatch.ValueType is OptionValueType.NotExist)
-                        {
-                            // 如果选项不存在，则报告错误。
-                            return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, o);
-                        }
-                        result = AssignOptionValue(optionMatch, v).Combine(result);
+                        // 第一个字符不是布尔选项，则不允许组合，后面只可能是值（无分隔符带值的短选项）。
+                        result = AssignOptionValue(firstOptionMatch, others).Combine(result);
                         break;
                     }
                     // 能进到这里，说明短选项的上述三种情况都不满足，应该报告错误。
@@ -318,20 +328,15 @@ public readonly ref struct CommandLineParser
         else if (match.ValueType is OptionValueType.Boolean)
         {
             var booleanValue = ParseBoolean(value);
-            if (booleanValue is null)
+            if (booleanValue is { } @bool)
+            {
+                var finalValue = @bool.ToBooleanSpan();
+                AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], finalValue);
+            }
+            else
             {
                 result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result);
             }
-            ReadOnlySpan<char> finalValue = booleanValue switch
-            {
-                // 用户输入明确指定为 true。
-                true => ['1'],
-                // 用户输入明确指定为 false。
-                false => ['0'],
-                // 无法识别。
-                _ => ['0'],
-            };
-            AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], finalValue);
         }
         else
         {
@@ -751,4 +756,15 @@ internal ref struct CommandArgumentPart
         Value = argument;
         return true;
     }
+}
+
+file static class Extensions
+{
+    internal static ReadOnlySpan<char> ToBooleanSpan(this bool value) => value switch
+    {
+        // 用户输入明确指定为 true。
+        true => ['1'],
+        // 用户输入明确指定为 false。
+        false => ['0'],
+    };
 }
