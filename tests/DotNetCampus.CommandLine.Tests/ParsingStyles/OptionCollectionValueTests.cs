@@ -90,6 +90,22 @@ public class OptionCollectionValueTests
     }
 
     [TestMethod]
+    [DataRow(new[] { "--option", "a", "--option", "b,c" }, TestCommandLineStyle.DotNet, DisplayName = "[Flexible] --option a --option b,c")]
+    [DataRow(new[] { "--option", "a;b,c" }, TestCommandLineStyle.DotNet, DisplayName = "[Flexible] --option a;b,c")]
+    public void SupportedButStrange_Collection(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.IsNotNull(options.Option);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, (ICollection)options.Option);
+    }
+
+    [TestMethod]
     // option a b
     [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option a b")]
     [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o a b")]
@@ -120,6 +136,23 @@ public class OptionCollectionValueTests
         // Assert
         Assert.IsNotNull(options.Option);
         CollectionAssert.AreEqual(expectedValues, (ICollection)options.Option);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "--option=a", "b,c" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option=a b,c")]
+    [DataRow(new[] { "--option=a", "b,c" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option=a b,c")]
+    [DataRow(new[] { "--option=a", "b,c" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option=a b,c")]
+    [DataRow(new[] { "-Option=a", "b,c" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option=a b,c")]
+    public void DoesNotSupportOptionWithValueAndArgumentValueCollection(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.PositionalArgumentNotFound, exception.Reason);
     }
 
     public record TestOptions
