@@ -219,11 +219,6 @@ public readonly ref struct CommandLineParser
                         {
                             var n = optionName[i..(i + 1)];
                             var optionMatch = MatchShortOption(n, _caseSensitive);
-                            if (optionMatch.ValueType is OptionValueType.NotExist)
-                            {
-                                // 如果选项不存在，则报告错误。
-                                return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n);
-                            }
                             if (optionMatch.ValueType is OptionValueType.Boolean)
                             {
                                 AssignOptionValue(optionMatch, []);

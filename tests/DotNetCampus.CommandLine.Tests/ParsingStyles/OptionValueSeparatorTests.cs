@@ -49,6 +49,8 @@ public class OptionValueSeparatorTests
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o value")]
     [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o value")]
+    // ovalue
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ovalue")]
     public void Supported(string[] args, TestCommandLineStyle style)
     {
         // Arrange

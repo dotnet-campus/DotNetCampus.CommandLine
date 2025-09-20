@@ -48,6 +48,8 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o true")]
     [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o true")]
     [DataRow(new[] { "/o", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o true")]
+    // otrue
+    [DataRow(new[] { "-otrue" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -otrue")]
     public void Supported_True(string[] args, TestCommandLineStyle style)
     {
         // Arrange
