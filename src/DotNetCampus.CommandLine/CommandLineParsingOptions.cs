@@ -29,6 +29,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = false,
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
+        SupportsExplicitBooleanOptionValue = true,
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.Any,
@@ -55,6 +56,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = true,
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
+        SupportsExplicitBooleanOptionValue = true,
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.KebabCase,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -81,6 +83,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = false,
         SupportsShortOptionValueWithoutSeparator = true,
         SupportsSpaceSeparatedOptionValue = true,
+        SupportsExplicitBooleanOptionValue = false,
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.KebabCase,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -107,6 +110,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = false,
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
+        SupportsExplicitBooleanOptionValue = false,
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         // Posix 不支持长选项，使用 DoubleDash 的含义是 '-' 一定表示短选项。
@@ -136,6 +140,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = true,
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
+        SupportsExplicitBooleanOptionValue = true,
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         OptionPrefix = CommandOptionPrefix.SlashOrDash,
@@ -164,6 +169,7 @@ public readonly record struct CommandLineParsingOptions
         SupportsMultiCharShortOption = false,
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = false,
+        SupportsExplicitBooleanOptionValue = true,
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -198,12 +204,12 @@ public readonly record struct CommandLineParsingOptions
     /// </remarks>
     public IReadOnlyList<string>? SchemeNames { get; init; }
 
-    private const ushort FlexibleMagic = 0x18C7;
-    private const ushort DotNetMagic = 0x1AE1;
-    private const ushort GnuMagic = 0xDE1;
-    private const ushort PosixMagic = 0x19A2;
-    private const ushort PowerShellMagic = 0x1ADA;
-    private const ushort UrlMagic = 0x0043;
+    private const ushort FlexibleMagic = 0x38C7;
+    private const ushort DotNetMagic = 0x3AE1;
+    private const ushort GnuMagic = 0x0DE1;
+    private const ushort PosixMagic = 0x29A2;
+    private const ushort PowerShellMagic = 0x3ADA;
+    private const ushort UrlMagic = 0x1043;
 
 #if DEBUG
 
@@ -218,29 +224,21 @@ public readonly record struct CommandLineParsingOptions
         var posixMagic = PosixDefinition.GetMagicNumber();
         var powerShellMagic = PowerShellDefinition.GetMagicNumber();
         var urlMagic = UrlDefinition.GetMagicNumber();
-        if (flexibleMagic != FlexibleMagic)
+        if (flexibleMagic != FlexibleMagic || dotNetMagic != DotNetMagic ||
+            gnuMagic != GnuMagic || posixMagic != PosixMagic ||
+            powerShellMagic != PowerShellMagic || urlMagic != UrlMagic)
         {
-            throw new InvalidOperationException($"The new magic number of Flexible is 0x{flexibleMagic:X4}.");
-        }
-        if (dotNetMagic != DotNetMagic)
-        {
-            throw new InvalidOperationException($"The new magic number of DotNet is 0x{dotNetMagic:X4}.");
-        }
-        if (gnuMagic != GnuMagic)
-        {
-            throw new InvalidOperationException($"The new magic number of Gnu is 0x{gnuMagic:X4}.");
-        }
-        if (posixMagic != PosixMagic)
-        {
-            throw new InvalidOperationException($"The new magic number of Posix is 0x{posixMagic:X4}.");
-        }
-        if (powerShellMagic != PowerShellMagic)
-        {
-            throw new InvalidOperationException($"The new magic number of PowerShell is 0x{powerShellMagic:X4}.");
-        }
-        if (urlMagic != UrlMagic)
-        {
-            throw new InvalidOperationException($"The new magic number of UrlStyle is 0x{urlMagic:X4}.");
+            throw new InvalidOperationException($"""
+The magic numbers of predefined command line styles have been changed. Please copy the code to update them:
+```csharp
+private const ushort FlexibleMagic = 0x{flexibleMagic:X4};
+private const ushort DotNetMagic = 0x{dotNetMagic:X4};
+private const ushort GnuMagic = 0x{gnuMagic:X4};
+private const ushort PosixMagic = 0x{posixMagic:X4};
+private const ushort PowerShellMagic = 0x{powerShellMagic:X4};
+private const ushort UrlMagic = 0x{urlMagic:X4};
+```
+""");
         }
     }
 
@@ -389,14 +387,25 @@ public readonly record struct CommandLineStyleDetails()
     }
 
     /// <summary>
+    /// 是否支持为布尔选项显式指定值。<br/>
+    /// 例如 --option true, --option false, --option:1, --option:0 等等。<br/>
+    /// 如果为 <see langword="false"/>，则 --option true 会被视为 --option 选项，true 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsExplicitBooleanOptionValue
+    {
+        get => _booleans[12];
+        init => _booleans[12] = value;
+    }
+
+    /// <summary>
     /// 当选项值为集合类型时，是否支持使用空格分隔多个选项值。<br/>
     /// 例如 --option value1 value2 等同于 --option value1,value2。<br/>
     /// 如果为 <see langword="false"/>，则 --option value1 value2 会被视为 --option 的值为 "value1"，而 "value2" 会被视为下一个位置参数或选项。
     /// </summary>
     public bool SupportsSpaceSeparatedCollectionValues
     {
-        get => _booleans[12];
-        init => _booleans[12] = value;
+        get => _booleans[13];
+        init => _booleans[13] = value;
     }
 
     /// <summary>
