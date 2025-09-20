@@ -272,10 +272,7 @@ public readonly ref struct CommandLineParser
         var result = CommandLineParsingResult.Success;
         if (match.ValueType is OptionValueType.List)
         {
-            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-            Style.CollectionValueSeparators.CopyTo(separators, out var length);
-            separators = separators[..length];
-
+            var separators = Style.CollectionValueSeparators;
             var start = 0;
             while (start < value.Length)
             {
@@ -297,10 +294,7 @@ public readonly ref struct CommandLineParser
         }
         else if (match.ValueType is OptionValueType.Dictionary)
         {
-            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-            Style.CollectionValueSeparators.CopyTo(separators, out var length);
-            separators = separators[..length];
-
+            var separators = Style.CollectionValueSeparators;
             var start = 0;
             while (start < value.Length)
             {
@@ -541,9 +535,7 @@ internal ref struct CommandArgumentPart
         if (argument.Length is 1)
         {
             // 单个字符，确定一下是否是选项分隔符，如果是则要报错。
-            Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-            _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
-            separators = separators[..length];
+            var separators = _parser.Style.OptionValueSeparators;
             if (argument.IndexOfAny(separators) >= 0)
             {
                 // 仅包含分隔符，视为错误选项。
@@ -591,10 +583,7 @@ internal ref struct CommandArgumentPart
 
     private bool ParseLongOptionOrLongOptionWithValue(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-        _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
-        separators = separators[..length];
-
+        var separators = _parser.Style.OptionValueSeparators;
         var index = argument.IndexOfAny(separators);
         if (index is 0)
         {
@@ -618,10 +607,9 @@ internal ref struct CommandArgumentPart
 
     private bool ParseShortOptionOrMultiShortOptions(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-        _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
-        separators = separators[..length];
-
+        var separators = _parser.SupportsShortOptionValueWithoutSeparator
+            ? CommandSeparatorChars.Empty
+            : _parser.Style.OptionValueSeparators;
         var index = argument.IndexOfAny(separators);
         if (index is 0)
         {
@@ -659,10 +647,7 @@ internal ref struct CommandArgumentPart
 
     private bool ParseLongShortOptionOrLongShortOptionWithValue(ReadOnlySpan<char> argument)
     {
-        Span<char> separators = stackalloc char[CommandSeparatorChars.MaxSupportedCount];
-        _parser.Style.OptionValueSeparators.CopyTo(separators, out var length);
-        separators = separators[..length];
-
+        var separators = _parser.Style.OptionValueSeparators;
         var index = argument.IndexOfAny(separators);
         if (index is 0)
         {

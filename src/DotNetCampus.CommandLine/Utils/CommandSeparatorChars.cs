@@ -12,6 +12,11 @@ namespace DotNetCampus.Cli.Utils;
 public readonly record struct CommandSeparatorChars : IEnumerable<char>
 {
     /// <summary>
+    /// 获取一个空的分隔符字符集合实例。
+    /// </summary>
+    public static CommandSeparatorChars Empty => new CommandSeparatorChars('\0', '\0');
+
+    /// <summary>
     /// 分隔符字符集合中允许的最大字符数量。
     /// </summary>
     internal const int MaxSupportedCount = 2;
@@ -24,6 +29,24 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     {
         _char0 = char0;
         _char1 = char1;
+    }
+
+    /// <summary>
+    /// 返回指定文本中第一个分隔符字符的索引；如果未找到任何分隔符字符，则返回 -1。
+    /// </summary>
+    /// <param name="text">要搜索的文本。</param>
+    /// <returns>第一个分隔符字符的索引；如果未找到任何分隔符字符，则返回 -1。</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int SeparateIndex(ReadOnlySpan<char> text)
+    {
+        foreach (var c in text)
+        {
+            if (c == _char0 || c == _char1)
+            {
+                return text.IndexOf(c);
+            }
+        }
+        return -1;
     }
 
     /// <summary>
@@ -81,4 +104,22 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
         2 => new CommandSeparatorChars(chars[0], chars[1]),
         _ => throw new ArgumentOutOfRangeException(nameof(chars), $"The length of chars cannot be greater than {MaxSupportedCount}."),
     };
+}
+
+/// <summary>
+/// <see cref="CommandSeparatorChars"/> 的扩展方法。
+/// </summary>
+public static class CommandSeparatorCharsExtensions
+{
+    /// <summary>
+    /// 返回指定文本中第一个分隔符字符的索引；如果未找到任何分隔符字符，则返回 -1。
+    /// </summary>
+    /// <param name="span">要搜索的文本。</param>
+    /// <param name="separatorChars">分隔符字符集合。</param>
+    /// <returns>第一个分隔符字符的索引；如果未找到任何分隔符字符，则返回 -1。</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int IndexOfAny(this ReadOnlySpan<char> span, CommandSeparatorChars separatorChars)
+    {
+        return separatorChars.SeparateIndex(span);
+    }
 }

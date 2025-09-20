@@ -80,9 +80,12 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         var reason = possibleSeparatorIndex >= 0
             ? CommandLineParsingError.OptionalArgumentSeparatorNotSupported
             : CommandLineParsingError.OptionalArgumentNotFound;
+        var isUrl = commandLine.MatchedUrlScheme is not null;
         var message = possibleSeparatorIndex >= 0
             ? $"当前解析选项 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。"
-            : $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+            : isUrl
+                ? $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}，请注意解析 URL 时不支持短选项参数。URL={commandLine.ToRawString()}"
+                : $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
         return new CommandLineParsingResult(reason, message);
     }
 
