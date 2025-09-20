@@ -81,11 +81,10 @@ public class OptionValueSeparatorTests
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentSeparatorNotSupported, exception.Reason);
     }
 
-
     [TestMethod]
     [DataRow(new[] { "-o=value" }, "=value", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o=value (预期值为 '=value')")]
     [DataRow(new[] { "-o:value" }, ":value", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o:value (预期值为 ':value')")]
-    public void GnuDoesNotSupportShortOptionSeparator(string[] args, string value, TestCommandLineStyle style)
+    public void GnuDoesNotSupportShortOptionSeparator(string[] args, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
@@ -94,7 +93,7 @@ public class OptionValueSeparatorTests
         var options = commandLine.As<TestOptions>();
 
         // Assert
-        Assert.AreEqual(value, options.Option);
+        Assert.AreEqual(expectedValue, options.Option);
     }
 
     [TestMethod]
