@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
@@ -45,6 +46,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         {
             CommandLineParsingError.OptionalArgumentNotFound => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.OptionalArgumentSeparatorNotSupported => new CommandLineParseException(ErrorType, ErrorMessage!),
+            CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.OptionalArgumentParseError => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.PositionalArgumentNotFound => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.ArgumentCombinationIsNotBoolean => new CommandLineParseException(ErrorType, ErrorMessage!),
@@ -74,19 +76,39 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <param name="index">当前正在解析的参数索引。</param>
     /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
     /// <param name="optionName">确定没有找到的选项名称。</param>
+    /// <param name="isLongOption">指示此选项名称是否为长选项名称。如果为 <see langword="null"/>，表示无法确定是长选项还是短选项。</param>
     /// <returns>表示选项未找到的解析结果。</returns>
-    public static CommandLineParsingResult OptionalArgumentNotFound(CommandLine commandLine, int index, string commandObjectName, ReadOnlySpan<char> optionName)
+    public static CommandLineParsingResult OptionalArgumentNotFound(CommandLine commandLine, int index, string commandObjectName,
+        ReadOnlySpan<char> optionName, bool? isLongOption)
     {
-        var possibleSeparatorIndex = optionName.IndexOfAnyNonLetterOrDigit();
-        var reason = possibleSeparatorIndex >= 0
-            ? CommandLineParsingError.OptionalArgumentSeparatorNotSupported
-            : CommandLineParsingError.OptionalArgumentNotFound;
         var isUrl = commandLine.MatchedUrlScheme is not null;
-        var message = possibleSeparatorIndex >= 0
-            ? $"当前解析选项 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。"
-            : isUrl
-                ? $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}，请注意解析 URL 时不支持短选项参数。URL={commandLine.ToRawString()}"
-                : $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+        var possibleSeparatorIndex = optionName.IndexOfAnyNonLetterOrDigit();
+        var reason = (isLongOption, possibleSeparatorIndex) switch
+        {
+            (_, < 0) => CommandLineParsingError.OptionalArgumentNotFound,
+            (_, 0) => CommandLineParsingError.OptionalArgumentParseError,
+            (_, 1) => CommandLineParsingError.OptionalArgumentSeparatorNotSupported,
+            (false, _) => CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported,
+            _ => CommandLineParsingError.OptionalArgumentSeparatorNotSupported,
+        };
+        var message = reason switch
+        {
+            CommandLineParsingError.OptionalArgumentNotFound when isUrl =>
+                $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}，请注意解析 URL 时不支持短选项参数。URL={commandLine.ToRawString()}",
+            CommandLineParsingError.OptionalArgumentNotFound =>
+                $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+            CommandLineParsingError.OptionalArgumentParseError =>
+                $"命令行参数 {commandLine.CommandLineArguments[index]} 中不包含选项名称，解析失败。参数列表：{commandLine}，索引 {index}。",
+            CommandLineParsingError.OptionalArgumentSeparatorNotSupported =>
+                $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+            CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported =>
+                $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持多字符短选项，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+#if NET8_0_OR_GREATER
+            _ => throw new UnreachableException(),
+#else
+            _ => throw new InvalidOperationException("Unreachable code."),
+#endif
+        };
         return new CommandLineParsingResult(reason, message);
     }
 
@@ -98,9 +120,11 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
     /// <param name="optionName">类型为非布尔类型的选项名称。</param>
     /// <returns>表示选项组合不支持非布尔类型的解析结果。</returns>
-    public static CommandLineParsingResult OptionalArgumentCombinationIsNotBoolean(CommandLine commandLine, int index, string commandObjectName, ReadOnlySpan<char> optionName)
+    public static CommandLineParsingResult OptionalArgumentCombinationIsNotBoolean(CommandLine commandLine, int index, string commandObjectName,
+        ReadOnlySpan<char> optionName)
     {
-        var message = $"命令行对象 {commandObjectName} 中，选项 {optionName.ToString()} 的类型不是布尔类型，因此不支持使用短布尔选项组合的方式来表示此选项。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+        var message =
+            $"命令行对象 {commandObjectName} 中，选项 {optionName.ToString()} 的类型不是布尔类型，因此不支持使用短布尔选项组合的方式来表示此选项。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
         return new CommandLineParsingResult(CommandLineParsingError.ArgumentCombinationIsNotBoolean, message);
     }
 
@@ -113,7 +137,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <returns>表示选项未找到的解析结果。</returns>
     public static CommandLineParsingResult OptionalArgumentParseError(CommandLine commandLine, int index, string commandObjectName)
     {
-        var message = $"命令行对象 {commandObjectName} 不包含名称为 {commandLine.CommandLineArguments[index]} 的选项。参数列表：{commandLine}，索引 {index}。";
+        var message = $"命令行参数 {commandLine.CommandLineArguments[index]} 中不包含选项名称，解析失败。参数列表：{commandLine}，索引 {index}。";
         return new CommandLineParsingResult(CommandLineParsingError.OptionalArgumentParseError, message);
     }
 
@@ -192,6 +216,11 @@ public enum CommandLineParsingError : byte
     /// 没有任何选项能够匹配当前的命令行参数，可能是因为当前的命令行参数使用了不被支持的选项值分隔符。
     /// </summary>
     OptionalArgumentSeparatorNotSupported,
+
+    /// <summary>
+    /// 当前命令行风格不支持多字符短选项。
+    /// </summary>
+    MultiCharShortOptionalArgumentNotSupported,
 
     /// <summary>
     /// 当前的命令行参数正试图使用短布尔选项组合的方式来表示一个非布尔类型的选项。
