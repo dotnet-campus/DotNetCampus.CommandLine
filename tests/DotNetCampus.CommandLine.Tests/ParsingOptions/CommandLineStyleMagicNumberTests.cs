@@ -9,7 +9,7 @@ public class CommandLineStyleMagicNumberTests
     [TestMethod("魔法数字必须严格和实际样式匹配")]
     public void MagicNumber_MustMatchRealStyle()
     {
-        CommandLineParsingOptions.VerifyMagicNumbers();
+        CommandLineStyle.VerifyMagicNumbers();
     }
 #endif
 }

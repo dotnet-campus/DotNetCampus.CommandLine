@@ -26,7 +26,7 @@ public readonly ref struct CommandLineParser
         _commandCount = commandCount;
         var isUrl = commandLine.MatchedUrlScheme is not null;
         Style = isUrl
-            ? CommandLineParsingOptions.UrlStyle
+            ? CommandLineStyle.Url
             : commandLine.ParsingOptions.Style;
         _namingPolicy = Style.NamingPolicy;
         OptionPrefix = Style.OptionPrefix;
@@ -44,33 +44,33 @@ public readonly ref struct CommandLineParser
     /// <summary>
     /// 获取解析命令行时所使用的各种选项。
     /// </summary>
-    internal CommandLineStyleDetails Style { get; }
+    internal CommandLineStyle Style { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.OptionPrefix"/>
+    /// <inheritdoc cref="CommandLineStyle.OptionPrefix"/>
     internal CommandOptionPrefix OptionPrefix { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsLongOption"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsLongOption"/>
     internal bool SupportsLongOption { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOption"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsShortOption"/>
     internal bool SupportsShortOption { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOptionCombination"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsShortOptionCombination"/>
     internal bool SupportsShortOptionCombination { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsMultiCharShortOption"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsMultiCharShortOption"/>
     internal bool SupportsMultiCharShortOption { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsShortOptionValueWithoutSeparator"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsShortOptionValueWithoutSeparator"/>
     internal bool SupportsShortOptionValueWithoutSeparator { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedOptionValue"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsSpaceSeparatedOptionValue"/>
     internal bool SupportsSpaceSeparatedOptionValue { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsExplicitBooleanOptionValue"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsExplicitBooleanOptionValue"/>
     internal bool SupportsExplicitBooleanOptionValue { get; }
 
-    /// <inheritdoc cref="CommandLineStyleDetails.SupportsSpaceSeparatedCollectionValues"/>
+    /// <inheritdoc cref="CommandLineStyle.SupportsSpaceSeparatedCollectionValues"/>
     internal bool SupportsSpaceSeparatedCollectionValues { get; }
 
     /// <summary>

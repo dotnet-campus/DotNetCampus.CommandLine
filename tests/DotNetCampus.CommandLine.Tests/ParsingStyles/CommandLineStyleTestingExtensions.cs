@@ -4,16 +4,6 @@ namespace DotNetCampus.Cli.Tests.ParsingStyles;
 
 internal static class CommandLineStyleTestingExtensions
 {
-    public static CommandLineParsingOptions ToParsingOptions(this CommandLineStyle style) => style switch
-    {
-        CommandLineStyle.Flexible => CommandLineParsingOptions.Flexible,
-        CommandLineStyle.DotNet => CommandLineParsingOptions.DotNet,
-        CommandLineStyle.Gnu => CommandLineParsingOptions.Gnu,
-        CommandLineStyle.Posix => CommandLineParsingOptions.Posix,
-        CommandLineStyle.PowerShell => CommandLineParsingOptions.PowerShell,
-        _ => throw new ArgumentOutOfRangeException(nameof(style), style, null),
-    };
-
     public static CommandLineParsingOptions ToParsingOptions(this TestCommandLineStyle style) => style switch
     {
         TestCommandLineStyle.Flexible => CommandLineParsingOptions.Flexible,
