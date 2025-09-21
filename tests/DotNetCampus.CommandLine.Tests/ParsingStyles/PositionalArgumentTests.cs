@@ -110,11 +110,6 @@ public class PositionalArgumentTests
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
     }
 
-    // [TestMethod]
-    public void MatchPositionalArgumentRange(string[] args, TestCommandLineStyle style)
-    {
-    }
-
     [TestMethod]
     [DataRow(new[] { "-o", "true", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o true value")]
     public void DoesNotMatchPositionalArgumentRange_Boolean(string[] args, TestCommandLineStyle style)
@@ -143,6 +138,29 @@ public class PositionalArgumentTests
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.PositionalArgumentNotFound, exception.Reason);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "a", "b", "c", "d", "e", "f" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] a b c d e f")]
+    [DataRow(new[] { "-o", "value", "a", "b", "c", "d", "e", "f" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value a b c d e f")]
+    [DataRow(new[] { "a", "b", "c", "d", "e", "f", "-o", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] a b c d e f -o value")]
+    [DataRow(new[] { "-o", "value", "a", "b", "c", "d", "e", "f", "--" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value a b c d e f --")]
+    [DataRow(new[] { "a", "b", "c", "d", "e", "f", "-o", "value", "--" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] a b c d e f -o value --")]
+    [DataRow(new[] { "-o", "value", "--", "a", "b", "c", "d", "e", "f" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value -- a b c d e f")]
+    [DataRow(new[] { "a", "b", "-o", "value", "c", "d", "e", "f" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] a b -o value c d e f")]
+    [DataRow(new[] { "a", "b", "c", "-o", "value", "d", "e", "f" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] a b c -o value d e f")]
+    public void MatchPositionalArgumentRange(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<MultiplePositionArgumentsOptions>();
+
+        // Assert
+        CollectionAssert.AreEqual(new[] { "a", "b" }, (ICollection)options.Value0!);
+        Assert.AreEqual("c", options.Value1);
+        CollectionAssert.AreEqual(new[] { "d", "e", "f" }, (ICollection)options.Value2!);
     }
 
     public record TestOptions
@@ -174,13 +192,16 @@ public class PositionalArgumentTests
 
     public record MultiplePositionArgumentsOptions
     {
+        [Option('o', "option")]
+        public string? Option { get; set; }
+
         [Value(0, 2)]
         public IReadOnlyList<string>? Value0 { get; set; }
 
-        [Value(1)]
+        [Value(2)]
         public string? Value1 { get; set; }
 
-        [Value(2, int.MaxValue)]
+        [Value(3, int.MaxValue)]
         public IReadOnlyList<string>? Value2 { get; set; }
     }
 }
