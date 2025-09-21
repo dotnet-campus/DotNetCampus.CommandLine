@@ -1,4 +1,5 @@
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators.Models;
@@ -70,14 +71,14 @@ internal record CommandObjectGeneratingModel
 
         foreach (var option in OptionProperties)
         {
-            if (option.Type.TryGetEnumType(out var enumTypeSymbol))
+            if (option.Type.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol)
             {
                 enums.Add(enumTypeSymbol);
             }
         }
         foreach (var value in PositionalArgumentProperties)
         {
-            if (value.Type.TryGetEnumType(out var enumTypeSymbol))
+            if (value.Type.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol)
             {
                 enums.Add(enumTypeSymbol);
             }

@@ -1,3 +1,4 @@
+using DotNetCampus.CommandLine.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators.Models;
@@ -14,43 +15,6 @@ internal static class GeneratingModelExtensions
         kindOptions: SymbolDisplayKindOptions.None
     );
 
-    /// <summary>
-    /// 尝试判断 <paramref name="symbol"/> 是否是一个枚举类型（含可空枚举类型）。
-    /// 如果是，则返回 <see langword="true"/>，并通过 <paramref name="enumTypeSymbol"/> 返回枚举类型本身。
-    /// 否则返回 <see langword="false"/>，并将 <paramref name="enumTypeSymbol"/> 设为 <paramref name="symbol"/>。
-    /// </summary>
-    /// <param name="symbol">命令行对象中一个枚举属性的属性类型。</param>
-    /// <param name="enumTypeSymbol">如果返回值为 <see langword="true"/>，则为枚举类型本身；否则为 <paramref name="symbol"/>。</param>
-    /// <returns>辅助类型的名称。</returns>
-    public static bool TryGetEnumType(this ITypeSymbol symbol, out ITypeSymbol enumTypeSymbol)
-    {
-        if (symbol is { IsValueType: true, OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } typeSymbol)
-        {
-            enumTypeSymbol = typeSymbol is INamedTypeSymbol { IsGenericType: true, ConstructedFrom.SpecialType: SpecialType.System_Nullable_T } namedType
-                // 获取 Nullable<T> 中的 T。
-                ? namedType.TypeArguments[0]
-                // 处理直接带有可空标记的类型 (int? 这种形式)。
-                : typeSymbol;
-            return enumTypeSymbol.TypeKind is TypeKind.Enum;
-        }
-        enumTypeSymbol = symbol;
-        return symbol.TypeKind is TypeKind.Enum;
-    }
-
-    /// <summary>
-    /// 假定 <paramref name="symbol"/> 是一个命令行对象中一个枚举属性的属性类型，
-    /// 现在我们要为这个枚举生成一个用来赋值命令行值的辅助类型，
-    /// 此方法返回这个辅助类型的名称。
-    /// </summary>
-    /// <param name="symbol">命令行对象中一个枚举属性的属性类型。</param>
-    /// <returns>辅助类型的名称。</returns>
-    public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
-    {
-        return symbol.TryGetEnumType(out var enumTypeSymbol)
-            ? $"__GeneratedEnumArgument__{enumTypeSymbol.ToDisplayString().Replace('.', '_')}__"
-            : symbol.ToDisplayString();
-    }
-
     public static string ToCommandValueTypeName(this CommandValueKind type) => type switch
     {
         CommandValueKind.Boolean => "global::DotNetCampus.Cli.OptionValueType.Boolean",
@@ -65,29 +29,9 @@ internal static class GeneratingModelExtensions
     /// </summary>
     /// <param name="typeSymbol">类型符号。</param>
     /// <returns>非抽象名称。</returns>
-    public static string ToCommandValueNonAbstractName(this ITypeSymbol typeSymbol)
+    public static string GetGeneratedNotAbstractTypeName(this ITypeSymbol typeSymbol)
     {
-        if (typeSymbol.Kind is SymbolKind.ArrayType)
-        {
-            return "Array";
-        }
-
-        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
-        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
-        {
-            // Nullable<T> 类型
-            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return ToCommandValueNonAbstractName(genericType);
-        }
-
-        // 取出类型的 .NET 类名称，不含泛型。如 bool 返回 Boolean，Dictionary<string, string> 返回 Dictionary。
-        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
-        {
-            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
-                or "IImmutableSet" or "IImmutableList" => "List",
-            "IDictionary" or "IReadOnlyDictionary" => "Dictionary",
-            var name => name,
-        };
+        return typeSymbol.GetSymbolInfoAsCommandProperty().GetGeneratedNotAbstractTypeName();
     }
 
     /// <summary>
@@ -97,58 +41,7 @@ internal static class GeneratingModelExtensions
     /// <returns>命令行值的种类。</returns>
     public static CommandValueKind AsCommandValueKind(this ITypeSymbol typeSymbol)
     {
-        if (typeSymbol.SpecialType is SpecialType.System_Boolean)
-        {
-            return CommandValueKind.Boolean;
-        }
-
-        if (typeSymbol.SpecialType is SpecialType.System_Byte or
-            SpecialType.System_SByte or
-            SpecialType.System_Int16 or
-            SpecialType.System_UInt16 or
-            SpecialType.System_Int32 or
-            SpecialType.System_UInt32 or
-            SpecialType.System_Int64 or
-            SpecialType.System_UInt64 or
-            SpecialType.System_Single or
-            SpecialType.System_Double or
-            SpecialType.System_Decimal)
-        {
-            return CommandValueKind.Number;
-        }
-
-        if (typeSymbol.TypeKind is TypeKind.Enum)
-        {
-            return CommandValueKind.Enum;
-        }
-
-        if (typeSymbol.SpecialType is SpecialType.System_String)
-        {
-            return CommandValueKind.String;
-        }
-
-        if (typeSymbol.Kind is SymbolKind.ArrayType)
-        {
-            return CommandValueKind.List;
-        }
-
-        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
-        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
-        {
-            // Nullable<T> 类型
-            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return AsCommandValueKind(genericType);
-        }
-
-        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
-        {
-            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
-                or "IImmutableSet" or "IImmutableList" => CommandValueKind.List,
-            "ImmutableArray" or "List" or "ImmutableHashSet" or "Collection" or "HashSet" => CommandValueKind.List,
-            "IDictionary" or "IReadOnlyDictionary" => CommandValueKind.Dictionary,
-            "ImmutableDictionary" or "Dictionary" or "KeyValuePair" => CommandValueKind.Dictionary,
-            _ => CommandValueKind.Unknown,
-        };
+        return typeSymbol.GetSymbolInfoAsCommandProperty().Kind;
     }
 
     /// <summary>

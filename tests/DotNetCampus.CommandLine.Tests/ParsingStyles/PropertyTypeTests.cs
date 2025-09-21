@@ -27,8 +27,6 @@ public class PropertyTypeTests
             "--single-property", "1.1",
             "--int32-property", "1",
             "--uint32-property", "1",
-            "--intptr-property", "1",
-            "--uintptr-property", "1",
             "--int64-property", "1",
             "--uint64-property", "1",
             "--int16-property", "1",
@@ -76,8 +74,6 @@ public class PropertyTypeTests
         Assert.AreEqual(1.1f, options.SingleProperty);
         Assert.AreEqual(1, options.Int32Property);
         Assert.AreEqual((uint)1, options.UInt32Property);
-        Assert.AreEqual((nint)1, options.IntPtrProperty);
-        Assert.AreEqual((nuint)1, options.UIntPtrProperty);
         Assert.AreEqual((long)1, options.Int64Property);
         Assert.AreEqual((ulong)1, options.UInt64Property);
         Assert.AreEqual((short)1, options.Int16Property);
@@ -134,12 +130,6 @@ public class PropertyTypeTests
 
         [Option]
         public uint? UInt32Property { get; set; }
-
-        [Option]
-        public nint? IntPtrProperty { get; set; }
-
-        [Option]
-        public nuint? UIntPtrProperty { get; set; }
 
         [Option]
         public long? Int64Property { get; set; }

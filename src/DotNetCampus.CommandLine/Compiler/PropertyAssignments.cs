@@ -218,9 +218,54 @@ public readonly record struct StringListArgument
     }
 
     /// <summary>
+    /// 将解析到的值转换为集合。
+    /// </summary>
+    public Collection<string> ToCollection() => Value switch
+    {
+        null or { Count: 0 } => [],
+        { } values => [..values],
+    };
+
+    /// <summary>
     /// 将解析到的值转换为字符串数组。
     /// </summary>
     public string[] ToArray() => Value switch
+    {
+        null or { Count: 0 } => [],
+        { } values => [..values],
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为哈希集合。
+    /// </summary>
+    public HashSet<string> ToHashSet() => Value switch
+    {
+        null or { Count: 0 } => [],
+        { } values => [..values],
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为列表。
+    /// </summary>
+    public List<string> ToList() => Value switch
+    {
+        null or { Count: 0 } => [],
+        { } values => values,
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为只读集合。
+    /// </summary>
+    public ReadOnlyCollection<string> ToReadOnlyCollection() => Value switch
+    {
+        null or { Count: 0 } => new ReadOnlyCollection<string>([]),
+        { } values => new ReadOnlyCollection<string>(values),
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为排序集合。
+    /// </summary>
+    public SortedSet<string> ToSortedSet() => Value switch
     {
         null or { Count: 0 } => [],
         { } values => [..values],
@@ -242,6 +287,34 @@ public readonly record struct StringListArgument
     };
 
     /// <summary>
+    /// 将解析到的值转换为不可变列表。
+    /// </summary>
+    public ImmutableList<string> ToImmutableList() => Value switch
+    {
+#if NET8_0_OR_GREATER
+        null or { Count: 0 } => [],
+        { } values => [..values],
+#else
+        null or { Count: 0 } => ImmutableList<string>.Empty,
+        { } values => values.ToImmutableList(),
+#endif
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为不可变排序集合。
+    /// </summary>
+    public ImmutableSortedSet<string> ToImmutableSortedSet() => Value switch
+    {
+#if NET8_0_OR_GREATER
+        null or { Count: 0 } => [],
+        { } values => [..values],
+#else
+        null or { Count: 0 } => ImmutableSortedSet<string>.Empty,
+        { } values => values.ToImmutableSortedSet(),
+#endif
+    };
+
+    /// <summary>
     /// 将解析到的值转换为不可变哈希集合。
     /// </summary>
     public ImmutableHashSet<string> ToImmutableHashSet() => Value switch
@@ -256,24 +329,6 @@ public readonly record struct StringListArgument
     };
 
 #endif
-
-    /// <summary>
-    /// 将解析到的值转换为集合。
-    /// </summary>
-    public Collection<string> ToCollection() => Value switch
-    {
-        null or { Count: 0 } => [],
-        { } values => [..values],
-    };
-
-    /// <summary>
-    /// 将解析到的值转换为列表。
-    /// </summary>
-    public List<string> ToList() => Value switch
-    {
-        null or { Count: 0 } => [],
-        { } values => values,
-    };
 }
 
 /// <summary>
@@ -327,6 +382,35 @@ public readonly record struct StringDictionaryArgument
     {
         return Value ?? [];
     }
+
+    /// <summary>
+    /// 将解析到的值转换为排序字典。
+    /// </summary>
+    public SortedDictionary<string, string> ToSortedDictionary() => Value switch
+    {
+        null or { Count: 0 } => new SortedDictionary<string, string>(),
+        { } values => new SortedDictionary<string, string>(values),
+    };
+
+#if NETCOREAPP3_1_OR_GREATER
+    /// <summary>
+    /// 将解析到的值转换为不可变字典。
+    /// </summary>
+    public ImmutableDictionary<string, string> ToImmutableDictionary() => Value switch
+    {
+        null or { Count: 0 } => ImmutableDictionary<string, string>.Empty,
+        { } values => values.ToImmutableDictionary(),
+    };
+
+    /// <summary>
+    /// 将解析到的值转换为不可变排序字典。
+    /// </summary>
+    public ImmutableSortedDictionary<string, string> ToImmutableSortedDictionary() => Value switch
+    {
+        null or { Count: 0 } => ImmutableSortedDictionary<string, string>.Empty,
+        { } values => values.ToImmutableSortedDictionary(),
+    };
+#endif
 }
 
 /// <summary>

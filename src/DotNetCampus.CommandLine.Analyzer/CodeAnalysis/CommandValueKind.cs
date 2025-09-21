@@ -1,4 +1,4 @@
-namespace DotNetCampus.CommandLine.Generators.Models;
+namespace DotNetCampus.CommandLine.CodeAnalysis;
 
 /// <summary>
 /// 从命令行解析参数的含义时，对于值（选项和位置参数）的类型的分类。<br/>

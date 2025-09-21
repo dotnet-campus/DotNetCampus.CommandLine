@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using DotNetCampus.CommandLine.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,66 +10,6 @@ namespace DotNetCampus.CommandLine.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>
-    /// 允许的非泛型类型名称。
-    /// </summary>
-    private readonly HashSet<string> _nonGenericTypeNames =
-    [
-        // bool
-        "bool",
-        "Boolean",
-        // number
-        "byte", "sbyte", "decimal", "double", "float", "int", "uint", "nint", "nuint", "long", "ulong", "short", "ushort",
-        "Byte", "SByte", "Decimal", "Double", "Single", "Int32", "UInt32", "IntPtr", "UIntPtr", "Int64", "UInt64", "Int16", "UInt16",
-        // string
-        "char", "string",
-        "Char", "String",
-    ];
-
-    /// <summary>
-    /// 允许的单泛型类型名称。
-    /// </summary>
-    private readonly HashSet<string> _oneGenericTypeNames =
-    [
-        // collection
-        "[]", "Collection", "List", "ReadOnlyCollection", "HashSet", "ImmutableArray", "ImmutableList", "ImmutableHashSet",
-        // sorted
-        "SortedList", "SortedSet", "ImmutableSortedSet",
-        // interface
-        "IEnumerable", "ICollection", "IList", "IReadOnlyCollection", "IReadOnlyList", "ISet", "IImmutableList", "IImmutableSet",
-    ];
-
-    /// <summary>
-    /// 允许的双泛型类型名称。
-    /// </summary>
-    private readonly HashSet<string> _twoGenericTypeNames =
-    [
-        // dictionary
-        "KeyValuePair", "Dictionary", "ImmutableDictionary",
-        // sorted
-        "SortedDictionary", "SortedList", "ImmutableSortedDictionary",
-        // interface
-        "IDictionary", "IReadOnlyDictionary",
-    ];
-
-    /// <summary>
-    /// 允许的 RawArguments 泛型类型名称。
-    /// </summary>
-    private readonly HashSet<string> _rawArgumentsGenericTypeNames =
-    [
-        "[]", "IList", "IReadOnlyList", "ICollection", "IReadOnlyCollection", "IEnumerable",
-    ];
-
-    /// <summary>
-    /// 允许的字典类型 Key 的泛型参数类型名称。
-    /// </summary>
-    private readonly HashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
-
-    /// <summary>
-    /// 允许的泛型参数类型名称。
-    /// </summary>
-    private readonly HashSet<string> _genericArgumentTypeNames = ["String", "string"];
-
     /// <summary>
     /// Supported diagnostics.
     /// </summary>
@@ -126,6 +67,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
             {
                 var isValidPropertyUsage = AnalyzeOptionPropertyType(context.SemanticModel, propertyNode);
                 var diagnostic = CreateDiagnosticForTypeSyntax(
+                    context.SemanticModel,
                     isValidPropertyUsage
                         ? Diagnostics.DCL201_SupportedOptionPropertyType
                         : Diagnostics.DCL202_NotSupportedOptionPropertyType,
@@ -141,6 +83,7 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
                 if (!isValidPropertyUsage)
                 {
                     var diagnostic = CreateDiagnosticForTypeSyntax(
+                        context.SemanticModel,
                         Diagnostics.DCL203_NotSupportedRawArgumentsPropertyType,
                         propertyNode);
                     context.ReportDiagnostic(diagnostic);
@@ -150,17 +93,13 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private Diagnostic CreateDiagnosticForTypeSyntax(DiagnosticDescriptor rule, PropertyDeclarationSyntax propertySyntax)
+    private Diagnostic CreateDiagnosticForTypeSyntax(SemanticModel semanticModel, DiagnosticDescriptor rule, PropertyDeclarationSyntax propertySyntax)
     {
-        var typeSyntax = propertySyntax.Type;
-        if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
-        {
-            // string?
-            typeSyntax = nullableTypeSyntax.ElementType;
-        }
-        string typeName = GetTypeName(typeSyntax);
-
-        return Diagnostic.Create(rule, typeSyntax.GetLocation(), typeName);
+        var typeSyntax = propertySyntax.Type is NullableTypeSyntax nullableTypeSyntax
+            ? nullableTypeSyntax.ElementType
+            : propertySyntax.Type;
+        var propertyTypeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(propertySyntax.Type).Symbol!;
+        return Diagnostic.Create(rule, typeSyntax.GetLocation(), propertyTypeSymbol.GetSymbolInfoAsCommandProperty().GetSimpleName());
     }
 
     /// <summary>
@@ -171,44 +110,9 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     /// <returns></returns>
     private bool AnalyzeOptionPropertyType(SemanticModel semanticModel, PropertyDeclarationSyntax propertySyntax)
     {
-        var propertyTypeSyntax = propertySyntax.Type;
-        string typeName = GetTypeName(propertyTypeSyntax);
-        var (genericType0, genericType1) = GetGenericTypeNames(propertyTypeSyntax);
-
-        if (IsTwoGenericType(typeName)
-            && genericType0 != null && genericType1 != null
-            && IsGenericKeyArgumentType(genericType0)
-            && IsGenericArgumentType(genericType1))
-        {
-            return true;
-        }
-
-        if (IsOneGenericType(typeName)
-            && genericType0 != null
-            && IsGenericArgumentType(genericType0))
-        {
-            return true;
-        }
-
-        if (IsNonGenericType(typeName))
-        {
-            return true;
-        }
-
-        if (propertyTypeSyntax is NullableTypeSyntax nullableTypeSyntax
-            && semanticModel.GetSymbolInfo(nullableTypeSyntax.ElementType).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
-        {
-            // Enum?
-            return true;
-        }
-
-        if (semanticModel.GetSymbolInfo(propertyTypeSyntax).Symbol is INamedTypeSymbol { TypeKind: TypeKind.Enum })
-        {
-            // Enum
-            return true;
-        }
-
-        return false;
+        var propertyTypeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(propertySyntax.Type).Symbol!;
+        var propertyInfo = propertyTypeSymbol.GetSymbolInfoAsCommandProperty();
+        return propertyInfo.Kind is not CommandValueKind.Unknown;
     }
 
     /// <summary>
@@ -219,102 +123,8 @@ public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
     /// <returns></returns>
     private bool AnalyzeRawArgumentsPropertyType(SemanticModel semanticModel, PropertyDeclarationSyntax propertySyntax)
     {
-        var propertyTypeSyntax = propertySyntax.Type;
-        string typeName = GetTypeName(propertyTypeSyntax);
-        var (genericType0, genericType1) = GetGenericTypeNames(propertyTypeSyntax);
-
-        if (IsRawArgumentsGenericType(typeName)
-            && genericType0 != null
-            && IsGenericArgumentType(genericType0))
-        {
-            return true;
-        }
-
-        return false;
+        var propertyTypeSymbol = (ITypeSymbol)semanticModel.GetSymbolInfo(propertySyntax.Type).Symbol!;
+        var propertyInfo = propertyTypeSymbol.GetSymbolInfoAsCommandProperty();
+        return propertyInfo.IsAssignableFromArrayOrList();
     }
-
-    private string GetTypeName(TypeSyntax typeSyntax)
-    {
-        if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
-        {
-            // string?
-            typeSyntax = nullableTypeSyntax.ElementType;
-        }
-
-        if (typeSyntax is GenericNameSyntax genericNameSyntax)
-        {
-            // List<string>
-            // Dictionary<string, string>
-            return genericNameSyntax.Identifier.ToString();
-        }
-
-        if (typeSyntax is ArrayTypeSyntax)
-        {
-            // string[]
-            return "[]";
-        }
-
-        if (typeSyntax is PredefinedTypeSyntax predefinedTypeSyntax)
-        {
-            // string
-            return predefinedTypeSyntax.ToString();
-        }
-
-        if (typeSyntax is QualifiedNameSyntax qualifiedNameSyntax)
-        {
-            // System.String
-            return qualifiedNameSyntax.ChildNodes().OfType<IdentifierNameSyntax>().Last().ToString();
-        }
-
-        // String
-        return typeSyntax.ToString();
-    }
-
-    private (string?, string?) GetGenericTypeNames(TypeSyntax typeSyntax)
-    {
-        if (typeSyntax is NullableTypeSyntax nullableTypeSyntax)
-        {
-            // string?
-            typeSyntax = nullableTypeSyntax.ElementType;
-        }
-
-        string? genericType0 = null, genericType1 = null;
-        if (typeSyntax is GenericNameSyntax genericNameSyntax)
-        {
-            var genericTypes = genericNameSyntax.TypeArgumentList.ChildNodes().OfType<TypeSyntax>().ToList();
-            genericType0 = GetTypeName(genericTypes[0]);
-            if (genericTypes.Count == 2)
-            {
-                genericType1 = GetTypeName(genericTypes[1]);
-            }
-            else if (genericTypes.Count > 2)
-            {
-                genericType0 = null;
-                genericType1 = null;
-            }
-        }
-        else if (typeSyntax is ArrayTypeSyntax arrayTypeSyntax)
-        {
-            genericType0 = GetTypeName(arrayTypeSyntax.ElementType);
-        }
-        return (genericType0, genericType1);
-    }
-
-    private bool IsNonGenericType(string typeName)
-        => _nonGenericTypeNames.Contains(typeName);
-
-    private bool IsOneGenericType(string typeName)
-        => _oneGenericTypeNames.Contains(typeName);
-
-    private bool IsRawArgumentsGenericType(string typeName)
-        => _rawArgumentsGenericTypeNames.Contains(typeName);
-
-    private bool IsTwoGenericType(string typeName)
-        => _twoGenericTypeNames.Contains(typeName);
-
-    private bool IsGenericKeyArgumentType(string typeName)
-        => _genericKeyArgumentTypeNames.Contains(typeName);
-
-    private bool IsGenericArgumentType(string typeName)
-        => _genericArgumentTypeNames.Contains(typeName);
 }

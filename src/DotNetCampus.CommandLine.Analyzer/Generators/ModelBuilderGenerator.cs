@@ -1,4 +1,5 @@
 using System.Text;
+using DotNetCampus.CommandLine.CodeAnalysis;
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
 using DotNetCampus.CommandLine.Generators.Models;
@@ -425,7 +426,7 @@ throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedExcepti
         // | 0        | 1    | 0    | 0        | 默认值     | 不可空，没有传就赋值默认值        |
         // | 0        | 0    | _    | _        | 保留初值   | 不要求必须或立即赋值的，保留初值  |
 
-        var toTarget = model.Type.ToCommandValueNonAbstractName();
+        var toTarget = model.Type.GetGeneratedNotAbstractTypeName();
         var isList = model.Type.AsCommandValueKind() is CommandValueKind.List or CommandValueKind.Dictionary;
         var fallback = (model.IsRequired, model.IsInitOnly, isList, model.IsNullable) switch
         {
@@ -474,7 +475,7 @@ throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedExcepti
 
     private string GenerateSetProperty(PropertyGeneratingModel model, int modelIndex)
     {
-        var toTarget = model.Type.ToCommandValueNonAbstractName();
+        var toTarget = model.Type.GetGeneratedNotAbstractTypeName();
         var variablePrefix = model switch
         {
             RawArgumentPropertyGeneratingModel => "a",
@@ -545,7 +546,7 @@ private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
     /// <summary>
     /// Converts the parsed value to the enum type.
     /// </summary>
-    public {{enumType.ToUsingString()}}? To{{enumType.ToCommandValueNonAbstractName()}}() => Value;
+    public {{enumType.ToUsingString()}}? To{{enumType.GetGeneratedNotAbstractTypeName()}}() => Value;
 }
 """;
     }
