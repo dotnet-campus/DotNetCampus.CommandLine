@@ -123,11 +123,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
                 $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
             CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported =>
                 $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持多字符短选项，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
-#if NET8_0_OR_GREATER
-            _ => throw new UnreachableException(),
-#else
             _ => throw new InvalidOperationException("Unreachable code."),
-#endif
         };
         return new CommandLineParsingResult(reason, message);
     }

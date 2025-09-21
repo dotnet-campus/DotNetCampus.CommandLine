@@ -15,6 +15,7 @@ public class OptionNameConflictionTests
         [Option('d', "data-folder")]
         public string? LogFolder { get; set; }
 
+        // 注释以下代码，是因为解除注释能复现问题；但因为我们在 #61 修复了问题，所以会导致编译不通过。
         // [Option('c', "data-folder")]
         // public string? DataFolder { get; set; }
     }

@@ -30,8 +30,8 @@ public class SlashPrefixValueTests
     }
 
     [TestMethod]
-    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.DotNet, DisplayName = "[Flexible] /var/log")]
-    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.Gnu, DisplayName = "[DotNet] /var/log")]
+    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] /var/log")]
+    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] /var/log")]
     public void LinuxPathAsPositionalArgumentValue_Supported(string[] args, TestCommandLineStyle style)
     {
         // Arrange
