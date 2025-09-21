@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Exceptions;
-using DotNetCampus.Cli.Utils.Parsers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetCampus.Cli.Tests.ParsingStyles;

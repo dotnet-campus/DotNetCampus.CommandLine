@@ -11,6 +11,10 @@ public class OptionValueSeparatorTests
     [TestMethod]
     // option value
     [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option value")]
+    [DataRow(new[] { "-Option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option value")]
+    [DataRow(new[] { "-option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option value")]
+    [DataRow(new[] { "/Option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option value")]
+    [DataRow(new[] { "/option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option value")]
     [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option value")]
     [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option value")]
     [DataRow(new[] { "-Option", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option value")]
@@ -19,12 +23,17 @@ public class OptionValueSeparatorTests
     [DataRow(new[] { "/option", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option value")]
     // o value
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o value")]
+    [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o value")]
     [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o value")]
     // option=value
     [DataRow(new[] { "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option=value")]
+    [DataRow(new[] { "-Option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option=value")]
+    [DataRow(new[] { "-option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option=value")]
+    [DataRow(new[] { "/Option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option=value")]
+    [DataRow(new[] { "/option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option=value")]
     [DataRow(new[] { "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option=value")]
     [DataRow(new[] { "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option=value")]
     [DataRow(new[] { "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option=value")]
@@ -34,11 +43,16 @@ public class OptionValueSeparatorTests
     [DataRow(new[] { "test://?option=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] option=value")]
     // o=value
     [DataRow(new[] { "-o=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o=value")]
+    [DataRow(new[] { "/o=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o=value")]
     [DataRow(new[] { "-o=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o=value")]
     [DataRow(new[] { "-o=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o=value")]
     [DataRow(new[] { "/o=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o=value")]
     // option:value
     [DataRow(new[] { "--option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option:value")]
+    [DataRow(new[] { "-Option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option:value")]
+    [DataRow(new[] { "-option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option:value")]
+    [DataRow(new[] { "/Option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option:value")]
+    [DataRow(new[] { "/option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option:value")]
     [DataRow(new[] { "--option:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option:value")]
     [DataRow(new[] { "-Option:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option:value")]
     [DataRow(new[] { "-option:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option:value")]
@@ -46,6 +60,7 @@ public class OptionValueSeparatorTests
     [DataRow(new[] { "/option:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option:value")]
     // o:value
     [DataRow(new[] { "-o:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o:value")]
+    [DataRow(new[] { "/o:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o:value")]
     [DataRow(new[] { "-o:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:value")]
     [DataRow(new[] { "-o:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o:value")]
     [DataRow(new[] { "/o:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o:value")]
@@ -98,6 +113,7 @@ public class OptionValueSeparatorTests
 
     [TestMethod]
     [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ovalue")]
+    [DataRow(new[] { "/ovalue" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ovalue")]
     [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ovalue")]
     [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ovalue")]
     [DataRow(new[] { "/ovalue" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ovalue")]
@@ -130,14 +146,20 @@ public class OptionValueSeparatorTests
 
     [TestMethod]
     [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
     [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
     [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab value")]
+    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab value")]
     [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
     [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
     [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab value")]
+    [DataRow(new[] { "/ab=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab value")]
     [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
     [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
     [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab value")]
+    [DataRow(new[] { "/ab:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab value")]
     public void SupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
     {
         // Arrange
