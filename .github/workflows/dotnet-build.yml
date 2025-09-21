@@ -17,10 +17,11 @@ jobs:
           9.0.x
 
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build -c release
 
     - name: Test
-      run: dotnet test --configuration Release
+      run: dotnet test -c debug
+      run: dotnet test -c release
 
     - name: Pack
-      run: dotnet pack --configuration Release --no-build
+      run: dotnet pack ./src/DotNetCampus.CommandLine -c release --no-build
