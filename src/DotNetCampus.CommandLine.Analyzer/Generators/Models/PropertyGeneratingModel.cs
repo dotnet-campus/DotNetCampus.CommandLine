@@ -6,6 +6,7 @@ internal abstract record PropertyGeneratingModel
 {
     protected PropertyGeneratingModel(IPropertySymbol property)
     {
+        PropertySymbol = property;
         PropertyName = property.Name;
         Type = property.Type;
         IsRequired = property.IsRequired;
@@ -13,6 +14,8 @@ internal abstract record PropertyGeneratingModel
         IsNullable = property.Type.NullableAnnotation == NullableAnnotation.Annotated;
         IsValueType = property.Type.IsValueType;
     }
+
+    public IPropertySymbol PropertySymbol { get; }
 
     public string PropertyName { get; }
 

@@ -258,6 +258,33 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name.
+        /// </summary>
+        public static string DCL204 {
+            get {
+                return ResourceManager.GetString("DCL204", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name {0}.
+        /// </summary>
+        public static string DCL204_Description {
+            get {
+                return ResourceManager.GetString("DCL204_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name {0}.
+        /// </summary>
+        public static string DCL204_Message {
+            get {
+                return ResourceManager.GetString("DCL204_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The command type must not be a generic type or be declared in a generic type.
         /// </summary>
         public static string DCL301 {

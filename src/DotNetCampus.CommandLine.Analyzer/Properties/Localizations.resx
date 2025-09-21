@@ -197,4 +197,13 @@
   <data name="DCL301_Description" xml:space="preserve">
     <value>The command type {0} must not be a generic type or be declared in a generic type.</value>
   </data>
+  <data name="DCL204" xml:space="preserve">
+    <value>Duplicated option name</value>
+  </data>
+  <data name="DCL204_Message" xml:space="preserve">
+    <value>Duplicated option name {0}</value>
+  </data>
+  <data name="DCL204_Description" xml:space="preserve">
+    <value>Duplicated option name {0}</value>
+  </data>
 </root>

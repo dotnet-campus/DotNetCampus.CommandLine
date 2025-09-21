@@ -18,10 +18,4 @@
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="dotnetCampus.CommandLine.Legacy">
-      <HintPath>..\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

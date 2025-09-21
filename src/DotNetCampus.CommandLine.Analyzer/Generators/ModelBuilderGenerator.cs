@@ -22,15 +22,8 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
     private void Execute(SourceProductionContext context, CommandObjectGeneratingModel model)
     {
-        var fileName = model.CommandObjectType.ToDisplayString();
-        if (fileName.Contains('<'))
+        if (ReportDiagnostics(context, model))
         {
-            context.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.DCL301_GenericCommandObjectTypeNotSupported,
-                model.CommandObjectType.DeclaringSyntaxReferences.FirstOrDefault()?
-                    .GetSyntax().DescendantNodesAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault()?
-                    .Identifier.GetLocation(),
-                fileName));
             return;
         }
 
@@ -45,6 +38,32 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         //     var parserCode = GenerateParserCode(originalCode, model);
         //     context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.parser.cs", parserCode);
         // }
+    }
+
+    private static bool ReportDiagnostics(SourceProductionContext context, CommandObjectGeneratingModel model)
+    {
+        var fileName = model.CommandObjectType.ToDisplayString();
+        if (fileName.Contains('<'))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Diagnostics.DCL301_GenericCommandObjectTypeNotSupported,
+                model.CommandObjectType.DeclaringSyntaxReferences.FirstOrDefault()?
+                    .GetSyntax().DescendantNodesAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault()?
+                    .Identifier.GetLocation(),
+                fileName));
+            return true;
+        }
+
+        if (model.OptionProperties.FindFirstDuplicateName() is ({ } name, { } location))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(
+                Diagnostics.DCL204_DuplicateOptionNames,
+                location,
+                name));
+            return true;
+        }
+
+        return false;
     }
 
     private string GenerateCommandObjectCreatorCode(CommandObjectGeneratingModel model)

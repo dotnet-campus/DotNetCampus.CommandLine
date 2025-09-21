@@ -2,6 +2,7 @@ using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotNetCampus.CommandLine.Generators.Models;
 
@@ -178,5 +179,87 @@ internal sealed record OptionalArgumentPropertyGeneratingModel : PropertyGenerat
             LongNames = longNames,
             CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
         };
+    }
+}
+
+internal static class OptionalArgumentPropertyGeneratingModelExtensions
+{
+    public static (string? Name, Location? propertySymbol) FindFirstDuplicateName(this IReadOnlyList<OptionalArgumentPropertyGeneratingModel> models)
+    {
+        var shortNames = new HashSet<string>();
+        var longNames = new HashSet<string>();
+        foreach (var model in models)
+        {
+            foreach (var shortName in model.GetShortNames())
+            {
+                if (!shortNames.Add(shortName))
+                {
+                    return (shortName, model.PropertySymbol.FindDuplicateNameLocation(shortName));
+                }
+            }
+
+            foreach (var longName in model.GetOrdinalLongNames())
+            {
+                if (!longNames.Add(longName))
+                {
+                    return (longName, model.PropertySymbol.FindDuplicateNameLocation(longName));
+                }
+            }
+        }
+        return (null, null);
+    }
+
+    private static Location? FindDuplicateNameLocation(this IPropertySymbol propertySymbol, string name)
+    {
+        var optionAttribute = propertySymbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<OptionAttribute>())!;
+
+        // 有两个构造函数参数时，第一个参数是短名称（字符、字符串、字符串数组），第二个参数是长名称（字符串、字符串数组）。
+        foreach (var argument in optionAttribute.ConstructorArguments.EnumerateDefinedNames())
+        {
+            if (argument.Type?.SpecialType is SpecialType.System_Char)
+            {
+                var definedName = argument.Value?.ToString();
+                if (definedName == name)
+                {
+                    return optionAttribute.ApplicationSyntaxReference?.GetSyntax().DescendantNodes()
+                        .OfType<AttributeArgumentSyntax>()
+                        .FirstOrDefault(x => x.Expression.ToString().Contains($"'{name}'"))?.GetLocation()!;
+                }
+            }
+            else if (argument.Type?.SpecialType is SpecialType.System_String)
+            {
+                var definedName = argument.Value?.ToString();
+                if (definedName == name)
+                {
+                    return optionAttribute.ApplicationSyntaxReference?.GetSyntax().DescendantNodes()
+                        .OfType<AttributeArgumentSyntax>()
+                        .FirstOrDefault(x => x.Expression switch
+                        {
+                            InvocationExpressionSyntax s => x.ToString().Contains($"nameof({name})"),
+                            _ => x.ToString().Contains($"\"{name}\""),
+                        })?.GetLocation()!;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<TypedConstant> EnumerateDefinedNames(this IEnumerable<TypedConstant> arguments)
+    {
+        foreach (var argument in arguments)
+        {
+            if (argument.Kind is TypedConstantKind.Array)
+            {
+                foreach (var item in EnumerateDefinedNames(argument.Values))
+                {
+                    yield return item;
+                }
+            }
+            else
+            {
+                yield return argument;
+            }
+        }
     }
 }

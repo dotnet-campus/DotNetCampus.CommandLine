@@ -90,4 +90,13 @@
   <data name="DCL301_Message" xml:space="preserve">
     <value>命令行类型 {0} 不能是泛型类型或在泛型类型中。</value>
   </data>
+  <data name="DCL204" xml:space="preserve">
+    <value>选项名出现了重复</value>
+  </data>
+  <data name="DCL204_Message" xml:space="preserve">
+    <value>选项名出现了重复 {0}</value>
+  </data>
+  <data name="DCL204_Description" xml:space="preserve">
+    <value>选项名出现了重复 {0}</value>
+  </data>
 </root>
