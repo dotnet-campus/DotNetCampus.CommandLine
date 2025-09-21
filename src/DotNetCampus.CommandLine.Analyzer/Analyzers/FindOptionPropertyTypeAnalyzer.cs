@@ -9,30 +9,64 @@ namespace DotNetCampus.CommandLine.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class FindOptionPropertyTypeAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>
+    /// 允许的非泛型类型名称。
+    /// </summary>
     private readonly HashSet<string> _nonGenericTypeNames =
     [
-        "String", "string", "Boolean", "bool", "Byte", "byte", "Int16", "short", "UInt16", "ushort", "Int32", "int", "UInt32", "uint", "Int64", "long",
-        "UInt64", "ulong", "Single", "float", "Double", "double", "Decimal", "decimal", "IList", "ICollection", "IEnumerable",
+        // bool
+        "bool",
+        "Boolean",
+        // number
+        "byte", "sbyte", "decimal", "double", "float", "int", "uint", "nint", "nuint", "long", "ulong", "short", "ushort",
+        "Byte", "SByte", "Decimal", "Double", "Single", "Int32", "UInt32", "IntPtr", "UIntPtr", "Int64", "UInt64", "Int16", "UInt16",
+        // string
+        "char", "string",
+        "Char", "String",
     ];
 
+    /// <summary>
+    /// 允许的单泛型类型名称。
+    /// </summary>
     private readonly HashSet<string> _oneGenericTypeNames =
     [
-        "[]",
-        "IList", "ICollection", "IEnumerable", "IReadOnlyList", "IReadOnlyCollection", "ISet", "IImmutableSet", "IImmutableList",
-        "ImmutableArray", "List", "ImmutableHashSet", "Collection", "HashSet",
+        // collection
+        "[]", "Collection", "List", "ReadOnlyCollection", "HashSet", "ImmutableArray", "ImmutableList", "ImmutableHashSet",
+        // sorted
+        "SortedList", "SortedSet", "ImmutableSortedSet",
+        // interface
+        "IEnumerable", "ICollection", "IList", "IReadOnlyCollection", "IReadOnlyList", "ISet", "IImmutableList", "IImmutableSet",
     ];
 
+    /// <summary>
+    /// 允许的双泛型类型名称。
+    /// </summary>
+    private readonly HashSet<string> _twoGenericTypeNames =
+    [
+        // dictionary
+        "KeyValuePair", "Dictionary", "ImmutableDictionary",
+        // sorted
+        "SortedDictionary", "SortedList", "ImmutableSortedDictionary",
+        // interface
+        "IDictionary", "IReadOnlyDictionary",
+    ];
+
+    /// <summary>
+    /// 允许的 RawArguments 泛型类型名称。
+    /// </summary>
     private readonly HashSet<string> _rawArgumentsGenericTypeNames =
     [
         "[]", "IList", "IReadOnlyList", "ICollection", "IReadOnlyCollection", "IEnumerable",
     ];
 
-    private readonly HashSet<string> _twoGenericTypeNames =
-    [
-        "ImmutableDictionary", "Dictionary", "IDictionary", "IReadOnlyDictionary", "KeyValuePair",
-    ];
-
+    /// <summary>
+    /// 允许的字典类型 Key 的泛型参数类型名称。
+    /// </summary>
     private readonly HashSet<string> _genericKeyArgumentTypeNames = ["String", "string"];
+
+    /// <summary>
+    /// 允许的泛型参数类型名称。
+    /// </summary>
     private readonly HashSet<string> _genericArgumentTypeNames = ["String", "string"];
 
     /// <summary>
