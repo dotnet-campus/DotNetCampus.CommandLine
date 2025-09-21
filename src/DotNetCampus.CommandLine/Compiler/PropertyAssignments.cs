@@ -221,54 +221,54 @@ public readonly record struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为集合。
     /// </summary>
-    public Collection<string> ToCollection() => Value switch
+    public Collection<string>? ToCollection() => Value switch
     {
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => null,
         { } values => [..values],
     };
 
     /// <summary>
     /// 将解析到的值转换为字符串数组。
     /// </summary>
-    public string[] ToArray() => Value switch
+    public string[]? ToArray() => Value switch
     {
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => null,
         { } values => [..values],
     };
 
     /// <summary>
     /// 将解析到的值转换为哈希集合。
     /// </summary>
-    public HashSet<string> ToHashSet() => Value switch
+    public HashSet<string>? ToHashSet() => Value switch
     {
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => null,
         { } values => [..values],
     };
 
     /// <summary>
     /// 将解析到的值转换为列表。
     /// </summary>
-    public List<string> ToList() => Value switch
+    public List<string>? ToList() => Value switch
     {
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => null,
         { } values => values,
     };
 
     /// <summary>
     /// 将解析到的值转换为只读集合。
     /// </summary>
-    public ReadOnlyCollection<string> ToReadOnlyCollection() => Value switch
+    public ReadOnlyCollection<string>? ToReadOnlyCollection() => Value switch
     {
-        null or { Count: 0 } => new ReadOnlyCollection<string>([]),
+        null or { Count: 0 } => null,
         { } values => new ReadOnlyCollection<string>(values),
     };
 
     /// <summary>
     /// 将解析到的值转换为排序集合。
     /// </summary>
-    public SortedSet<string> ToSortedSet() => Value switch
+    public SortedSet<string>? ToSortedSet() => Value switch
     {
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => null,
         { } values => [..values],
     };
 
@@ -276,13 +276,13 @@ public readonly record struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变数组。
     /// </summary>
-    public ImmutableArray<string> ToImmutableArray() => Value switch
+    public ImmutableArray<string>? ToImmutableArray(bool notNull = false) => Value switch
     {
 #if NET8_0_OR_GREATER
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => notNull ? ImmutableArray<string>.Empty : null,
         { } values => [..values],
 #else
-        null or { Count: 0 } => ImmutableArray<string>.Empty,
+        null or { Count: 0 } => null,
         { } values => values.ToImmutableArray(),
 #endif
     };
@@ -290,13 +290,13 @@ public readonly record struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变列表。
     /// </summary>
-    public ImmutableList<string> ToImmutableList() => Value switch
+    public ImmutableList<string>? ToImmutableList(bool notNull = false) => Value switch
     {
 #if NET8_0_OR_GREATER
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => notNull ? ImmutableList<string>.Empty : null,
         { } values => [..values],
 #else
-        null or { Count: 0 } => ImmutableList<string>.Empty,
+        null or { Count: 0 } => null,
         { } values => values.ToImmutableList(),
 #endif
     };
@@ -304,13 +304,13 @@ public readonly record struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变排序集合。
     /// </summary>
-    public ImmutableSortedSet<string> ToImmutableSortedSet() => Value switch
+    public ImmutableSortedSet<string>? ToImmutableSortedSet(bool notNull = false) => Value switch
     {
 #if NET8_0_OR_GREATER
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => notNull ? ImmutableSortedSet<string>.Empty : null,
         { } values => [..values],
 #else
-        null or { Count: 0 } => ImmutableSortedSet<string>.Empty,
+        null or { Count: 0 } => null,
         { } values => values.ToImmutableSortedSet(),
 #endif
     };
@@ -318,13 +318,13 @@ public readonly record struct StringListArgument
     /// <summary>
     /// 将解析到的值转换为不可变哈希集合。
     /// </summary>
-    public ImmutableHashSet<string> ToImmutableHashSet() => Value switch
+    public ImmutableHashSet<string>? ToImmutableHashSet(bool notNull = false) => Value switch
     {
 #if NET8_0_OR_GREATER
-        null or { Count: 0 } => [],
+        null or { Count: 0 } => notNull ? ImmutableHashSet<string>.Empty : null,
         { } values => [..values],
 #else
-        null or { Count: 0 } => ImmutableHashSet<string>.Empty,
+        null or { Count: 0 } => null,
         { } values => values.ToImmutableHashSet(),
 #endif
     };
@@ -379,17 +379,17 @@ public readonly record struct StringDictionaryArgument
     /// <summary>
     /// 将解析到的值转换为字典。
     /// </summary>
-    public Dictionary<string, string> ToDictionary()
+    public Dictionary<string, string>? ToDictionary()
     {
-        return Value ?? [];
+        return Value;
     }
 
     /// <summary>
     /// 将解析到的值转换为排序字典。
     /// </summary>
-    public SortedDictionary<string, string> ToSortedDictionary() => Value switch
+    public SortedDictionary<string, string>? ToSortedDictionary() => Value switch
     {
-        null or { Count: 0 } => new SortedDictionary<string, string>(),
+        null or { Count: 0 } => null,
         { } values => new SortedDictionary<string, string>(values),
     };
 
@@ -397,18 +397,18 @@ public readonly record struct StringDictionaryArgument
     /// <summary>
     /// 将解析到的值转换为不可变字典。
     /// </summary>
-    public ImmutableDictionary<string, string> ToImmutableDictionary() => Value switch
+    public ImmutableDictionary<string, string>? ToImmutableDictionary(bool notNull = false) => Value switch
     {
-        null or { Count: 0 } => ImmutableDictionary<string, string>.Empty,
+        null or { Count: 0 } => notNull ? ImmutableDictionary<string, string>.Empty : null,
         { } values => values.ToImmutableDictionary(),
     };
 
     /// <summary>
     /// 将解析到的值转换为不可变排序字典。
     /// </summary>
-    public ImmutableSortedDictionary<string, string> ToImmutableSortedDictionary() => Value switch
+    public ImmutableSortedDictionary<string, string>? ToImmutableSortedDictionary(bool notNull = false) => Value switch
     {
-        null or { Count: 0 } => ImmutableSortedDictionary<string, string>.Empty,
+        null or { Count: 0 } => notNull ? ImmutableSortedDictionary<string, string>.Empty : null,
         { } values => values.ToImmutableSortedDictionary(),
     };
 #endif

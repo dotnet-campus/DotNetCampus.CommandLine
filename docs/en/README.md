@@ -210,17 +210,19 @@ When defining a property, these modifiers apply:
 
 What value a property ultimately receives depends on:
 
-| required | init | Collection | nullable | Behavior         | Explanation                                     |
-| -------- | ---- | ---------- | -------- | ---------------- | ----------------------------------------------- |
-| 1        | _    | _          | _        | Throw            | Must be supplied; missing raises exception      |
-| 0        | 1    | 1          | _        | Empty collection | Collections are never null; missing => empty    |
-| 0        | 1    | 0          | 1        | null             | Nullable; missing => null                       |
-| 0        | 1    | 0          | 0        | Default value    | Non-nullable; missing => default(T)             |
-| 0        | 0    | _          | _        | Keep initial     | Not required/immediate; keeps initializer value |
+| required | init | nullable | Collection | Behavior            | Explanation                                        |
+| -------- | ---- | -------- | ---------- | ------------------- | -------------------------------------------------- |
+| 1        | _    | _        | _          | Throw               | Must be supplied; missing throws exception         |
+| 0        | 1    | 1        | _          | null                | Nullable; missing => null                          |
+| 0        | 1    | 0        | 1          | Empty collection    | Collections are never null; missing => empty       |
+| 0        | 1    | 0        | 0          | Default/empty value | Non-nullable; missing => default value[^2]         |
+| 0        | 0    | _        | _          | Keep initial        | Not required or immediate; keeps initializer value |
+
+[^2]: If it's a value type, it receives its default value; if it's a reference type (currently only string), it becomes the empty string `""`.
 
 - 1 = present
 - 0 = absent
-- _ = regardless
+- _ = regardless of presence
 
 1. Nullable behavior is the same for reference and value types (default value just yields `null` for reference types)
 2. Missing required option throws `RequiredPropertyNotAssignedException`

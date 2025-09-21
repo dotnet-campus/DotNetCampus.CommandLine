@@ -76,20 +76,20 @@ public class DefaultValueTests
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
-    public void InitCollection_AlwaysNotNullEmpty(string[] args, TestCommandLineStyle style)
+    public void InitNullable_AssignsNull(string[] args, TestCommandLineStyle style)
     {
         // Arrange
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var optionsWithInitCollection = commandLine.As<OptionsWithInitCollection>();
+        var optionsWithNullableInit = commandLine.As<OptionsWithNullableInit>();
         var optionsWithNullableInitCollection = commandLine.As<OptionsWithNullableInitCollection>();
+        var optionsWithInitNullableValueType = commandLine.As<OptionsWithInitNullableValueType>();
 
         // Assert
-        Assert.IsNotNull(optionsWithInitCollection.Option);
-        Assert.IsNotNull(optionsWithNullableInitCollection.Option);
-        Assert.IsEmpty(optionsWithInitCollection.Option);
-        Assert.IsEmpty(optionsWithNullableInitCollection.Option);
+        Assert.IsNull(optionsWithNullableInit.Option);
+        Assert.IsNull(optionsWithNullableInitCollection.Option);
+        Assert.IsNull(optionsWithInitNullableValueType.Option);
     }
 
     [TestMethod]
@@ -103,16 +103,16 @@ public class DefaultValueTests
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
-    public void NullableInitStruct_Null(string[] args, TestCommandLineStyle style)
+    public void InitCollection_Empty(string[] args, TestCommandLineStyle style)
     {
         // Arrange
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var optionsWithInitNullableStruct = commandLine.As<OptionsWithInitNullableStruct>();
+        var optionsWithCollection = commandLine.As<OptionsWithInitCollection>();
 
         // Assert
-        Assert.IsNull(optionsWithInitNullableStruct.Option);
+        Assert.IsEmpty(optionsWithCollection.Option);
     }
 
     [TestMethod]
@@ -126,13 +126,36 @@ public class DefaultValueTests
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
-    public void InitStruct_Default(string[] args, TestCommandLineStyle style)
+    public void InitString_Empty(string[] args, TestCommandLineStyle style)
     {
         // Arrange
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var optionsWithInitStruct = commandLine.As<OptionsWithInitStruct>();
+        var optionsWithInit = commandLine.As<OptionsWithInit>();
+
+        // Assert
+        Assert.IsEmpty(optionsWithInit.Option);
+    }
+
+    [TestMethod]
+    [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
+    public void InitValueType_Default(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var optionsWithInitStruct = commandLine.As<OptionsWithInitValueType>();
 
         // Assert
         Assert.AreEqual(0, optionsWithInitStruct.Option);
@@ -282,7 +305,7 @@ public class DefaultValueTests
         public string? Value { get; set; }
     }
 
-    public record OptionsWithInitNullableStruct
+    public record OptionsWithInitNullableValueType
     {
         [Option('o', "option")]
         public int? Option { get; init; } = 42;
@@ -291,7 +314,7 @@ public class DefaultValueTests
         public string? Value { get; set; }
     }
 
-    public record OptionsWithInitStruct
+    public record OptionsWithInitValueType
     {
         [Option('o', "option")]
         public int Option { get; init; } = 42;

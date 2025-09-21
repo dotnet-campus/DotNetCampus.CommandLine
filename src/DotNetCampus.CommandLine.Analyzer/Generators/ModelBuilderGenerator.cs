@@ -418,17 +418,22 @@ throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedExcepti
         // list: 属性是一个集合
         // cli: 实际命令行参数是否传入
 
-        // | required | init | list | nullable | 行为       | 解释                              |
-        // | -------- | ---- | ---- | -------- | ---------- | --------------------------------- |
-        // | 1        | _    | _    | _        | 抛异常     | 要求必须传入，没有传就抛异常      |
-        // | 0        | 1    | 1    | _        | 空集合     | 集合永不为 null，没传就赋值空集合 |
-        // | 0        | 1    | 0    | 1        | null       | 可空，没有传就赋值 null           |
-        // | 0        | 1    | 0    | 0        | 默认值     | 不可空，没有传就赋值默认值        |
-        // | 0        | 0    | _    | _        | 保留初值   | 不要求必须或立即赋值的，保留初值  |
+        // | required | init | nullable | list | 行为        | 解释                              |
+        // | -------- | ---- | -------- | ---- | ----------- | --------------------------------- |
+        // | 1        | _    | _        | _    | 抛异常      | 要求必须传入，没有传就抛异常      |
+        // | 0        | 1    | 1        | _    | null        | 可空，没有传就赋值 null           |
+        // | 0        | 1    | 0        | 1    | 空集合      | 集合永不为 null，没传就赋值空集合 |
+        // | 0        | 1    | 0        | 0    | 默认值/空值 | 不可空，没有传就赋值默认值        |
+        // | 0        | 0    | _        | _    | 保留初值    | 不要求必须或立即赋值的，保留初值  |
+        //
+        // [默认值/空值] 如果是值类型，则会赋值其默认值；如果是引用类型，目前只有一种情况，就是字符串，会赋值为空字符串 `""`。
 
         var toTarget = model.Type.GetGeneratedNotAbstractTypeName();
-        var isList = model.Type.AsCommandValueKind() is CommandValueKind.List or CommandValueKind.Dictionary;
-        var fallback = (model.IsRequired, model.IsInitOnly, isList, model.IsNullable) switch
+        var kind = model.Type.AsCommandValueKind();
+        var isString = kind is CommandValueKind.String;
+        var isList = kind is CommandValueKind.List or CommandValueKind.Dictionary;
+        var supportCollectionExpression = model.Type.SupportCollectionExpression(false);
+        var fallback = (model.IsRequired, model.IsInitOnly, model.IsNullable, isList) switch
         {
             (true, _, _, _) => model switch
             {
@@ -438,39 +443,21 @@ throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedExcepti
                     $"throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($\"The command line arguments doesn't contain a required positional argument at index {positionalArgument.Index}. Command line: {{commandLine}}\", \"{positionalArgument.PropertyName}\")",
                 _ => "",
             },
-            (_, true, true, _) => "",
-            (_, true, false, true) => "null",
-            (_, true, false, false) => $"default({model.Type.ToDisplayString()})!",
+            (_, true, true, _) => "null",
+            (_, true, false, true) => supportCollectionExpression
+                ? "[]"
+                : $"new {GetArgumentPropertyTypeName(model)}().To{toTarget}(true)",
+            (_, true, false, false) => isString
+                ? "\"\""
+                : $"default({model.Type.ToDisplayString()})!",
             _ => "/* 非 init 属性，在下面单独赋值 */",
         };
 
-        if (!forDefault)
-        {
+        return !forDefault
             // 正常传入了命令行参数时的通用赋值。
-            return $"{model.PropertyName} = {model.PropertyName}.To{toTarget}(){(fallback is "" ? "" : $" ?? {fallback}")},";
-        }
-
-        if (fallback is not "")
-        {
-            // 未传命令行参数时，给非集合类型赋值。
-            return $"{model.PropertyName} = {fallback},";
-        }
-
-        // 未传命令行参数时，给集合类型赋值为空集合。
-        var supportCollectionExpression = model.Type.SupportCollectionExpression(true);
-        var supportCollectionExpressionLegacy = model.Type.SupportCollectionExpression(false);
-        return (supportCollectionExpression, supportCollectionExpressionLegacy) switch
-        {
-            (true, true) => $"    {model.PropertyName} = [],",
-            (false, false) => $"    {model.PropertyName} = new {GetArgumentPropertyTypeName(model)}().To{toTarget}(),",
-            _ => $"""
-                #if NET8_0_OR_GREATER
-                {model.PropertyName} = [],
-                #else
-                {model.PropertyName} = new {GetArgumentPropertyTypeName(model)}().To{toTarget}(),
-                #endif
-                """,
-        };
+            ? $"{model.PropertyName} = {model.PropertyName}.To{toTarget}(){(fallback is "" ? "" : $" ?? {fallback}")},"
+            // 未传命令行参数时，直接赋回退值。
+            : $"{model.PropertyName} = {fallback},";
     }
 
     private string GenerateSetProperty(PropertyGeneratingModel model, int modelIndex)
