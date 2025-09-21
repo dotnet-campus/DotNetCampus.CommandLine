@@ -1,3 +1,5 @@
+using DotNetCampus.Cli.Compiler;
+
 namespace DotNetCampus.Cli.Utils.Parsers;
 
 /// <summary>

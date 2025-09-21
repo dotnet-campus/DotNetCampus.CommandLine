@@ -257,7 +257,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .Condition(matchAllProperty is not null, b => b
                 .AddRawStatement($"// 属性 {matchAllProperty!.PropertyName} 覆盖了所有位置参数，直接匹配。")
                 .AddRawStatement($"""
-return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{matchAllProperty.PropertyName}", {matchAllProperty.PropertyIndex}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{matchAllProperty.PropertyName}", {matchAllProperty.PropertyIndex}, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
 """))
             .Otherwise(b => b
                 .AddRawStatements(positionalArgumentProperties.Select(x => GenerateMatchPositionalArgumentCode(x, x.Index, x.Length)))
@@ -274,19 +274,19 @@ return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("
             1 => $$"""
         if (argumentIndex is {{index}})
         {
-            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
         }
         """,
             _ when (index + length) is <= 0 or int.MaxValue => $$"""
         if (argumentIndex >= {{index}})
         {
-            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
         }
         """,
             _ => $$"""
         if (argumentIndex is >= {{index}} and < {{index + length}})
         {
-            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.PositionalArgumentValueType.Normal);
+            return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("{{model.PropertyName}}", {{model.PropertyIndex}}, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
         }
         """,
         };

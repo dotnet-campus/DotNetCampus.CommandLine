@@ -10,10 +10,10 @@ internal static class GeneratingModelExtensions
 {
     public static string ToCommandValueTypeName(this CommandValueKind type) => type switch
     {
-        CommandValueKind.Boolean => "global::DotNetCampus.Cli.OptionValueType.Boolean",
-        CommandValueKind.List => "global::DotNetCampus.Cli.OptionValueType.List",
-        CommandValueKind.Dictionary => "global::DotNetCampus.Cli.OptionValueType.Dictionary",
-        _ => "global::DotNetCampus.Cli.OptionValueType.Normal",
+        CommandValueKind.Boolean => "global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean",
+        CommandValueKind.List => "global::DotNetCampus.Cli.Compiler.OptionValueType.List",
+        CommandValueKind.Dictionary => "global::DotNetCampus.Cli.Compiler.OptionValueType.Dictionary",
+        _ => "global::DotNetCampus.Cli.Compiler.OptionValueType.Normal",
     };
 
     /// <summary>

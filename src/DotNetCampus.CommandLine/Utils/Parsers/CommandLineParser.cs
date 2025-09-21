@@ -1,3 +1,4 @@
+using DotNetCampus.Cli.Compiler;
 using Cat = DotNetCampus.Cli.Utils.Parsers.CommandArgumentType;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
