@@ -77,7 +77,7 @@ public class MatchCommandTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine
             .AddHandler<DefaultOptions>(o => matched = o.Value)
             .AddHandler<FooOptions>(o => matched = o.Value)
             .AddHandler<BarBazOptions>(o => matched = o.Value)

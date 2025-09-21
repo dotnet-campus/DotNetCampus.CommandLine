@@ -90,7 +90,7 @@ public class OptionValueSeparatorTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentSeparatorNotSupported, exception.Reason);
@@ -123,7 +123,7 @@ public class OptionValueSeparatorTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
@@ -137,7 +137,7 @@ public class OptionValueSeparatorTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
@@ -181,7 +181,7 @@ public class OptionValueSeparatorTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
@@ -196,7 +196,7 @@ public class OptionValueSeparatorTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported, exception.Reason);

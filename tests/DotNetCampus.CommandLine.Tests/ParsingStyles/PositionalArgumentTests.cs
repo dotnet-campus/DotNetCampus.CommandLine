@@ -104,7 +104,7 @@ public class PositionalArgumentTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<TestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
@@ -118,7 +118,7 @@ public class PositionalArgumentTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<BooleanTestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<BooleanTestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.PositionalArgumentNotFound, exception.Reason);
@@ -134,7 +134,7 @@ public class PositionalArgumentTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.Throws<CommandLineParseException>(() => commandLine.As<CollectionTestOptions>());
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<CollectionTestOptions>());
 
         // Assert
         Assert.AreEqual(CommandLineParsingError.PositionalArgumentNotFound, exception.Reason);
