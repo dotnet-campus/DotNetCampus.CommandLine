@@ -8,13 +8,6 @@ namespace DotNetCampus.CommandLine.Generators.Models;
 /// </summary>
 internal static class GeneratingModelExtensions
 {
-    private static readonly SymbolDisplayFormat ToTargetTypeFormat = new SymbolDisplayFormat(
-        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-        genericsOptions: SymbolDisplayGenericsOptions.None,
-        kindOptions: SymbolDisplayKindOptions.None
-    );
-
     public static string ToCommandValueTypeName(this CommandValueKind type) => type switch
     {
         CommandValueKind.Boolean => "global::DotNetCampus.Cli.OptionValueType.Boolean",
@@ -22,6 +15,17 @@ internal static class GeneratingModelExtensions
         CommandValueKind.Dictionary => "global::DotNetCampus.Cli.OptionValueType.Dictionary",
         _ => "global::DotNetCampus.Cli.OptionValueType.Normal",
     };
+
+    /// <summary>
+    /// 视 <paramref name="typeSymbol"/> 为命令行属性的类型，按命令行属性的要求获取其所需的类型信息。<br/>
+    /// 这个过程会丢掉类型的可空性信息。
+    /// </summary>
+    /// <param name="typeSymbol">类型符号。</param>
+    /// <returns>类型信息。</returns>
+    public static CommandPropertyTypeInfo GetSymbolInfoAsCommandProperty(this ITypeSymbol typeSymbol)
+    {
+        return new CommandPropertyTypeInfo(typeSymbol);
+    }
 
     /// <summary>
     /// 获取类型的非抽象名称。<br/>
@@ -32,6 +36,20 @@ internal static class GeneratingModelExtensions
     public static string GetGeneratedNotAbstractTypeName(this ITypeSymbol typeSymbol)
     {
         return typeSymbol.GetSymbolInfoAsCommandProperty().GetGeneratedNotAbstractTypeName();
+    }
+
+    /// <summary>
+    /// 假定 <paramref name="symbol"/> 是一个命令行对象中一个枚举属性的属性类型，
+    /// 现在我们要为这个枚举生成一个用来赋值命令行值的辅助类型，
+    /// 此方法返回这个辅助类型的名称。
+    /// </summary>
+    /// <param name="symbol">命令行对象中一个枚举属性的属性类型。</param>
+    /// <returns>辅助类型的名称。</returns>
+    public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
+    {
+        return symbol.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol
+            ? $"__GeneratedEnumArgument__{enumTypeSymbol.ToDisplayString().Replace('.', '_')}__"
+            : symbol.ToDisplayString();
     }
 
     /// <summary>
@@ -52,27 +70,15 @@ internal static class GeneratingModelExtensions
     /// <returns>如果类型确定支持集合表达式，则返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
     public static bool SupportCollectionExpression(this ITypeSymbol typeSymbol, bool supportImmutableCollections)
     {
-        if (typeSymbol.Kind is SymbolKind.ArrayType)
+        var info = typeSymbol.GetSymbolInfoAsCommandProperty();
+        if (info.Kind is not CommandValueKind.List)
         {
-            return true;
+            return false;
         }
 
-        var originalDefinitionString = typeSymbol.OriginalDefinition.ToString();
-        if (originalDefinitionString.Equals("System.Nullable<T>", StringComparison.Ordinal))
-        {
-            // Nullable<T> 类型
-            var genericType = ((INamedTypeSymbol)typeSymbol).TypeArguments[0];
-            return SupportCollectionExpression(genericType, supportImmutableCollections);
-        }
-
-        return typeSymbol.ToDisplayString(ToTargetTypeFormat) switch
-        {
-            "IList" or "ICollection" or "IEnumerable" or "IReadOnlyList" or "IReadOnlyCollection" or "ISet"
-                or "IImmutableSet" or "IImmutableList" => true,
-            "List" or "Collection" or "HashSet" => true,
-            // 不可变集合在 .NET 8 及以上版本中支持集合表达式。
-            "ImmutableArray" or "ImmutableHashSet" => supportImmutableCollections,
-            _ => false,
-        };
+        // 不可变集合在 .NET 8 及以上版本中支持集合表达式。
+        // 其他类型均直接支持集合表达式。
+        var simpleName = info.GetSimpleDeclarationName();
+        return !simpleName.Contains("Immutable") || supportImmutableCollections;
     }
 }

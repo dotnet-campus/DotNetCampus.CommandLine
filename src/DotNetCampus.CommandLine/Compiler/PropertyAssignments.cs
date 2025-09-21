@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 #endif
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Compiler;
@@ -411,6 +412,30 @@ public readonly record struct StringDictionaryArgument
         { } values => values.ToImmutableSortedDictionary(),
     };
 #endif
+}
+
+/// <summary>
+/// 专门解析来自命令行的错误参数，并假装赋值给属性。
+/// </summary>
+public readonly record struct ErrorArgument
+{
+    /// <summary>
+    /// 当命令行属性赋值不受支持时，调用此方法假装赋值。
+    /// </summary>
+    /// <param name="value">传什么值进来都当作没看见。</param>
+    public ErrorArgument Assign(ReadOnlySpan<char> value)
+    {
+        return this;
+    }
+
+    /// <summary>
+    /// 将解析到的值转换为字符串。
+    /// </summary>
+    [DoesNotReturn]
+    public object ToUnknown()
+    {
+        throw new CommandLineParseValueException("命令行属性赋值不受支持。");
+    }
 }
 
 /// <summary>

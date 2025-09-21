@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DotNetCampus.Cli.Compiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+// ReSharper disable InconsistentNaming
 
 namespace DotNetCampus.Cli.Tests.ParsingStyles;
 
@@ -211,9 +212,6 @@ public class PropertyTypeTests
 
         [Option]
         public SortedDictionary<string, string>? SortedDictionaryProperty { get; set; }
-
-        [Option]
-        public SortedList<string, string>? SortedListProperty { get; set; }
 
         [Option]
         public ImmutableSortedDictionary<string, string>? ImmutableSortedDictionaryProperty { get; set; }

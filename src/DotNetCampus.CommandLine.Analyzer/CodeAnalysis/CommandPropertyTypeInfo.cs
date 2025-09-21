@@ -9,19 +9,25 @@ internal record CommandPropertyTypeInfo
 {
     public CommandPropertyTypeInfo(ITypeSymbol typeSymbol)
     {
-        TypeSymbol = typeSymbol.GetNotNullTypeSymbol();
+        TypeSymbol = GetNotNullTypeSymbol(typeSymbol);
         Kind = GetSymbolInfoAsCommandProperty(typeSymbol);
     }
-
-    /// <summary>
-    /// 获取类型的简单名称，仅包含名称本身，不包含命名空间、泛型参数、可空标记等信息。
-    /// </summary>
-    /// <returns></returns>
-    public string GetSimpleName() => TypeSymbol.ToDisplayString(SimpleNameFormat);
 
     public ITypeSymbol TypeSymbol { get; }
 
     public CommandValueKind Kind { get; }
+
+    /// <summary>
+    /// 获取类型的简单名称，仅包含名称本身，不包含命名空间、泛型参数、可空标记等信息，尽可能使用类型关键字。
+    /// </summary>
+    /// <returns></returns>
+    public string GetSimpleName() => TypeSymbol.ToDisplayString(SimpleNameFormat);
+
+    /// <summary>
+    /// 获取类型的简单名称，仅包含名称本身，不包含命名空间、泛型参数、可空标记等信息，尽可能使用类型名称而不是关键字。
+    /// </summary>
+    /// <returns></returns>
+    public string GetSimpleDeclarationName() => TypeSymbol.ToDisplayString(SimpleDeclarationNameFormat);
 
     /// <summary>
     /// 获取当前类型是否可以从数组或列表赋值。
@@ -155,7 +161,7 @@ internal record CommandPropertyTypeInfo
     /// <returns>类型信息。</returns>
     private static CommandValueKind GetSymbolInfoAsCommandProperty(ITypeSymbol typeSymbol)
     {
-        var notNullTypeSymbol = typeSymbol.GetNotNullTypeSymbol();
+        var notNullTypeSymbol = GetNotNullTypeSymbol(typeSymbol);
 
         switch (notNullTypeSymbol.SpecialType)
         {
@@ -229,21 +235,21 @@ internal record CommandPropertyTypeInfo
 
         return CommandValueKind.Unknown;
     }
-}
 
-public static class CommandPropertyTypeInfoExtensions
-{
     /// <summary>
-    /// 假定 <paramref name="symbol"/> 是一个命令行对象中一个枚举属性的属性类型，
-    /// 现在我们要为这个枚举生成一个用来赋值命令行值的辅助类型，
-    /// 此方法返回这个辅助类型的名称。
+    /// 如果 <paramref name="typeSymbol"/> 是可空值类型，则递归返回其基础类型，否则直接返回 <paramref name="typeSymbol"/> 本身。<br/>
+    /// 不会处理其泛型参数的可空性。
     /// </summary>
-    /// <param name="symbol">命令行对象中一个枚举属性的属性类型。</param>
-    /// <returns>辅助类型的名称。</returns>
-    public static string GetGeneratedEnumArgumentTypeName(this ITypeSymbol symbol)
+    /// <param name="typeSymbol">要处理的类型符号。</param>
+    /// <returns>基础类型符号。</returns>
+    private static ITypeSymbol GetNotNullTypeSymbol(ITypeSymbol typeSymbol) => typeSymbol switch
     {
-        return symbol.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol
-            ? $"__GeneratedEnumArgument__{enumTypeSymbol.ToDisplayString().Replace('.', '_')}__"
-            : symbol.ToDisplayString();
-    }
+        INamedTypeSymbol
+        {
+            IsValueType: true,
+            IsGenericType: true,
+            OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
+        } nullableTypeSymbol => nullableTypeSymbol.TypeArguments[0],
+        _ => typeSymbol,
+    };
 }

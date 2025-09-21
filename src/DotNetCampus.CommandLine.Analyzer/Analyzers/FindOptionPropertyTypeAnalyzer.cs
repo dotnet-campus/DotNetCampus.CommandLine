@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using DotNetCampus.CommandLine.CodeAnalysis;
+using DotNetCampus.CommandLine.Generators.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

@@ -108,7 +108,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         CommandValueKind.String => "global::DotNetCampus.Cli.Compiler.StringArgument",
         CommandValueKind.List => "global::DotNetCampus.Cli.Compiler.StringListArgument",
         CommandValueKind.Dictionary => "global::DotNetCampus.Cli.Compiler.StringDictionaryArgument",
-        _ => $"// 不支持解析类型为 {model.Type.ToDisplayString()} 的属性 {model.PropertyName}。",
+        _ => "global::DotNetCampus.Cli.Compiler.ErrorArgument",
     };
 
     private static string GenerateBuildCode(CommandObjectGeneratingModel model) => $$"""
