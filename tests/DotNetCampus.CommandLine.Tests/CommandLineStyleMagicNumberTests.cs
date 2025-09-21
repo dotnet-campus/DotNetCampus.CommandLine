@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DotNetCampus.Cli.Tests;
 
 [TestClass]
-public class CommandLineParsingOptionsTests
+public class CommandLineStyleMagicNumberTests
 {
 #if DEBUG
     [TestMethod("魔法数字必须严格和实际样式匹配")]
