@@ -19,14 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Analyzers\**" />
-    <Compile Remove="Fakes\**\*Parser.cs" />
-    <Compile Remove="Fakes\**\Runtime*.cs" />
-    <Compile Remove="CommandLineTests.bak.cs" />
-    <Compile Remove="CommandLineTests.ValueRange.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="dotnetCampus.CommandLine.Legacy">
       <HintPath>..\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
     </Reference>
