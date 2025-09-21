@@ -33,6 +33,26 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     }
 
     /// <summary>
+    /// 处理解析错误。如果解析结果表示失败，则调用此方法来处理错误。
+    /// </summary>
+    /// <param name="commandLine">整个命令行参数列表。</param>
+    public void WithFallback(CommandLine commandLine)
+    {
+        if (IsSuccess)
+        {
+            return;
+        }
+
+        var runner = ((ICoreCommandRunnerBuilder)commandLine).GetOrCreateRunner();
+        if (runner.RunFallback(this))
+        {
+            return;
+        }
+
+        ThrowIfError();
+    }
+
+    /// <summary>
     /// 如果解析结果表示失败，则抛出一个异常，包含错误信息。
     /// </summary>
     public void ThrowIfError()

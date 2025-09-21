@@ -12,6 +12,11 @@ namespace DotNetCampus.Cli;
 public class CommandLine : ICoreCommandRunnerBuilder
 {
     /// <summary>
+    /// 存储与此命令行解析类型关联的命令行执行器。
+    /// </summary>
+    private CommandRunner? _commandRunner;
+
+    /// <summary>
     /// 存储特殊处理过 URL 的命令行参数。
     /// </summary>
     private readonly IReadOnlyList<string>? _urlNormalizedArguments;
@@ -129,7 +134,7 @@ public class CommandLine : ICoreCommandRunnerBuilder
         return string.Join(" ", RawArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 
-    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => new(this);
+    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => _commandRunner ??= new(this);
 
     /// <summary>
     /// 当某个方法本应该被源生成器拦截时，却仍然被调用了，就调用此方法抛出异常。

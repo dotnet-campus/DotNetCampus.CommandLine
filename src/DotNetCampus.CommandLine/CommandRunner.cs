@@ -1,24 +1,25 @@
 using System.ComponentModel;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
 
 /// <summary>
-/// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
+/// 辅助 <see cref="Cli.CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private readonly CommandLine _commandLine;
     private readonly SortedList<string, CommandObjectFactory> _factories;
     private readonly StringComparison _stringComparison;
     private readonly bool _supportsOrdinal;
     private readonly bool _supportsPascalCase;
     private CommandObjectFactory? _defaultFactory;
+    private CommandObjectFactory? _fallbackFactory;
 
     internal CommandRunner(CommandLine commandLine)
     {
-        _commandLine = commandLine;
+        CommandLine = commandLine;
         var caseSensitive = commandLine.ParsingOptions.Style.CaseSensitive;
         _factories = caseSensitive
             ? new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseSensitive)
@@ -30,8 +31,32 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
 
+    internal CommandLine CommandLine { get; }
+
     /// <inheritdoc />
     public int Run() => RunAsync().Result;
+
+    /// <summary>
+    /// 处理命令解析过程中发生的错误。
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    internal bool RunFallback(CommandLineParsingResult result)
+    {
+        if (_fallbackFactory?.Invoke(CommandLine) is not ICommandHandler fallback)
+        {
+            return false;
+        }
+
+        if (fallback is CommandLineExceptionHandler exceptionHandler)
+        {
+            exceptionHandler.ErrorResult = result;
+        }
+
+        fallback.RunAsync().Wait();
+        return true;
+    }
 
     /// <inheritdoc />
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
@@ -50,7 +75,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 possibleCommandNames);
         }
 
-        var handler = (ICommandHandler)factory(_commandLine);
+        var handler = (ICommandHandler)factory(CommandLine);
         return handler.RunAsync();
     }
 
@@ -59,7 +84,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         if (_factories.Count > 0)
         {
             var maxLength = _factories.Keys[0].Length;
-            var header = _commandLine.GetHeader(maxLength);
+            var header = CommandLine.GetHeader(maxLength);
 
             foreach (var (command, factory) in _factories)
             {
@@ -79,7 +104,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             return ("", defaultFactory);
         }
 
-        return (_commandLine.GetHeader(1), null);
+        return (CommandLine.GetHeader(1), null);
     }
 
     /// <summary>
@@ -135,6 +160,17 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 _defaultFactory = factory;
             }
         }
+        return this;
+    }
+
+    /// <summary>
+    /// 添加一个回退的命令处理器。当其他命令出现了错误时，会执行此命令处理器。
+    /// </summary>
+    /// <param name="factory">回退命令处理器的创建方法。</param>
+    /// <returns>返回一个命令处理器构建器。</returns>
+    internal CommandRunner AddFallbackHandler(CommandObjectFactory factory)
+    {
+        _fallbackFactory = factory;
         return this;
     }
 }

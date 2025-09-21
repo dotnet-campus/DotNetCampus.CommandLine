@@ -145,7 +145,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             MatchPositionalArguments = MatchPositionalArguments,
             AssignPropertyValue = AssignPropertyValue,
         };
-        parser.Parse().ThrowIfError();
+        parser.Parse().WithFallback(commandLine);
         return BuildCore(commandLine);
     }
     """;
