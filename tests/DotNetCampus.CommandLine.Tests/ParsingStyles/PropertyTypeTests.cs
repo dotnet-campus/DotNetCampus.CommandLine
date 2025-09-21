@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DotNetCampus.Cli.Compiler;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 // ReSharper disable InconsistentNaming
 
 namespace DotNetCampus.Cli.Tests.ParsingStyles;
@@ -16,8 +17,6 @@ public class PropertyTypeTests
     public void SupportManyTypes()
     {
         // Arrange
-        // "--boolean-property", "true",
-        // "--immutable-array-property", "a,b,c",
         string[] args =
         [
             "--boolean-property", "true",
@@ -35,6 +34,7 @@ public class PropertyTypeTests
             "--char-property", "a",
             "--string-property", "value",
             "--array-property", "a,b,c",
+            "--list-property", "a,b,c",
             "--collection-property", "a,b,c",
             "--read-only-collection-property", "a,b,c",
             "--hash-set-property", "a,b,c",
@@ -51,19 +51,19 @@ public class PropertyTypeTests
             "--iset-property", "a,b,c",
             "--iimmutable-list-property", "a,b,c",
             "--iimmutable-set-property", "a,b,c",
-            "--key-value-pair-property", "key:value",
-            "--dictionary-property", "key:value,key2:value2",
-            "--immutable-dictionary-property", "key:value,key2:value2",
-            "--sorted-dictionary-property", "key:value,key2:value2",
-            "--sorted-list-property", "key:value,key2:value2",
-            "--immutable-sorted-dictionary-property", "key:value,key2:value2",
-            "--idictionary-property", "key:value,key2:value2",
-            "--iread-only-dictionary-property", "key:value,key2:value2",
+            "--key-value-pair-property", "key=value",
+            "--dictionary-property", "key=value,key2=value2",
+            "--immutable-dictionary-property", "key=value,key2=value2",
+            "--sorted-dictionary-property", "key=value,key2=value2",
+            "--immutable-sorted-dictionary-property", "key=value,key2=value2",
+            "--idictionary-property", "key=value,key2=value2",
+            "--iread-only-dictionary-property", "key=value,key2=value2",
+            "--enum-property", "ValueB",
         ];
         var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
         // Act
-        var options = commandLine.As<TestOptions>();
+        var options = commandLine.As<AllInOneTestOptions>();
 
         // Assert
         Assert.IsNotNull(options);
@@ -75,18 +75,19 @@ public class PropertyTypeTests
         Assert.AreEqual(1.1f, options.SingleProperty);
         Assert.AreEqual(1, options.Int32Property);
         Assert.AreEqual((uint)1, options.UInt32Property);
-        Assert.AreEqual((long)1, options.Int64Property);
+        Assert.AreEqual(1, options.Int64Property);
         Assert.AreEqual((ulong)1, options.UInt64Property);
         Assert.AreEqual((short)1, options.Int16Property);
         Assert.AreEqual((ushort)1, options.UInt16Property);
         Assert.AreEqual('a', options.CharProperty);
         Assert.AreEqual("value", options.StringProperty);
         CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.ArrayProperty);
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, (ICollection)options.CollectionProperty!);
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, (ICollection)options.ReadOnlyCollectionProperty!);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.ListProperty!);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.CollectionProperty!);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.ReadOnlyCollectionProperty!);
         CollectionAssert.AreEquivalent(new[] { "a", "b", "c" }, options.HashSetProperty!.ToArray());
         CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.ImmutableArrayProperty.ToArray());
-        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, (ICollection)options.ImmutableListProperty!);
+        CollectionAssert.AreEqual(new[] { "a", "b", "c" }, options.ImmutableListProperty!);
         CollectionAssert.AreEquivalent(new[] { "a", "b", "c" }, options.ImmutableHashSetProperty!.ToArray());
         CollectionAssert.AreEquivalent(new[] { "a", "b", "c" }, options.SortedSetProperty!.ToArray());
         CollectionAssert.AreEquivalent(new[] { "a", "b", "c" }, options.ImmutableSortedSetProperty!.ToArray());
@@ -103,10 +104,36 @@ public class PropertyTypeTests
         {
             ["key"] = "value",
             ["key2"] = "value2",
-        }, (ICollection)options.DictionaryProperty!);
+        }, options.DictionaryProperty!);
+        CollectionAssert.AreEquivalent(new Dictionary<string, string>
+        {
+            ["key"] = "value",
+            ["key2"] = "value2",
+        }, options.ImmutableDictionaryProperty!);
+        CollectionAssert.AreEquivalent(new Dictionary<string, string>
+        {
+            ["key"] = "value",
+            ["key2"] = "value2",
+        }, options.SortedDictionaryProperty!);
+        CollectionAssert.AreEquivalent(new Dictionary<string, string>
+        {
+            ["key"] = "value",
+            ["key2"] = "value2",
+        }, options.ImmutableSortedDictionaryProperty!);
+        CollectionAssert.AreEquivalent(new Dictionary<string, string>
+        {
+            ["key"] = "value",
+            ["key2"] = "value2",
+        }, (ICollection)options.IDictionaryProperty!);
+        CollectionAssert.AreEquivalent(new Dictionary<string, string>
+        {
+            ["key"] = "value",
+            ["key2"] = "value2",
+        }, (ICollection)options.IReadOnlyDictionaryProperty!);
+        Assert.AreEqual(TestEnum.ValueB, options.EnumProperty);
     }
 
-    public record TestOptions
+    public record AllInOneTestOptions
     {
         [Option]
         public bool? BooleanProperty { get; set; }
@@ -152,6 +179,9 @@ public class PropertyTypeTests
 
         [Option]
         public string[]? ArrayProperty { get; set; }
+
+        [Option]
+        public List<string>? ListProperty { get; set; }
 
         [Option]
         public Collection<string>? CollectionProperty { get; set; }
@@ -221,5 +251,14 @@ public class PropertyTypeTests
 
         [Option]
         public IReadOnlyDictionary<string, string>? IReadOnlyDictionaryProperty { get; set; }
+
+        [Option]
+        public TestEnum? EnumProperty { get; set; }
+    }
+
+    public enum TestEnum
+    {
+        ValueA,
+        ValueB,
     }
 }
