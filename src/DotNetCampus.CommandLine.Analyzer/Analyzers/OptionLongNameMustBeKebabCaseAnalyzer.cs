@@ -129,15 +129,29 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
 
         var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
         var optionNameArguments = attributeArguments.Where(x => x.NameEquals is null).ToList();
-        var longNameExpressions = optionNameArguments.Count switch
+        List<ExpressionSyntax> longNameExpressions = optionNameArguments.Count switch
         {
-            1 => optionNameArguments[0].DescendantNodes().OfType<LiteralExpressionSyntax>().ToList(),
-            2 => optionNameArguments[1].DescendantNodes().OfType<LiteralExpressionSyntax>().ToList(),
+            1 =>
+            [
+                ..optionNameArguments[0].DescendantNodes().OfType<LiteralExpressionSyntax>(),
+                ..optionNameArguments[0].DescendantNodes().OfType<InvocationExpressionSyntax>(),
+            ],
+            2 =>
+            [
+                ..optionNameArguments[1].DescendantNodes().OfType<LiteralExpressionSyntax>(),
+                ..optionNameArguments[1].DescendantNodes().OfType<InvocationExpressionSyntax>(),
+            ],
             _ => [],
         };
         foreach (var longNameExpression in longNameExpressions)
         {
-            var longName = longNameExpression?.Token.ValueText;
+            var longName = longNameExpression switch
+            {
+                LiteralExpressionSyntax le => le.Token.ValueText,
+                InvocationExpressionSyntax ie => ie.DescendantNodes().OfType<ArgumentSyntax>()
+                    .Select(x => x.DescendantNodes().OfType<IdentifierNameSyntax>().FirstOrDefault()?.Identifier.ToString()).FirstOrDefault(),
+                _ => null,
+            };
             var caseSensitiveExpression = attributeArguments
                 .FirstOrDefault(x => x.NameEquals?.Name.ToString() == "CaseSensitive")?
                 .Expression as LiteralExpressionSyntax;
