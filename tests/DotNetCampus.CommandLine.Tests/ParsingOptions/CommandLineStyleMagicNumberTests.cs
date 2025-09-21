@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DotNetCampus.Cli.Tests;
+namespace DotNetCampus.Cli.Tests.ParsingOptions;
 
 [TestClass]
 public class CommandLineStyleMagicNumberTests
