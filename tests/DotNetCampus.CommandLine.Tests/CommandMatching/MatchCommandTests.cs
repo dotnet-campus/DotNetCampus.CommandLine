@@ -10,11 +10,12 @@ namespace DotNetCampus.Cli.Tests.CommandMatching;
 public class MatchCommandTests
 {
     [TestMethod]
-    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] No command")]
-    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] No command")]
-    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] No command")]
-    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] No command")]
-    [DataRow(new[] { "test://" }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Url, DisplayName = "[Url] No command")]
+    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
+    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
+    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
+    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new[] { "test://" }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
+    [DataRow(new[] { "unknown://" }, nameof(DefaultOptions), "unknown://", TestCommandLineStyle.Url, DisplayName = "[Url] unknown://")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]

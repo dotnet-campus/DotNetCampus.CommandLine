@@ -33,7 +33,25 @@ public class OptionCaseSensitiveTests
     [DataRow(new[] { "-optionname1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -optionname1=value")]
     [DataRow(new[] { "-OPTIONNAME1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OPTIONNAME1=value")]
     [DataRow(new[] { "-optionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -optionName1=value")]
+    [DataRow(new[] { "test://?Option-Name1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?Option-Name1=value")]
+    [DataRow(new[] { "test://?OPTION-NAME1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?OPTION-NAME1=value")]
     public void CaseInsensitive(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.AreEqual("value", options.OptionName1);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "test://?option-name1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?option-name1=value")]
+    [DataRow(new[] { "Test://?option-name1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] Test://?option-name1=value")]
+    [DataRow(new[] { "TEST://?option-name1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] TEST://?option-name1=value")]
+    public void UrlCaseInsensitive(string[] args, TestCommandLineStyle style)
     {
         // Arrange
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
