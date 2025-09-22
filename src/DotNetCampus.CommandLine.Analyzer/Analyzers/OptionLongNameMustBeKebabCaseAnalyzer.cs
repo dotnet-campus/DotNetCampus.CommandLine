@@ -195,15 +195,17 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                         Diagnostics.DCL101_OptionLongNameMustBeKebabCase,
                         longNameExpression?.GetLocation(), longName));
                 }
-
-                // 宽松检查。
-                var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
-                var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
-                if (!isKebabCase2)
+                else
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
-                        Diagnostics.DCL102_OptionLongNameCanBeKebabCase,
-                        longNameExpression?.GetLocation(), longName));
+                    // 宽松检查。
+                    var kebabCase2 = MakeKebabCase(longName, true, true, hasSeparator);
+                    var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
+                    if (!isKebabCase2)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Diagnostics.DCL102_OptionLongNameCanBeKebabCase,
+                            longNameExpression?.GetLocation(), longName));
+                    }
                 }
             }
         }
