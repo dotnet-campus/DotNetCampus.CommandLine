@@ -13,7 +13,7 @@ public class OptionNamingPolicyTests
     [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -OptionName1=value")]
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option-name1=value")]
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --option-name1=value")]
-    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[Flexible] -OptionName1=value")]
+    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OptionName1=value")]
     public void Supported_KebabCase(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -47,7 +47,7 @@ public class OptionNamingPolicyTests
     [TestMethod]
     [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --OptionName1=value")]
     [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --OptionName1=value")]
-    [DataRow(new[] { "-option-name1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[Flexible] -option-name1=value")]
+    [DataRow(new[] { "-option-name1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option-name1=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option-name2=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option-name2=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --option-name2=value")]
