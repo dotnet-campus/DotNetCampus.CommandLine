@@ -19,8 +19,10 @@ jobs:
     - name: Build
       run: dotnet build -c release
 
-    - name: Test
+    - name: Test Debug
       run: dotnet test -c debug
+
+    - name: Test Release
       run: dotnet test -c release
 
     - name: Pack
