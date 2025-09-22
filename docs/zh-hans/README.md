@@ -110,11 +110,11 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 | 长布尔选项 ` `    | --option true  | --option true  |                   |            | -Option true |                   |
 | 长布尔选项 `=`    | --option=true  | --option=true  | --option=true[^1] |            | -Option=true |                   |
 | 长布尔选项 `:`    | --option:true  | --option:true  |                   |            | -Option:true |                   |
-| 短选项选项        | -o             | -o             | -o                | -o         | -o           |                   |
-| 短选项选项 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
-| 短选项选项 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
-| 短选项选项 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
-| 短选项选项 `null` |                |                | -o1               |            |              |                   |
+| 短布尔选项        | -o             | -o             | -o                | -o         | -o           |                   |
+| 短布尔选项 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
+| 短布尔选项 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
+| 短布尔选项 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
+| 短布尔选项 `null` |                |                | -o1               |            |              |                   |
 | 布尔/开关值       | true/false     | true/false     | true/false        | true/false | true/false   | true/false        |
 | 布尔/开关值       | yes/no         | yes/no         | yes/no            | yes/no     | yes/no       | yes/no            |
 | 布尔/开关值       | on/off         | on/off         | on/off            | on/off     | on/off       | on/off            |
