@@ -31,6 +31,7 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
     [
         Diagnostics.DCL101_OptionLongNameMustBeKebabCase,
         Diagnostics.DCL102_OptionLongNameCanBeKebabCase,
+        Diagnostics.DCL103_OptionNameIsInvalid,
     ];
 
     /// <summary>
@@ -93,42 +94,39 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                 continue;
             }
 
-            foreach (var (name, location, type) in AnalyzeOptionAttributeArguments(attributeSyntax, hasSeparator))
-            {
-                if (name is null || location is null)
-                {
-                    continue;
-                }
-
-                var descriptor = type is SuggestionType.Warning
-                    ? Diagnostics.DCL101_OptionLongNameMustBeKebabCase
-                    : Diagnostics.DCL102_OptionLongNameCanBeKebabCase;
-                var diagnostic = Diagnostic.Create(descriptor, location, name);
-                context.ReportDiagnostic(diagnostic);
-            }
+            AnalyzeOptionAttributeArguments(context, attributeSyntax, hasSeparator);
         }
     }
 
     /// <summary>
     /// Find LongName argument from the OptionAttribute.
     /// </summary>
+    /// <param name="context"></param>
     /// <param name="attributeSyntax"></param>
     /// <param name="hasSeparator"></param>
     /// <returns>
     /// name: the LongName value.
     /// location: the syntax tree location of the LongName argument value.
     /// </returns>
-    private IEnumerable<(string? Name, Location? Location, SuggestionType SuggestionType)> AnalyzeOptionAttributeArguments(
-        AttributeSyntax attributeSyntax, bool hasSeparator)
+    private void AnalyzeOptionAttributeArguments(SyntaxNodeAnalysisContext context, AttributeSyntax attributeSyntax, bool hasSeparator)
     {
         var argumentList = attributeSyntax.ChildNodes().OfType<AttributeArgumentListSyntax>().FirstOrDefault();
         if (argumentList == null)
         {
-            yield break;
+            return;
         }
 
         var attributeArguments = argumentList.ChildNodes().OfType<AttributeArgumentSyntax>().ToList();
         var optionNameArguments = attributeArguments.Where(x => x.NameEquals is null).ToList();
+        List<ExpressionSyntax> shortNameExpressions = optionNameArguments.Count switch
+        {
+            2 =>
+            [
+                ..optionNameArguments[0].DescendantNodes().OfType<LiteralExpressionSyntax>(),
+                ..optionNameArguments[0].DescendantNodes().OfType<InvocationExpressionSyntax>(),
+            ],
+            _ => [],
+        };
         List<ExpressionSyntax> longNameExpressions = optionNameArguments.Count switch
         {
             1 =>
@@ -143,6 +141,26 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
             ],
             _ => [],
         };
+        foreach (var shortNameExpression in shortNameExpressions)
+        {
+            var shortName = shortNameExpression switch
+            {
+                LiteralExpressionSyntax le => le.Token.ValueText,
+                InvocationExpressionSyntax ie => ie.DescendantNodes().OfType<ArgumentSyntax>()
+                    .Select(x => x.DescendantNodes().OfType<IdentifierNameSyntax>().FirstOrDefault()?.Identifier.ToString()).FirstOrDefault(),
+                _ => null,
+            };
+            if (shortName is null)
+            {
+                continue;
+            }
+            if (CheckIsInvalidOptionName(shortName, hasSeparator))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.DCL103_OptionNameIsInvalid,
+                    shortNameExpression?.GetLocation(), shortName));
+            }
+        }
         foreach (var longNameExpression in longNameExpressions)
         {
             var longName = longNameExpression switch
@@ -152,18 +170,30 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                     .Select(x => x.DescendantNodes().OfType<IdentifierNameSyntax>().FirstOrDefault()?.Identifier.ToString()).FirstOrDefault(),
                 _ => null,
             };
+            if (longName is null)
+            {
+                continue;
+            }
+            if (CheckIsInvalidOptionName(longName, hasSeparator))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.DCL103_OptionNameIsInvalid,
+                    longNameExpression?.GetLocation(), longName));
+            }
             var caseSensitiveExpression = attributeArguments
                 .FirstOrDefault(x => x.NameEquals?.Name.ToString() == "CaseSensitive")?
                 .Expression as LiteralExpressionSyntax;
             var caseSensitive = caseSensitiveExpression?.Token.ValueText.Equals("true", StringComparison.OrdinalIgnoreCase) is true;
-            if (!caseSensitive && longName is not null)
+            if (!caseSensitive)
             {
                 // 严格检查。
                 var kebabCase = MakeKebabCase(longName, true, false, hasSeparator);
                 var isKebabCase = string.Equals(kebabCase, longName, StringComparison.Ordinal);
                 if (!isKebabCase)
                 {
-                    yield return (longName, longNameExpression?.GetLocation(), SuggestionType.Warning);
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Diagnostics.DCL101_OptionLongNameMustBeKebabCase,
+                        longNameExpression?.GetLocation(), longName));
                 }
 
                 // 宽松检查。
@@ -171,9 +201,48 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                 var isKebabCase2 = string.Equals(kebabCase2, longName, StringComparison.Ordinal);
                 if (!isKebabCase2)
                 {
-                    yield return (longName, longNameExpression?.GetLocation(), SuggestionType.Info);
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Diagnostics.DCL102_OptionLongNameCanBeKebabCase,
+                        longNameExpression?.GetLocation(), longName));
                 }
             }
+        }
+    }
+
+    private bool CheckIsInvalidOptionName(string optionName, bool hasSeparator)
+    {
+        if (hasSeparator)
+        {
+            return optionName.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+                .Any(CheckIsInvalidOptionNameCore);
+        }
+        else
+        {
+            return CheckIsInvalidOptionNameCore(optionName);
+        }
+
+        static bool CheckIsInvalidOptionNameCore(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return true;
+            }
+
+            var span = name.AsSpan();
+            for (var i = 0; i < span.Length; i++)
+            {
+                var c = span[i];
+                if (i is 0 && c is '-')
+                {
+                    return true;
+                }
+                if (!char.IsLetterOrDigit(c) && c != '-' && c != '_')
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 

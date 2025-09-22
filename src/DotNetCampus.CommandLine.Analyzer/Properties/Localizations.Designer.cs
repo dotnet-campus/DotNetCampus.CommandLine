@@ -123,6 +123,33 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The option name is invalid.
+        /// </summary>
+        public static string DCL103 {
+            get {
+                return ResourceManager.GetString("DCL103", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option name {0} must not be empty string, and not starts with &apos;-&apos;, and not contains invalid characters..
+        /// </summary>
+        public static string DCL103_Description {
+            get {
+                return ResourceManager.GetString("DCL103_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option name {0} must not be empty string, and not starts with &apos;-&apos;, and not contains invalid characters..
+        /// </summary>
+        public static string DCL103_Message {
+            get {
+                return ResourceManager.GetString("DCL103_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recommended option property type.
         /// </summary>
         public static string DCL201 {

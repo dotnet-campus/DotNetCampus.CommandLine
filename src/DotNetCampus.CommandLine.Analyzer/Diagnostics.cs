@@ -30,6 +30,17 @@ public static class Diagnostics
         description: Localize(nameof(DCL102_Description)),
         helpLinkUri: Url(nameof(DCL102)));
 
+    public static readonly DiagnosticDescriptor DCL103_OptionNameIsInvalid = new DiagnosticDescriptor(
+        nameof(DCL103),
+        Localize(nameof(DCL103)),
+        Localize(nameof(DCL103_Message)),
+        Categories.RuntimeException,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: Localize(nameof(DCL103_Description)),
+        helpLinkUri: Url(nameof(DCL103)),
+        customTags: WellKnownDiagnosticTags.NotConfigurable);
+
     #endregion
 
     #region Options Properties 201-299
@@ -86,12 +97,14 @@ public static class Diagnostics
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Localize(nameof(DCL301_Description)),
-        helpLinkUri: Url(nameof(DCL301)));
+        helpLinkUri: Url(nameof(DCL301)),
+        customTags: WellKnownDiagnosticTags.NotConfigurable);
 
     #endregion
 
     public const string OptionLongNameMustBeKebabCase = "DCL101";
     public const string OptionLongNameCanBeKebabCase = "DCL102";
+    public const string OptionNameIsInvalid = "DCL103";
     public const string SupportedOptionPropertyType = "DCL201";
     public const string NotSupportedOptionPropertyType = "DCL202";
     public const string NotSupportedRawArgumentsPropertyType = "DCL203";

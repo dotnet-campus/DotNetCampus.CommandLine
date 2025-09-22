@@ -99,4 +99,13 @@
   <data name="DCL204_Description" xml:space="preserve">
     <value>选项名出现了重复 {0}</value>
   </data>
+  <data name="DCL103" xml:space="preserve">
+    <value>选项名无效</value>
+  </data>
+  <data name="DCL103_Description" xml:space="preserve">
+    <value>选项名 {0} 不应为空字符串，不应有 '-' 前缀，不应包含不支持的字符</value>
+  </data>
+  <data name="DCL103_Message" xml:space="preserve">
+    <value>选项名 {0} 不应为空字符串，不应有 '-' 前缀，不应包含不支持的字符</value>
+  </data>
 </root>
