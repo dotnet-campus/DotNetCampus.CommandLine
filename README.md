@@ -9,9 +9,9 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-DotNetCampus.CommandLine is a simple yet high-performance command line parsing library for .NET. Powered by source generators (and interceptors), it delivers efficient parsing and a friendly development experience across multiple command line styles.
+DotNetCampus.CommandLine is a simple and high-performance command line parsing library for .NET. Benefiting from source generators (and interceptors), it delivers efficient parsing and a friendly development experience across multiple command line styles. All features live under the `DotNetCampus.Cli` namespace.
 
-Parsing a typical command line takes only about 0.8μs (microseconds) in benchmarks, placing it among the fastest .NET command line parsers while still pursuing full-featured syntax support.
+Benchmarks show parsing a typical command line takes well under a microsecond in many scenarios, placing it among the fastest .NET command line parsers while still pursuing full‑featured syntax support.
 
 ## Get Started
 
@@ -37,58 +37,81 @@ class Program
 Define a class that maps command line arguments:
 
 ```csharp
-class Options
+public class Options
 {
-    [Value(0)]
-    public required string FilePath { get; init; }
+    [Option("debug")]
+    public required bool IsDebugMode { get; init; }
 
-    [Option('s', "silence")]
-    public bool IsSilence { get; init; }
+    [Option('c', "count")]
+    public required int TestCount { get; init; }
 
-    [Option('m', "mode")]
-    public string? StartMode { get; init; }
+    [Option('n', "test-name")]
+    public string? TestName { get; set; }
 
-    [Option("startup-sessions")]
-    public IReadOnlyList<string> StartupSessions { get; init; } = [];
+    [Option("test-category")]
+    public string? TestCategory { get; set; }
+
+    [Option('d', "detail-level")]
+    public DetailLevel DetailLevel { get; set; } = DetailLevel.Medium;
+
+    [Value(0, int.MaxValue)]
+    public IReadOnlyList<string> TestItems { get; init; } = null!;
+}
+
+public enum DetailLevel
+{
+    Low,
+    Medium,
+    High,
 }
 ```
 
-Then use different command line styles to populate instances of this type:
+Then use different command line styles to populate instances of this type (the library supports multiple styles):
 
-### Windows PowerShell Style
-
-```powershell
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s -Mode Edit -StartupSessions A B C
-```
-
-### Windows CMD Style
-
-```cmd
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" /s /Mode Edit /StartupSessions A B C
-```
-
-### Linux/GNU Style
-
-```bash
-$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A --startup-sessions B --startup-sessions C
-```
-
-### .NET CLI Style
-```
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s:true --mode:Edit --startup-sessions:A;B;C
-```
+| Style      | Example                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| DotNet     | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
+| PowerShell | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| CMD        | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
+| Gnu        | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
+| Flexible   | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
 
 ## Command Styles and Features
 
-The library supports multiple command line styles via `CommandLineStyle` (Flexible/DotNet/Gnu/Posix/PowerShell) and a Flexible default that offers broad compatibility (case sensitivity depends on style). Key capabilities include:
-- Rich option syntax (long/short options, multiple separators `= : space`)
-- Booleans with multiple literal forms (true/false, yes/no, on/off, 1/0)
-- Collections (repeat, comma, semicolon, space forms) and dictionaries
-- Positional arguments via `ValueAttribute` (ranges allowed)
-- Required / nullable / immutable (`required` / `init`) property semantics
-- Command & subcommand handling (multi-word `[Command]` supported)
-- Optional URL protocol parsing (`scheme://...` form)
-- High performance from source generators and interceptors
+Multiple command line styles are supported; select one when parsing (Flexible is default). Styles differ in case sensitivity, accepted prefixes, separators, and naming forms. A detailed capability matrix (boolean literals, collection parsing forms, naming conventions, URL form, etc.) is documented in the full English guide under `docs/en/README.md`.
+
+Core capabilities:
+- Rich option syntax: long & short options; separators `= : space`; multi-value & repeat forms
+- Boolean literals: `true/false`, `yes/no`, `on/off`, `1/0`
+- Collections & dictionaries: repeat, space, comma, semicolon forms; key-value dictionaries
+- Positional arguments: via `[Value(index)]` (ranges supported with `(index, length)` overload — second parameter is count)
+- Property semantics: `required`, `init`, nullable reference/value types unified behavior
+- Commands & subcommands: multi-word `[Command]` supported with handler chaining or `ICommandHandler`
+- URL protocol parsing: `scheme://command/sub/positional1?...` for integration scenarios
+- High performance: source generators + interceptors, minimizing allocations
+- AOT compatible: no reflection; even enum name lookups are avoided at runtime
+
+For the full feature matrix (including whether a style supports space-separated collections, explicit boolean values, multi-char short option groups, etc.), see the English documentation table.
+
+### Naming
+
+Define options using kebab-case in attributes (e.g., `[Option("test-name")]`). The analyzer warns (`DCL101`) if not kebab-case; we still treat what you write as kebab-case so users may invoke with PascalCase/camelCase depending on style.
+
+### Required Options and Default Values
+
+Modifiers: `required` (must be supplied), `init` (immutable after construction), `?` (nullable). Initial value semantics follow the table in `docs/en/README.md`: required & missing → exception; nullable + init → null; non-nullable collection → empty; non-nullable scalar → default value (value types) or empty string for `string`; otherwise keep initializer.
+
+### Commands and Subcommands
+
+Register handlers with `AddHandler<T>()` or implement `ICommandHandler`. Multi-word `[Command("remote add")]` expresses subcommands. Ambiguity throws `CommandNameAmbiguityException`. Use `RunAsync` if any handler is async.
+
+### URL Protocol
+
+You may express a command invocation as a URL: `dotnet-campus://1.txt/2.txt?count=20&test-name=BenchmarkTest&detail-level=High&debug` enabling shell integration or deep links.
+
+### Performance
+
+Benchmarks (see docs for detailed tables) show very low latency (hundreds of ns typical) and minimal allocations compared to earlier versions and other libraries, while preserving rich syntax coverage.
 
 ## Engage, Contribute and Provide Feedback
 
@@ -102,7 +125,7 @@ Click here to file a new issue:
 
 ### Contributing Guide
 
-Be kindly.
+Be kind.
 
 ## License
 
