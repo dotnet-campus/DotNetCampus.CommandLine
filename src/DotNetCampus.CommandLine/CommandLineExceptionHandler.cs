@@ -12,6 +12,10 @@ internal class CommandLineExceptionHandler(CommandLine commandLine, bool ignoreA
         {
             ErrorResult.ThrowIfError();
         }
+        else
+        {
+            Console.WriteLine(commandLine);
+        }
         return Task.FromResult(-1);
     }
 }
