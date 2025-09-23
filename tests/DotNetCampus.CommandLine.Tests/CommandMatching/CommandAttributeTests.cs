@@ -1,7 +1,6 @@
 using DotNetCampus.Cli.Tests.ParsingStyles;
 using DotNetCampus.CommandLine.FakeObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using S = DotNetCampus.Cli.Tests.ParsingStyles.TestCommandLineStyle;
 
 namespace DotNetCampus.Cli.Tests.CommandMatching;
 
@@ -9,10 +8,13 @@ namespace DotNetCampus.Cli.Tests.CommandMatching;
 public class CommandAttributeTests
 {
     [TestMethod]
-    [DataRow(new[] { "--option=value" }, nameof(CommandObject0InAnotherAssembly), S.Flexible, DisplayName = "[Flexible]")]
-    [DataRow(new[] { "test", "--option=value" }, nameof(CommandObject1InAnotherAssembly), S.Flexible, DisplayName = "[Flexible]")]
-    [DataRow(new[] { "command", "in-another-assembly", "--option=value" }, nameof(CommandObject2InAnotherAssembly), S.Flexible, DisplayName = "[Flexible]")]
-    public void MatchCommand(string[] args, string expectedCommand, S style)
+    [DataRow(new[] { "--option=value" }, nameof(CommandObject0InAnotherAssembly), TestCommandLineStyle.Flexible,
+        DisplayName = "[Flexible] --option=value")]
+    [DataRow(new[] { "test", "--option=value" }, nameof(CommandObject1InAnotherAssembly), TestCommandLineStyle.Flexible,
+        DisplayName = "[Flexible] test --option=value")]
+    [DataRow(new[] { "command", "in-another-assembly", "--option=value" }, nameof(CommandObject2InAnotherAssembly), TestCommandLineStyle.Flexible,
+        DisplayName = "[Flexible] command in-another-assembly --option=value")]
+    public void MatchCommand(string[] args, string expectedCommand, TestCommandLineStyle style)
     {
         // Arrange
         (string? TypeName, string? Value) matched = default;
