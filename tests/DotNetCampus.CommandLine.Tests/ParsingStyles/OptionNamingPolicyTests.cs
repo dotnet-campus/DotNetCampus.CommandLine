@@ -10,10 +10,8 @@ public class OptionNamingPolicyTests
 {
     [TestMethod]
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option-name1=value")]
-    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -OptionName1=value")]
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option-name1=value")]
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --option-name1=value")]
-    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OptionName1=value")]
     public void Supported_KebabCase(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -42,6 +40,22 @@ public class OptionNamingPolicyTests
 
         // Assert
         Assert.AreEqual("value", options.OptionName2);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --OptionName1=value")]
+    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -OptionName1=value")]
+    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OptionName1=value")]
+    public void Supported_PascalCase(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.AreEqual("value", options.OptionName1);
     }
 
     [TestMethod]
