@@ -140,7 +140,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 选项会优先取出紧跟着的值，但凡能放入该选项的，均会放入该选项，一旦放不下了，后面如果还有值，就会算作位置参数。
 
-例如，`--option` 是个布尔选项时，`--option true text` 或 `--option 1 text` 后面的 `true` 和 `1` 会被 `--option` 选项取走，再后面的 `text` 则就位置参数。
+例如，`--option` 是个布尔选项时，`--option true text` 或 `--option 1 text` 后面的 `true` 和 `1` 会被 `--option` 选项取走，再后面的 `text` 则是位置参数。
 再例如，`--option` 是个布尔选项时，`--option text` 由于 `text` 不是布尔值，所以 `text` 直接就是位置参数。
 再例如，如果风格支持空格分隔集合（见上表），那么当 `--option a b c` 是个集合选项时，`a` `b` `c` 都会被取走，直到遇到下一个选项或 `--`。GNU 不支持空格分隔集合。
 
@@ -365,11 +365,290 @@ public class BenchmarkOptions41
 }
 ```
 
-对应生成的源：
+<details>
+  <summary>对应生成的源</summary>
 
 ```csharp
-// 在 AI 翻译完成后，人类将补充它。
+#nullable enable
+using global::System;
+using global::DotNetCampus.Cli.Compiler;
+
+namespace DotNetCampus.Cli.Performance.Fakes;
+
+/// <summary>
+/// 辅助 <see cref="global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41"/> 生成命令行选项、子命令或处理函数的创建。
+/// </summary>
+public sealed class BenchmarkOptions41Builder(global::DotNetCampus.Cli.CommandLine commandLine)
+{
+    public static readonly global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup CommandNameGroup = default;
+
+    public static global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    {
+        return new DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41Builder(commandLine).Build();
+    }
+
+    private global::DotNetCampus.Cli.Compiler.BooleanArgument IsDebugMode = new();
+
+    private global::DotNetCampus.Cli.Compiler.NumberArgument TestCount = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringArgument TestName = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringArgument TestCategory = new();
+
+    private __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__ DetailLevel = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringListArgument TestItems = new();
+
+    public global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 Build()
+    {
+        if (commandLine.RawArguments.Count is 0)
+        {
+            return BuildDefault();
+        }
+
+        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(commandLine, "BenchmarkOptions41", 0)
+        {
+            MatchLongOption = MatchLongOption,
+            MatchShortOption = MatchShortOption,
+            MatchPositionalArguments = MatchPositionalArguments,
+            AssignPropertyValue = AssignPropertyValue,
+        };
+        parser.Parse().WithFallback(commandLine);
+        return BuildCore(commandLine);
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)
+    {
+        // 1. 先匹配 kebab-case 命名法（原样字符串）
+        if (namingPolicy.SupportsOrdinal())
+        {
+            // 1.1 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。
+            switch (longOption)
+            {
+                case "debug":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+                case "count":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "test-name":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "test-category":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "detail-level":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+
+            // 1.2 再按指定大小写匹配一遍（能应对不规范命令行大小写）。
+            var defaultComparison = defaultCaseSensitive
+                ? global::System.StringComparison.Ordinal
+                : global::System.StringComparison.OrdinalIgnoreCase;
+            if (longOption.Equals("debug".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+            }
+            if (longOption.Equals("count".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("test-name".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("test-category".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("detail-level".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+        }
+
+        // 2. 再匹配其他命名法（能应对所有不规范命令行大小写，并支持所有风格）。
+        if (namingPolicy.SupportsPascalCase())
+        {
+            var defaultComparison = defaultCaseSensitive
+                ? global::System.StringComparison.Ordinal
+                : global::System.StringComparison.OrdinalIgnoreCase;
+            if (longOption.Equals("Debug".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+            }
+            if (longOption.Equals("Count".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("TestName".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("TestCategory".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("DetailLevel".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+        }
+
+        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)
+    {
+        // 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。
+        switch (shortOption)
+        {
+            // 属性 IsDebugMode 没有短名称，无需匹配。
+            case "c":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            case "n":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            // 属性 TestCategory 没有短名称，无需匹配。
+            case "d":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+
+        var defaultComparison = defaultCaseSensitive
+            ? global::System.StringComparison.Ordinal
+            : global::System.StringComparison.OrdinalIgnoreCase;
+
+        // 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。
+        // 属性 IsDebugMode 没有短名称，无需匹配。
+        if (shortOption.Equals("c".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+        if (shortOption.Equals("n".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+        // 属性 TestCategory 没有短名称，无需匹配。
+        if (shortOption.Equals("d".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+
+        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)
+    {
+        // 属性 TestItems 覆盖了所有位置参数，直接匹配。
+        return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("TestItems", 5, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
+    }
+
+    private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)
+    {
+        switch (propertyIndex)
+        {
+            case 0:
+                IsDebugMode = IsDebugMode.Assign(value);
+                break;
+            case 1:
+                TestCount = TestCount.Assign(value);
+                break;
+            case 2:
+                TestName = TestName.Assign(value);
+                break;
+            case 3:
+                TestCategory = TestCategory.Assign(value);
+                break;
+            case 4:
+                DetailLevel = DetailLevel.Assign(value);
+                break;
+            case 5:
+                TestItems = TestItems.Append(value);
+                break;
+        }
+    }
+
+    private global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)
+    {
+        var result = new global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41
+        {
+            // 1. There is no [RawArguments] property to be initialized.
+
+            // 2. [Option]
+            IsDebugMode = IsDebugMode.ToBoolean() ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option 'debug'. Command line: {commandLine}", "IsDebugMode"),
+            TestCount = TestCount.ToInt32() ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option 'count'. Command line: {commandLine}", "TestCount"),
+
+            // 3. [Value]
+            TestItems = TestItems.ToList() ?? [],
+        };
+
+        // 1. There is no [RawArguments] property to be assigned.
+
+        // 2. [Option]
+        if (TestName.ToString() is { } o0)
+        {
+            result.TestName = o0;
+        }
+        if (TestCategory.ToString() is { } o1)
+        {
+            result.TestCategory = o1;
+        }
+        if (DetailLevel.ToEnum() is { } o2)
+        {
+            result.DetailLevel = o2;
+        }
+
+        // 3. There is no [Value] property to be assigned.
+
+        return result;
+    }
+
+    private global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 BuildDefault()
+    {
+        throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
+    }
+
+    /// <summary>
+    /// Provides parsing and assignment for the enum type <see cref="global::DotNetCampus.Cli.Performance.Fakes.DetailLevel"/>.
+    /// </summary>
+    private readonly record struct __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__
+    {
+        /// <summary>
+        /// Indicates whether to ignore exceptions when parsing fails.
+        /// </summary>
+        public bool IgnoreExceptions { get; init; }
+
+        /// <summary>
+        /// Stores the parsed enum value.
+        /// </summary>
+        private global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? Value { get; init; }
+
+        /// <summary>
+        /// Assigns a value when a command line input is parsed.
+        /// </summary>
+        /// <param name="value">The parsed string value.</param>
+        public __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__ Assign(ReadOnlySpan<char> value)
+        {
+            Span<char> lowerValue = stackalloc char[value.Length];
+            for (var i = 0; i < value.Length; i++)
+            {
+                lowerValue[i] = char.ToLowerInvariant(value[i]);
+            }
+            global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? newValue = lowerValue switch
+            {
+                "low" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.Low,
+                "medium" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.Medium,
+                "high" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.High,
+                _ when IgnoreExceptions => null,
+                _ => throw new global::DotNetCampus.Cli.Exceptions.CommandLineParseValueException($"Cannot convert '{value.ToString()}' to enum type 'DotNetCampus.Cli.Performance.Fakes.DetailLevel'."),
+            };
+            return this with { Value = newValue };
+        }
+
+        /// <summary>
+        /// Converts the parsed value to the enum type.
+        /// </summary>
+        public global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? ToEnum() => Value;
+    }
+}
 ```
+
+</details>
 
 ## 性能数据
 
