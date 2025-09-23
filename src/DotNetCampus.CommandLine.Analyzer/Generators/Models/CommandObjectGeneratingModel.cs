@@ -54,10 +54,10 @@ internal record CommandObjectGeneratingModel
 
     public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentExcludingSameNameOptions()
     {
-        var optionNames = OptionProperties.Select(x => x.PropertyName).ToList();
+        var optionNames = new HashSet<string>(OptionProperties.Select(x => x.PropertyName));
         foreach (var positionalArgumentProperty in PositionalArgumentProperties)
         {
-            if (!optionNames.Contains(positionalArgumentProperty.PropertyName, StringComparer.Ordinal))
+            if (!optionNames.Contains(positionalArgumentProperty.PropertyName))
             {
                 yield return positionalArgumentProperty;
             }

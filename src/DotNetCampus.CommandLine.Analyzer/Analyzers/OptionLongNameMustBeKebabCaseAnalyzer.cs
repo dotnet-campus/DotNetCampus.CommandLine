@@ -230,10 +230,9 @@ public class OptionLongNameMustBeKebabCaseAnalyzer : DiagnosticAnalyzer
                 return true;
             }
 
-            var span = name.AsSpan();
-            for (var i = 0; i < span.Length; i++)
+            for (var i = 0; i < name.Length; i++)
             {
-                var c = span[i];
+                var c = name[i];
                 if (i is 0 && c is '-')
                 {
                     return true;
