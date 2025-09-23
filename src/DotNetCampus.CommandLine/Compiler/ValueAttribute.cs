@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
@@ -28,6 +30,7 @@ namespace DotNetCampus.Cli.Compiler;
 /// <item><c>ImmutableDictionary&lt;string, string&gt;</c></item>
 /// </list>
 /// </remarks>
+[Conditional("FOR_SOURCE_GENERATION_ONLY")]
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class ValueAttribute : CommandLineAttribute
 {
