@@ -1,5 +1,4 @@
 using DotNetCampus.Cli.Utils;
-using DotNetCampus.CommandLine.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators.Models;
@@ -42,6 +41,16 @@ internal record CommandObjectGeneratingModel
         null => 0,
         { } names => names.Count(x => x == ' ') + 1,
     };
+
+    public string? GetPascalCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(NamingHelper.MakePascalCase));
+    }
 
     public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentExcludingSameNameOptions()
     {

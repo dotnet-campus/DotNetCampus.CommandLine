@@ -181,7 +181,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddRawStatements($"""
                 // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
                 // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {model.ToNameGroup()}, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
 
@@ -199,22 +199,13 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddRawStatements($"""
                 // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
                 // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, {model.ToNameGroup()}, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
 }
 
 file static class Extensions
 {
-    public static string ToNameGroup(this InterceptorGeneratingModel model)
-    {
-        var ordinalName = model.CommandNames;
-        var pascalCaseName = model.GetPascalCaseCommandNames();
-        return string.IsNullOrWhiteSpace(ordinalName)
-            ? "default"
-            : $"new global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup(\"{ordinalName}\", \"{pascalCaseName}\")";
-    }
-
     public static Dictionary<ISymbol, ImmutableArray<InterceptorGeneratingModel>>? ToDictionary(
         this SourceProductionContext context,
         (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args)

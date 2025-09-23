@@ -73,6 +73,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .Using("DotNetCampus.Cli.Compiler")
             .AddTypeDeclaration(GenerateBuilderTypeDeclarationLine(model), t => t
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToUsingString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
+                .AddRawMembers(GenerateCommandNames(model))
                 .AddMethodDeclaration(
                     $"public static {model.CommandObjectType.ToUsingString()} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => m
@@ -114,6 +115,18 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         var modifier = model.IsPublic ? "public" : "internal";
         var type = model.UseFullStackParser ? "partial struct" : "sealed class";
         return $"{modifier} {type} {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)";
+    }
+
+    private static string GenerateCommandNames(CommandObjectGeneratingModel model)
+    {
+        var ordinalName = model.CommandNames;
+        var pascalCaseName = model.GetPascalCaseCommandNames();
+        var value = string.IsNullOrWhiteSpace(ordinalName)
+            ? "default"
+            : $"new global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup(\"{ordinalName}\", \"{pascalCaseName}\")";
+        return $"""
+            public static readonly global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup CommandNameGroup = {value};
+            """;
     }
 
     private string GenerateArgumentPropertyCode(PropertyGeneratingModel model) =>

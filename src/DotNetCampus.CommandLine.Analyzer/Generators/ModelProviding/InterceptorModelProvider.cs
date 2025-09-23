@@ -1,7 +1,6 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Text.RegularExpressions;
 using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.Generators.Models;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -137,16 +136,6 @@ internal record InterceptorGeneratingModel(
     public required bool UseFullStackParser { get; init; }
 
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
-
-    public string? GetPascalCaseCommandNames()
-    {
-        if (CommandNames is not { } commandNames)
-        {
-            return null;
-        }
-        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-            .Select(NamingHelper.MakePascalCase));
-    }
 
     internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =
         new PrivateTypeSymbolEqualityComparer();
