@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
@@ -37,7 +35,6 @@ namespace DotNetCampus.Cli.Compiler;
 /// do --property-name:key1=value1;key2=value2
 /// </code>
 /// </remarks>
-[Conditional("FOR_SOURCE_GENERATION_ONLY")]
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
 public sealed class OptionAttribute : CommandLineAttribute
 {

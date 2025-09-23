@@ -1,12 +1,10 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 为命令行参数与类型属性的关联提供特性基类。
 /// </summary>
-[Conditional("FOR_SOURCE_GENERATION_ONLY")]
 public abstract class CommandLineAttribute : Attribute
 {
     /// <summary>

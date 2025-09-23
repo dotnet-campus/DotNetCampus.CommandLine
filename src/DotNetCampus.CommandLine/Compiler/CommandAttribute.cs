@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace DotNetCampus.Cli.Compiler;
+﻿namespace DotNetCampus.Cli.Compiler;
 
 /// <summary>
 /// 将一个类绑定一个命令行命令。使用空格（` `）分隔多级子命令。
@@ -25,7 +23,6 @@ namespace DotNetCampus.Cli.Compiler;
 /// <item>多个 kebab-case 风格的词组以空格（` `）分隔，表示一个子命令或多级子命令。当启动程序传入多个命令且逐一匹配时，会匹配此类型。例如 `dotnet sln add`。</item>
 /// </list>
 /// </param>
-[Conditional("FOR_SOURCE_GENERATION_ONLY")]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = false)]
 public sealed class CommandAttribute(string? names = null) : CommandLineAttribute
 {
@@ -44,7 +41,6 @@ public sealed class CommandAttribute(string? names = null) : CommandLineAttribut
 /// 将一个类绑定一个命令行命令。使用空格（` `）分隔多级子命令。
 /// </summary>
 /// <param name="name"></param>
-[Conditional("FOR_SOURCE_GENERATION_ONLY")]
 [Obsolete("因为子命令（MainCommand/SubCommand）具有更主流和广泛的认知，所以我们采用新名字 CommandAttribute 来替代 VerbAttribute。")]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]
 public sealed class VerbAttribute(string? name) : CommandLineAttribute
