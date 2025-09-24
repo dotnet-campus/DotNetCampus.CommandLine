@@ -17,7 +17,7 @@ internal static class CommandLineConverter
             return [];
         }
 
-        List<Range> parts = [];
+        List<string> arguments = [];
 
         var start = 0;
         var length = 0;
@@ -31,7 +31,7 @@ internal static class CommandLineConverter
                 {
                     if (length > 0)
                     {
-                        parts.Add(new Range(start, start + length));
+                        arguments.Add(singleLineCommandLineArgs[start..(start + length)]);
                     }
 
                     start = i + 1;
@@ -57,10 +57,10 @@ internal static class CommandLineConverter
 
         if (length > 0)
         {
-            parts.Add(new Range(start, start + length));
+            arguments.Add(singleLineCommandLineArgs[start..(start + length)]);
         }
 
-        return [..parts.Select(part => singleLineCommandLineArgs[part])];
+        return arguments;
     }
 
     /// <summary>
@@ -140,9 +140,21 @@ internal static class CommandLineConverter
             return [];
         }
 
+#if NET8_0_OR_GREATER
+        Span<Range> ranges = stackalloc Range[argument.Count('/') + 1];
+        var count = argument.Split(ranges, '/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = new List<string>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var part = argument[ranges[i]];
+            result.Add(Uri.UnescapeDataString(part.ToString()));
+        }
+        return result;
+#else
         var parts = argument.ToString().Split(['/'], StringSplitOptions.RemoveEmptyEntries);
         var result = parts.Select(Uri.UnescapeDataString).ToList();
         return result;
+#endif
     }
 
     private static IReadOnlyList<string> ParseOptions(ReadOnlySpan<char> argument)
@@ -152,6 +164,28 @@ internal static class CommandLineConverter
             return [];
         }
 
+#if NET8_0_OR_GREATER
+        Span<Range> ranges = stackalloc Range[argument.Count('&') + 1];
+        var count = argument.Split(ranges, '/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var result = new List<string>(count);
+        for (var i = 0; i < count; i++)
+        {
+            var part = argument[ranges[i]];
+            var equalSignIndex = part.IndexOf('=');
+            if (equalSignIndex < 0)
+            {
+                // 只有键，没有值
+                result.Add($"--{Uri.UnescapeDataString(part.ToString())}");
+            }
+            else
+            {
+                var key = part[..equalSignIndex].ToString();
+                var value = part[(equalSignIndex + 1)..].ToString();
+                result.Add($"--{Uri.UnescapeDataString(key)}={Uri.UnescapeDataString(value)}");
+            }
+        }
+        return result;
+#else
         var parts = argument.ToString().Split(['&'], StringSplitOptions.RemoveEmptyEntries);
         var result = new List<string>(parts.Length);
         foreach (var part in parts)
@@ -169,8 +203,8 @@ internal static class CommandLineConverter
                 result.Add($"--{Uri.UnescapeDataString(key)}={Uri.UnescapeDataString(value)}");
             }
         }
-
         return result;
+#endif
     }
 
     private static IReadOnlyList<string> ParseFragment(ReadOnlySpan<char> argument)
