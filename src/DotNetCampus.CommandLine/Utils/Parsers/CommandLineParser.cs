@@ -243,7 +243,7 @@ public readonly ref struct CommandLineParser
                         AssignOptionValue(firstOptionMatch, []);
                         for (var i = 0; i < others.Length; i++)
                         {
-                            var n = others[i..(i + 1)];
+                            var n = others.Slice(i, 1);
                             var optionMatch = MatchShortOption(n, _caseSensitive);
                             if (optionMatch.ValueType is OptionValueType.Boolean)
                             {

@@ -39,11 +39,12 @@ public readonly record struct CommandSeparatorChars : IEnumerable<char>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int SeparateIndex(ReadOnlySpan<char> text)
     {
-        foreach (var c in text)
+        for (var i = 0; i < text.Length; i++)
         {
+            var c = text[i];
             if (c == _char0 || c == _char1)
             {
-                return text.IndexOf(c);
+                return i;
             }
         }
         return -1;
