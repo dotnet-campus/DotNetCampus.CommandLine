@@ -1,4 +1,5 @@
 using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
 using Cat = DotNetCampus.Cli.Utils.Parsers.CommandArgumentType;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
@@ -288,69 +289,81 @@ public readonly ref struct CommandLineParser
     private CommandLineParsingResult AssignOptionValue(OptionValueMatch match, ReadOnlySpan<char> value)
     {
         var result = CommandLineParsingResult.Success;
-        if (match.ValueType is OptionValueType.List)
+        switch (match.ValueType)
         {
-            var separators = Style.CollectionValueSeparators;
-            var start = 0;
-            while (start < value.Length)
+            // 普通值
+            case OptionValueType.Normal:
             {
-                var index = value[start..].IndexOfAny(separators);
-                if (index < 0)
-                {
-                    // 剩余部分没有分隔符，全部作为一个值。
-                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value[start..]);
-                    break;
-                }
-                if (index > 0)
-                {
-                    // 截取分隔符前的部分作为一个值。
-                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value.Slice(start, index));
-                }
-                // 跳过分隔符，继续处理后续部分。
-                start += index + 1;
+                AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
+                break;
             }
-        }
-        else if (match.ValueType is OptionValueType.Dictionary)
-        {
-            var separators = Style.CollectionValueSeparators;
-            var start = 0;
-            while (start < value.Length)
+            // 布尔值
+            case OptionValueType.Boolean:
             {
-                var index = value[start..].IndexOfAny(separators);
-                if (index < 0)
+                var booleanValue = ParseBoolean(value);
+                if (booleanValue is { } @bool)
                 {
-                    // 剩余部分没有分隔符，全部作为一个值。
-                    result = SplitKeyValue(value[start..], out var k, out var v).Combine(result);
-                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
-                    break;
+                    var finalValue = @bool.ToBooleanSpan();
+                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], finalValue);
                 }
-                if (index > 0)
+                else
                 {
-                    // 截取分隔符前的部分作为一个值。
-                    result = SplitKeyValue(value.Slice(start, index), out var k, out var v).Combine(result);
-                    AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+                    result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result);
                 }
-                // 跳过分隔符，继续处理后续部分。
-                start += index + 1;
+                break;
             }
-        }
-        else if (match.ValueType is OptionValueType.Boolean)
-        {
-            var booleanValue = ParseBoolean(value);
-            if (booleanValue is { } @bool)
+            case OptionValueType.List:
             {
-                var finalValue = @bool.ToBooleanSpan();
-                AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], finalValue);
+                var separators = Style.CollectionValueSeparators;
+                var start = 0;
+                while (start < value.Length)
+                {
+                    var index = value[start..].IndexOfAny(separators);
+                    if (index < 0)
+                    {
+                        // 剩余部分没有分隔符，全部作为一个值。
+                        AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value[start..]);
+                        break;
+                    }
+                    if (index > 0)
+                    {
+                        // 截取分隔符前的部分作为一个值。
+                        AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value.Slice(start, index));
+                    }
+                    // 跳过分隔符，继续处理后续部分。
+                    start += index + 1;
+                }
+                break;
             }
-            else
+            case OptionValueType.Dictionary:
             {
-                result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result);
+                var separators = Style.CollectionValueSeparators;
+                var start = 0;
+                while (start < value.Length)
+                {
+                    var index = value[start..].IndexOfAny(separators);
+                    if (index < 0)
+                    {
+                        // 剩余部分没有分隔符，全部作为一个值。
+                        result = SplitKeyValue(value[start..], out var k, out var v).Combine(result);
+                        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+                        break;
+                    }
+                    if (index > 0)
+                    {
+                        // 截取分隔符前的部分作为一个值。
+                        result = SplitKeyValue(value.Slice(start, index), out var k, out var v).Combine(result);
+                        AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
+                    }
+                    // 跳过分隔符，继续处理后续部分。
+                    start += index + 1;
+                }
+                break;
             }
-        }
-        else
-        {
-            // 普通值。
-            AssignPropertyValue(match.PropertyName, match.PropertyIndex, [], value);
+            default:
+            {
+                throw new CommandLineException("Unreachable code.");
+            }
         }
         return result;
     }
