@@ -166,7 +166,7 @@ internal static class CommandLineConverter
 
 #if NET8_0_OR_GREATER
         Span<Range> ranges = stackalloc Range[argument.Count('&') + 1];
-        var count = argument.Split(ranges, '/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var count = argument.Split(ranges, '&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var result = new List<string>(count);
         for (var i = 0; i < count; i++)
         {
