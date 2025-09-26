@@ -29,6 +29,21 @@ public enum OptionValueType : byte
     /// 用户输入的选项没有命中到任何已知的选项。
     /// </summary>
     NotExist,
+
+    /// <summary>
+    /// 用户输入的选项没有命中到任何已知的选项，并且开发者认为此选项也不应该接受任何值。
+    /// </summary>
+    NotExistAndTakesNoValue,
+
+    /// <summary>
+    /// 用户输入的选项没有命中到任何已知的选项，但开发者认为此选项可以接受一个可选值。
+    /// </summary>
+    NotExistButTakesOptionalValue,
+
+    /// <summary>
+    /// 用户输入的选项没有命中到任何已知的选项，但开发者认为此选项可以接受多个值。
+    /// </summary>
+    NotExistButTakesAllValues,
 }
 
 /// <summary>

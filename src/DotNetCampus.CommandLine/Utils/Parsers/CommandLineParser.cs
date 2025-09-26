@@ -41,6 +41,7 @@ public readonly ref struct CommandLineParser
         SupportsSpaceSeparatedOptionValue = Style.SupportsSpaceSeparatedOptionValue;
         SupportsExplicitBooleanOptionValue = Style.SupportsExplicitBooleanOptionValue;
         SupportsSpaceSeparatedCollectionValues = Style.SupportsSpaceSeparatedCollectionValues;
+        UnknownOptionTakesValue = Style.UnknownOptionTakesValue;
     }
 
     /// <summary>
@@ -50,6 +51,9 @@ public readonly ref struct CommandLineParser
 
     /// <inheritdoc cref="CommandLineStyle.OptionPrefix"/>
     internal CommandOptionPrefix OptionPrefix { get; }
+
+    /// <inheritdoc cref="CommandLineStyle.UnknownOptionTakesValue"/>
+    public UnknownOptionBehavior UnknownOptionTakesValue { get; }
 
     /// <inheritdoc cref="CommandLineStyle.SupportsLongOption"/>
     internal bool SupportsLongOption { get; }
@@ -141,7 +145,9 @@ public readonly ref struct CommandLineParser
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption());
+                        optionMatch = optionMatch.HandleNotExist(UnknownOptionTakesValue);
+                        result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption())
+                            .Combine(result);
                     }
                     if (optionMatch.ValueType is OptionValueType.Boolean)
                     {
@@ -168,10 +174,14 @@ public readonly ref struct CommandLineParser
                     if (positionalArgumentMatch.ValueType is PositionalArgumentValueType.NotExist)
                     {
                         // 如果位置参数不存在，则报告错误。
-                        return CommandLineParsingResult.PositionalArgumentNotFound(_commandLine, index, _commandObjectName, currentPositionArgumentIndex);
+                        result = CommandLineParsingResult.PositionalArgumentNotFound(_commandLine, index, _commandObjectName, currentPositionArgumentIndex)
+                            .Combine(result);
                     }
                     currentPositionArgumentIndex++;
-                    AssignPositionalArgumentValue(positionalArgumentMatch, value);
+                    if (positionalArgumentMatch.ValueType is not PositionalArgumentValueType.NotExist)
+                    {
+                        AssignPositionalArgumentValue(positionalArgumentMatch, value);
+                    }
                     break;
                 }
                 case Cat.LongOptionWithValue or Cat.ShortOptionWithValue or Cat.OptionWithValue:
@@ -189,15 +199,20 @@ public readonly ref struct CommandLineParser
                     if (optionMatch.ValueType is OptionValueType.NotExist)
                     {
                         // 如果选项不存在，则报告错误。
-                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption());
+                        result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption())
+                            .Combine(result);
                     }
-                    result = AssignOptionValue(optionMatch, value).Combine(result);
+                    else
+                    {
+                        result = AssignOptionValue(optionMatch, value).Combine(result);
+                    }
                     break;
                 }
                 case Cat.ErrorOption:
                 {
                     // 如果当前参数疑似选项但解析失败，则报告错误。
-                    return CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index, _commandObjectName);
+                    result = CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index, _commandObjectName).Combine(result);
+                    break;
                 }
                 case Cat.MultiShortOptions:
                 {
@@ -224,7 +239,8 @@ public readonly ref struct CommandLineParser
                     if (!SupportsShortOptionCombination && !SupportsShortOptionValueWithoutSeparator)
                     {
                         // 如果既不支持组合短选项，也不支持无分隔符带值的短选项，则报告错误。
-                        return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false);
+                        result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false).Combine(result);
+                        break;
                     }
                     var first = name[..1];
                     var others = name[1..];
@@ -253,15 +269,18 @@ public readonly ref struct CommandLineParser
                             else if (optionMatch.ValueType is OptionValueType.NotExist)
                             {
                                 // 后面的某个组合选项不存在了，报告错误。
-                                return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n, false);
+                                result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n, false).Combine(result);
+                                break;
                             }
                             else
                             {
                                 // 后面的某个组合选项不是布尔选项，报告不可组合错误。
-                                return CommandLineParsingResult.OptionalArgumentCombinationIsNotBoolean(_commandLine, index, _commandObjectName, n);
+                                result = CommandLineParsingResult.OptionalArgumentCombinationIsNotBoolean(_commandLine, index, _commandObjectName, n)
+                                    .Combine(result);
+                                break;
                             }
                         }
-                        // 所有字符都处理完毕，组合成功。
+                        // 所有字符都处理完毕，组合成功或失败。
                         break;
                     }
                     if (SupportsShortOptionValueWithoutSeparator && firstOptionMatch.ValueType is not OptionValueType.Boolean and not OptionValueType.NotExist)
@@ -271,7 +290,8 @@ public readonly ref struct CommandLineParser
                         break;
                     }
                     // 能进到这里，说明短选项的上述三种情况都不满足，应该报告错误。
-                    return CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false);
+                    result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false).Combine(result);
+                    break;
                 }
                 // 其他状态要么已经处理过了，要不还未处理，要么不需要处理，所以不需要做任何事情。
             }
@@ -358,6 +378,12 @@ public readonly ref struct CommandLineParser
                     // 跳过分隔符，继续处理后续部分。
                     start += index + 1;
                 }
+                break;
+            }
+            case OptionValueType.NotExistButTakesOptionalValue or OptionValueType.NotExistButTakesAllValues:
+            {
+                // 不存在的选项，但允许接受值。
+                // 此时不能做任何事，等全部解析完成后报告异常。
                 break;
             }
             default:
@@ -520,6 +546,9 @@ internal ref struct CommandArgumentPart
                 OptionValueType.Boolean => ParseOptionOrPositionalArgument(),
                 // 如果是集合选项，则后面可以跟多个值，直到遇到新的选项或位置参数分隔符为止。
                 OptionValueType.List or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                // 如果是不存在的选项，则根据后面能否接受值来决定。
+                OptionValueType.NotExistAndTakesNoValue => ParseOptionOrPositionalArgument(),
+                OptionValueType.NotExistButTakesOptionalValue or OptionValueType.NotExistButTakesAllValues => ParseOptionValue(_argument.AsSpan()),
                 // 如果是普通选项，则后面只能是选项值。
                 _ => ParseOptionValue(_argument.AsSpan()),
             }),
@@ -528,6 +557,9 @@ internal ref struct CommandArgumentPart
             {
                 // 只有集合才可以继续跟值（且必须允许），其他都要解析为新的选项或位置参数。
                 OptionValueType.List or OptionValueType.Dictionary when _parser.SupportsSpaceSeparatedCollectionValues =>
+                    ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                // 如果是不存在的选项，则只有在允许后面跟值，且允许空格分隔值的情况下，才可以继续跟值。
+                OptionValueType.NotExistButTakesAllValues when _parser.SupportsSpaceSeparatedCollectionValues =>
                     ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
                 // 解析为新的选项或位置参数。
                 _ => ParseOptionOrPositionalArgument(),
@@ -797,5 +829,13 @@ file static class Extensions
         true => ['1'],
         // 用户输入明确指定为 false。
         false => ['0'],
+    };
+
+    internal static OptionValueMatch HandleNotExist(this OptionValueMatch match, UnknownOptionBehavior behavior) => behavior switch
+    {
+        UnknownOptionBehavior.TakesNoValue => match with { ValueType = OptionValueType.NotExistAndTakesNoValue },
+        UnknownOptionBehavior.TakesOptionalValue => match with { ValueType = OptionValueType.NotExistButTakesOptionalValue },
+        UnknownOptionBehavior.TakesAllValues => match with { ValueType = OptionValueType.NotExistButTakesAllValues },
+        _ => throw new ArgumentOutOfRangeException(nameof(behavior), behavior, null),
     };
 }

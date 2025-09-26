@@ -4,12 +4,12 @@ namespace DotNetCampus.Cli;
 
 partial record struct CommandLineStyle
 {
-    private const ushort FlexibleMagic = 0x78C7;
+    private const ushort FlexibleMagic = 0xB8C7;
     private const ushort DotNetMagic = 0xBAE1;
     private const ushort GnuMagic = 0x8DE1;
     private const ushort PosixMagic = 0xA9A2;
-    private const ushort PowerShellMagic = 0x7ADA;
-    private const ushort UrlMagic = 0x1043;
+    private const ushort PowerShellMagic = 0xBADA;
+    private const ushort UrlMagic = 0x9043;
 
     /// <summary>
     /// 灵活风格。<br/>
@@ -139,7 +139,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.Any,
-        UnknownOptionTakesValue = UnknownOptionBehavior.TakesAllValues,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     private static CommandLineStyle DotNetDefinition => new CommandLineStyle
@@ -208,7 +208,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         OptionPrefix = CommandOptionPrefix.SlashOrDash,
-        UnknownOptionTakesValue = UnknownOptionBehavior.TakesAllValues,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     /// <summary>
@@ -228,7 +228,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
-        UnknownOptionTakesValue = UnknownOptionBehavior.TakesNoValue,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     /// <summary>
