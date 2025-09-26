@@ -295,7 +295,7 @@ commandLine.ToRunner()
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* handle remove */ })
-    .Run();
+    .RunAsync();
 ```
 
 ### Notes

@@ -304,7 +304,44 @@ commandLine.ToRunner()
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* 处理remove命令 */ })
-    .Run();
+    .RunAsync();
+```
+
+### 3. 使用 ICommandHandler<TState> 接口
+
+有时候，程序的状态不完全由命令行确定，程序内部也会有一些状态会影响到命令行处理器的执行。由于我们前面使用 `AddHandler<T>` 没有办法传入任何参数，所以我们还有其他方法传入状态进去：
+
+```csharp
+using var scope = serviceProvider.BeginScope();
+var state = scope.ServiceProvider.GetRequiredService<MyState>();
+var commandLine = CommandLine.Parse(args);
+commandLine.ToRunner()
+    .ForState(state).AddHandler<CommandHandlerWithState>()
+    .RunAsync();
+```
+
+```csharp
+internal class CommandHandlerWithState : ICommandHandler
+{
+    [Option('o', "option")]
+    public required string Option { get; init; }
+
+    public Task<int> RunAsync(MyState state)
+    {
+        // 这时，你可以额外使用这个传入的 state。
+    }
+}
+```
+
+如果对同一个状态可以执行多个处理器，可以一直链式调用 `AddHandler`；而如果不同的命令处理器要处理不同的状态，可以再次使用 `ForState`；如果后面不再需要状态，则 `ForState` 中不要传入参数。一个更复杂的例子如下：
+
+```csharp
+commandLine.ToRunner()
+    .AddHandler<Handler0>()
+    .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
+    .ForState(state2).AddHandler<Handler3>()
+    .ForState().AddHandler<Handler4>()
+    .RunAsync();
 ```
 
 ### 一些说明

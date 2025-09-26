@@ -295,7 +295,7 @@ commandLine.ToRunner()
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* 處理 remove */ })
-    .Run();
+    .RunAsync();
 ```
 
 ### 說明
