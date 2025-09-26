@@ -2,13 +2,20 @@ using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Utils.Handlers;
 
+internal interface IAnonymousCommandHandler : ICommandHandler
+{
+    object? CreatedCommandOptions { get; }
+}
+
 internal sealed class AnonymousCommandHandler<T>(
     CommandLine commandLine,
     CommandObjectFactory factory,
-    Action<T> handler) : ICommandHandler
+    Action<T> handler) : IAnonymousCommandHandler
     where T : notnull
 {
     private T? _options;
+
+    public object? CreatedCommandOptions => _options;
 
     public Task<int> RunAsync()
     {
@@ -25,10 +32,12 @@ internal sealed class AnonymousCommandHandler<T>(
 internal sealed class AnonymousInt32CommandHandler<T>(
     CommandLine commandLine,
     CommandObjectFactory factory,
-    Func<T, int> handler) : ICommandHandler
+    Func<T, int> handler) : IAnonymousCommandHandler
     where T : notnull
 {
     private T? _options;
+
+    public object? CreatedCommandOptions => _options;
 
     public Task<int> RunAsync()
     {
@@ -44,10 +53,12 @@ internal sealed class AnonymousInt32CommandHandler<T>(
 internal sealed class AnonymousTaskCommandHandler<T>(
     CommandLine commandLine,
     CommandObjectFactory factory,
-    Func<T, Task> handler) : ICommandHandler
+    Func<T, Task> handler) : IAnonymousCommandHandler
     where T : notnull
 {
     private T? _options;
+
+    public object? CreatedCommandOptions => _options;
 
     public async Task<int> RunAsync()
     {
@@ -64,10 +75,12 @@ internal sealed class AnonymousTaskCommandHandler<T>(
 internal sealed class AnonymousTaskInt32CommandHandler<T>(
     CommandLine commandLine,
     CommandObjectFactory factory,
-    Func<T, Task<int>> handler) : ICommandHandler
+    Func<T, Task<int>> handler) : IAnonymousCommandHandler
     where T : notnull
 {
     private T? _options;
+
+    public object? CreatedCommandOptions => _options;
 
     public Task<int> RunAsync()
     {

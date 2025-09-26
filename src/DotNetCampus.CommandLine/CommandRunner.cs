@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Runtime.ExceptionServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Utils.Handlers;
 using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
@@ -31,10 +33,26 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
 
+    /// <summary>
+    /// 要执行的命令行。
+    /// </summary>
     internal CommandLine CommandLine { get; }
 
     /// <inheritdoc />
-    public int Run() => RunAsync().Result;
+    public CommandRunningResult Run()
+    {
+        try
+        {
+            return RunAsync().Result;
+        }
+        catch (AggregateException ex) when (ex.InnerExceptions.Count == 1)
+        {
+            // 当内部只有一个异常时，直接抛出这个异常，而不是 AggregateException。
+            // 以便让同步方法的调用者看起来更像在用一个同步方法。
+            ExceptionDispatchInfo.Capture(ex.InnerExceptions[0]).Throw();
+            throw;
+        }
+    }
 
     /// <summary>
     /// 处理命令解析过程中发生的错误。
@@ -62,7 +80,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
 
     /// <inheritdoc />
-    public Task<int> RunAsync()
+    public async Task<CommandRunningResult> RunAsync()
     {
         var (possibleCommandNames, factory) = MatchCreator();
 
@@ -76,7 +94,16 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         }
 
         var handler = (ICommandHandler)factory(CommandLine);
-        return handler.RunAsync();
+        var exitCode = await handler.RunAsync();
+        return new CommandRunningResult
+        {
+            ExitCode = exitCode,
+            HandledBy = handler switch
+            {
+                IAnonymousCommandHandler anonymousHandler => anonymousHandler.CreatedCommandOptions,
+                _ => handler,
+            },
+        };
     }
 
     private (string PossibleCommandNames, CommandObjectFactory? Creator) MatchCreator()
@@ -173,6 +200,29 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         _fallbackFactory = factory;
         return this;
     }
+}
+
+/// <summary>
+/// 表示命令行处理器的运行结果。
+/// </summary>
+public readonly record struct CommandRunningResult
+{
+    /// <summary>
+    /// 命令行处理器的退出代码。
+    /// </summary>
+    public required int ExitCode { get; init; }
+
+    /// <summary>
+    /// 处理此命令行的命令处理器实例。
+    /// </summary>
+    public object? HandledBy { get; init; }
+
+    /// <summary>
+    /// 隐式转换为退出代码。
+    /// </summary>
+    /// <param name="result">命令行处理结果。</param>
+    /// <returns>退出代码。</returns>
+    public static implicit operator int(CommandRunningResult result) => result.ExitCode;
 }
 
 file static class CommandRunnerExtensions

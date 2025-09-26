@@ -51,21 +51,22 @@ public class MatchCommandTests
     public void MatchCommand(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
-        (string? TypeName, string? Value) matched = default;
+        string? matched = null;
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        commandLine
-            .AddHandler<DefaultOptions>(o => matched = (o.GetType().Name, o.Value))
-            .AddHandler<FooOptions>(o => matched = (o.GetType().Name, o.Value))
-            .AddHandler<BarOptions>(o => matched = (o.GetType().Name, o.Value))
-            .AddHandler<BarBazOptions>(o => matched = (o.GetType().Name, o.Value))
-            .AddHandler<SubCommandOptions>(o => matched = (o.GetType().Name, o.Value))
+        var result = commandLine
+            .AddHandler<DefaultOptions>(o => matched = o.Value)
+            .AddHandler<FooOptions>(o => matched = o.Value)
+            .AddHandler<BarOptions>(o => matched = o.Value)
+            .AddHandler<BarBazOptions>(o => matched = o.Value)
+            .AddHandler<SubCommandOptions>(o => matched = o.Value)
             .Run();
+        var matchedTypeName = result.HandledBy!.GetType().Name;
 
         // Assert
-        Assert.AreEqual(expectedCommand, matched.TypeName);
-        Assert.AreEqual(expectedValue, matched.Value);
+        Assert.AreEqual(expectedCommand, matchedTypeName);
+        Assert.AreEqual(expectedValue, matched);
     }
 
     [TestMethod]
