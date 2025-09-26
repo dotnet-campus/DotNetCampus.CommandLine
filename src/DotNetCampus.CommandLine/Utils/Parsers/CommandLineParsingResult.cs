@@ -38,17 +38,32 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <param name="commandLine">整个命令行参数列表。</param>
     public void WithFallback(CommandLine commandLine)
     {
+        // 如果解析成功，则不需要处理错误。
         if (IsSuccess)
         {
             return;
         }
 
+        // 根据命令行参数解析选项时，指定的未知参数处理方式，决定是否忽略某些错误。
+        var unknownHandling = commandLine.ParsingOptions.UnknownArgumentsHandling;
+        var ignoreOptionalArguments = unknownHandling is
+            UnknownCommandArgumentHandling.IgnoreAllUnknownArguments or UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments;
+        var ignorePositionalArguments = unknownHandling is
+            UnknownCommandArgumentHandling.IgnoreAllUnknownArguments or UnknownCommandArgumentHandling.IgnoreUnknownPositionalArguments;
+        if (ignoreOptionalArguments && ErrorType is CommandLineParsingError.OptionalArgumentNotFound
+            || ignorePositionalArguments && ErrorType is CommandLineParsingError.PositionalArgumentNotFound)
+        {
+            return;
+        }
+
+        // 尝试使用命令行参数解析器的回调来处理错误。
         var runner = ((ICoreCommandRunnerBuilder)commandLine).GetOrCreateRunner();
         if (runner.RunFallback(this))
         {
             return;
         }
 
+        // 最终还是没有被处理，则抛出异常。
         ThrowIfError();
     }
 

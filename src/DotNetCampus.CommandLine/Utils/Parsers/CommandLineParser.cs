@@ -529,6 +529,7 @@ internal ref struct CommandArgumentPart
             return true;
         }
 
+        var isManyValueType = _lastOptionType is OptionValueType.List or OptionValueType.Dictionary or OptionValueType.NotExistButTakesAllValues;
         return _lastType switch
         {
             // 上一个是起点或命令，后面只能是新的选项或位置参数。
@@ -545,10 +546,11 @@ internal ref struct CommandArgumentPart
                 // 如果是布尔选项，但不支持显式布尔值，则只能是新的选项或位置参数。
                 OptionValueType.Boolean => ParseOptionOrPositionalArgument(),
                 // 如果是集合选项，则后面可以跟多个值，直到遇到新的选项或位置参数分隔符为止。
-                OptionValueType.List or OptionValueType.Dictionary => ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                OptionValueType.List or OptionValueType.Dictionary => ParseOptionValueOrNewOptionOrPositionalArgument(isManyValueType),
                 // 如果是不存在的选项，则根据后面能否接受值来决定。
                 OptionValueType.NotExistAndTakesNoValue => ParseOptionOrPositionalArgument(),
-                OptionValueType.NotExistButTakesOptionalValue or OptionValueType.NotExistButTakesAllValues => ParseOptionValue(_argument.AsSpan()),
+                OptionValueType.NotExistButTakesOptionalValue or OptionValueType.NotExistButTakesAllValues =>
+                    ParseOptionValueOrNewOptionOrPositionalArgument(isManyValueType),
                 // 如果是普通选项，则后面只能是选项值。
                 _ => ParseOptionValue(_argument.AsSpan()),
             }),
@@ -557,10 +559,10 @@ internal ref struct CommandArgumentPart
             {
                 // 只有集合才可以继续跟值（且必须允许），其他都要解析为新的选项或位置参数。
                 OptionValueType.List or OptionValueType.Dictionary when _parser.SupportsSpaceSeparatedCollectionValues =>
-                    ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                    ParseOptionValueOrNewOptionOrPositionalArgument(isManyValueType),
                 // 如果是不存在的选项，则只有在允许后面跟值，且允许空格分隔值的情况下，才可以继续跟值。
                 OptionValueType.NotExistButTakesAllValues when _parser.SupportsSpaceSeparatedCollectionValues =>
-                    ParseCollectionOptionValueOrNewOptionOrPositionalArgument(),
+                    ParseOptionValueOrNewOptionOrPositionalArgument(isManyValueType),
                 // 解析为新的选项或位置参数。
                 _ => ParseOptionOrPositionalArgument(),
             }),
@@ -754,7 +756,7 @@ internal ref struct CommandArgumentPart
         return ParseOptionOrPositionalArgument();
     }
 
-    private bool ParseCollectionOptionValueOrNewOptionOrPositionalArgument()
+    private bool ParseOptionValueOrNewOptionOrPositionalArgument(bool acceptMoreValues)
     {
         var argument = _argument.AsSpan();
         if (argument.Length is 0 or 1)
@@ -772,28 +774,33 @@ internal ref struct CommandArgumentPart
             {
                 ('-', '-') => ParseLongOptionOrLongOptionWithValue(argument[2..]),
                 ('-', _) => ParseShortOptionOrMultiShortOptions(argument[1..]),
-                _ => ParseOptionValue(argument),
+                _ when acceptMoreValues => ParseOptionValue(argument),
+                _ => ParsePositionalArgument(argument),
             },
             CommandOptionPrefix.SingleDash => argument[0] switch
             {
                 '-' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
-                _ => ParseOptionValue(argument),
+                _ when acceptMoreValues => ParseOptionValue(argument),
+                _ => ParsePositionalArgument(argument),
             },
             CommandOptionPrefix.Slash => argument[0] switch
             {
                 '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
-                _ => ParseOptionValue(argument),
+                _ when acceptMoreValues => ParseOptionValue(argument),
+                _ => ParsePositionalArgument(argument),
             },
             CommandOptionPrefix.SlashOrDash => argument[0] switch
             {
                 '-' or '/' => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
-                _ => ParseOptionValue(argument),
+                _ when acceptMoreValues => ParseOptionValue(argument),
+                _ => ParsePositionalArgument(argument),
             },
             CommandOptionPrefix.Any => (argument[0], argument[1]) switch
             {
                 ('-', '-') => ParseLongOptionOrLongOptionWithValue(argument[2..]),
                 ('-', _) or ('/', _) => ParseLongShortOptionOrLongShortOptionWithValue(argument[1..]),
-                _ => ParseOptionValue(argument),
+                _ when acceptMoreValues => ParseOptionValue(argument),
+                _ => ParsePositionalArgument(argument),
             },
             _ => throw new ArgumentOutOfRangeException(),
         };

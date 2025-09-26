@@ -26,6 +26,11 @@ public readonly record struct CommandLineParsingOptions
     public CommandLineStyle Style { get; init; }
 
     /// <summary>
+    /// 指定在解析命令行参数时，遇到无法识别的参数时的处理方式。
+    /// </summary>
+    public UnknownCommandArgumentHandling UnknownArgumentsHandling { get; init; }
+
+    /// <summary>
     /// 此命令行解析器支持从 Web 打开本地应用时传入的参数。<br/>
     /// 此属性指定用于 URI 协议注册的方案名（scheme name）。
     /// </summary>
@@ -48,4 +53,30 @@ public readonly record struct CommandLineParsingOptions
     /// </para>
     /// </remarks>
     public IReadOnlyList<string>? SchemeNames { get; init; }
+}
+
+/// <summary>
+/// 指定在解析命令行参数时，遇到无法识别的参数时的处理方式。
+/// </summary>
+public enum UnknownCommandArgumentHandling : byte
+{
+    /// <summary>
+    /// 所有参数都必须被识别，否则进入到回退处理逻辑。当然，就算在回退处理逻辑里面也可以继续忽略未识别的参数。
+    /// </summary>
+    AllArgumentsMustBeRecognized,
+
+    /// <summary>
+    /// 忽略未识别的选项。
+    /// </summary>
+    IgnoreUnknownOptionalArguments,
+
+    /// <summary>
+    /// 忽略未识别的位置参数。
+    /// </summary>
+    IgnoreUnknownPositionalArguments,
+
+    /// <summary>
+    /// 忽略所有未识别的参数。
+    /// </summary>
+    IgnoreAllUnknownArguments,
 }
