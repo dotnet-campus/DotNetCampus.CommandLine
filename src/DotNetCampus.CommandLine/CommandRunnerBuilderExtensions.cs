@@ -22,12 +22,36 @@ public static class CommandRunnerBuilderExtensions
     }
 
     /// <summary>
+    /// 为命令执行器指定一个状态对象，后续添加的命令处理器如果被执行，将会收到这个状态对象。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="state">状态对象。</param>
+    /// <typeparam name="TState">状态对象的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static StatedCommandRunnerBuilder<TState> ForState<TState>(this IAsyncCommandRunnerBuilder builder, TState state)
+    {
+        return new StatedCommandRunnerBuilder<TState>(builder.AsRunner(), state);
+    }
+
+    /// <summary>
     /// 添加一个命令处理器。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
+        where T : class, ICommandHandler
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
         where T : class, ICommandHandler
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -93,6 +117,17 @@ public static class CommandRunnerBuilderExtensions
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder,
+        NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner = null
+    )
+        where T : class, ICommandHandler
+    {
+        return builder.AsRunner()
+            .AddHandlerCore(command, factory, runner);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,NamingPolicyNameGroup,CommandObjectFactory,CommandHandlerRunner)" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
         NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner = null
     )
         where T : class, ICommandHandler

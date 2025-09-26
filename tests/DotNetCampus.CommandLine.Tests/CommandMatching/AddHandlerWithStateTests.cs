@@ -17,15 +17,29 @@ public class AddHandlerWithStateTests
 
         // Act
         var result = await commandLine.ToRunner()
-            .ForState(123).AddHandler<TestHandler>()
+            .ForState(123).AddHandler<Test1Handler>()
+            .ForState("test1").AddHandler<Test2Handler>()
+            .ForState().AddHandler<Test0Handler>()
             .RunAsync();
-        var state = ((TestHandler)result.HandledBy!).State;
+        var state = ((Test1Handler)result.HandledBy!).State;
 
         // Assert
         Assert.AreEqual(123, state);
     }
 
-    public record TestHandler : ICommandHandler<int>
+    public record Test0Handler : ICommandHandler
+    {
+        [Option('o', "option")]
+        public string? Option { get; set; }
+
+        public Task<int> RunAsync()
+        {
+            return Task.FromResult(0);
+        }
+    }
+
+    [Command("test1")]
+    public record Test1Handler : ICommandHandler<int>
     {
         [Option('o', "option")]
         public string? Option { get; set; }
@@ -33,6 +47,21 @@ public class AddHandlerWithStateTests
         public int? State { get; private set; }
 
         public Task<int> RunAsync(int state)
+        {
+            State = state;
+            return Task.FromResult(0);
+        }
+    }
+
+    [Command("test1")]
+    public record Test2Handler : ICommandHandler<string>
+    {
+        [Option('o', "option")]
+        public string? Option { get; set; }
+
+        public string? State { get; private set; }
+
+        public Task<int> RunAsync(string state)
         {
             State = state;
             return Task.FromResult(0);
