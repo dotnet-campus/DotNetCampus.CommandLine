@@ -1,6 +1,6 @@
 using System;
 
-namespace DotNetCampus.Cli.Tests.ParsingStyles;
+namespace DotNetCampus.Cli.Tests;
 
 internal static class CommandLineStyleTestingExtensions
 {

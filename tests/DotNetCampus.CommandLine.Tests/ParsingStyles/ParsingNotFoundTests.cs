@@ -2,7 +2,7 @@ using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Utils.Parsers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using static DotNetCampus.Cli.Tests.ParsingStyles.TestCommandLineStyle;
+using static DotNetCampus.Cli.Tests.TestCommandLineStyle;
 
 namespace DotNetCampus.Cli.Tests.ParsingStyles;
 
