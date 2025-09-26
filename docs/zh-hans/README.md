@@ -245,7 +245,8 @@ public string OptionName { get; set; } = "Default Value"
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine.AddHandler<AddOptions>(options => { /* 处理add命令 */ })
+commandLine.ToRunner()
+    .AddHandler<AddOptions>(options => { /* 处理add命令 */ })
     .AddHandler<RemoveOptions>(options => { /* 处理remove命令 */ })
     .Run();
 ```
@@ -299,7 +300,7 @@ internal class ConvertCommandHandler : ICommandHandler
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine
+commandLine.ToRunner()
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* 处理remove命令 */ })

@@ -242,7 +242,8 @@ You can use the command handler pattern to process different commands, like `git
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine.AddHandler<AddOptions>(options => { /* handle add */ })
+commandLine.ToRunner()
+    .AddHandler<AddOptions>(options => { /* handle add */ })
     .AddHandler<RemoveOptions>(options => { /* handle remove */ })
     .Run();
 ```
@@ -290,7 +291,7 @@ internal class ConvertCommandHandler : ICommandHandler
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine
+commandLine.ToRunner()
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* handle remove */ })
