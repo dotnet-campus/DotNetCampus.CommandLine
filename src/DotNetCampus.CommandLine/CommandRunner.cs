@@ -60,7 +60,12 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <exception cref="NotImplementedException"></exception>
     internal bool RunFallback(CommandLineParsingResult result)
     {
-        if (_fallbackFactory?.Invoke(_commandLine) is not ICommandHandler fallback)
+        var context = new CommandRunningContext
+        {
+            CommandLine = _commandLine,
+            CommandRunner = this,
+        };
+        if (_fallbackFactory?.Invoke(context) is not ICommandHandler fallback)
         {
             return false;
         }
@@ -92,7 +97,12 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         }
 
         var (factory, runner) = factoryAndRunner;
-        var handler = factory(_commandLine);
+        var context = new CommandRunningContext
+        {
+            CommandLine = _commandLine,
+            CommandRunner = this,
+        };
+        var handler = factory(context);
         var exitCode = runner switch
         {
             null => await ((ICommandHandler)handler).RunAsync(),

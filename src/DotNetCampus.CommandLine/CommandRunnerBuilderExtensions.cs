@@ -144,7 +144,7 @@ public static class CommandRunnerBuilderExtensions
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, cl => new AnonymousCommandHandler<T>(cl, factory, handler), null);
+            .AddHandlerCore(command, c => new AnonymousCommandHandler<T>(c, factory, handler), null);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
@@ -165,7 +165,7 @@ public static class CommandRunnerBuilderExtensions
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, cl => new AnonymousInt32CommandHandler<T>(cl, factory, handler), null);
+            .AddHandlerCore(command, c => new AnonymousInt32CommandHandler<T>(c, factory, handler), null);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
@@ -186,7 +186,7 @@ public static class CommandRunnerBuilderExtensions
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, cl => new AnonymousTaskCommandHandler<T>(cl, factory, handler), null);
+            .AddHandlerCore(command, c => new AnonymousTaskCommandHandler<T>(c, factory, handler), null);
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public static class CommandRunnerBuilderExtensions
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, cl => new AnonymousTaskInt32CommandHandler<T>(cl, factory, handler), null);
+            .AddHandlerCore(command, c => new AnonymousTaskInt32CommandHandler<T>(c, factory, handler), null);
     }
 
     /// <summary>

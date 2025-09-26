@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
@@ -87,8 +87,8 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <summary>
     /// 处理解析错误。如果解析结果表示失败，则调用此方法来处理错误。
     /// </summary>
-    /// <param name="commandLine">整个命令行参数列表。</param>
-    public void WithFallback(CommandLine commandLine)
+    /// <param name="context">命令对象工厂上下文，包含命令行参数和相关配置。</param>
+    public void WithFallback(CommandRunningContext context)
     {
         // 如果解析成功，则不需要处理错误。
         if (IsSuccess)
@@ -97,7 +97,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         }
 
         // 根据命令行参数解析选项时，指定的未知参数处理方式，决定是否忽略某些错误。
-        var unknownHandling = commandLine.ParsingOptions.UnknownArgumentsHandling;
+        var unknownHandling = context.CommandLine.ParsingOptions.UnknownArgumentsHandling;
         var ignoreOptionalArguments = unknownHandling is
             UnknownCommandArgumentHandling.IgnoreAllUnknownArguments or UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments;
         var ignorePositionalArguments = unknownHandling is
@@ -109,8 +109,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         }
 
         // 尝试使用命令行参数解析器的回调来处理错误。
-        var runner = ((ICoreCommandRunnerBuilder)commandLine).AsRunner();
-        if (runner.RunFallback(this))
+        if (context.CommandRunner?.RunFallback(this) is true)
         {
             return;
         }

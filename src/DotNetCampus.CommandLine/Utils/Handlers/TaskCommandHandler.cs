@@ -8,7 +8,7 @@ internal interface IAnonymousCommandHandler : ICommandHandler
 }
 
 internal sealed class AnonymousCommandHandler<T>(
-    CommandLine commandLine,
+    CommandRunningContext context,
     CommandObjectFactory factory,
     Action<T> handler) : IAnonymousCommandHandler
     where T : notnull
@@ -19,7 +19,7 @@ internal sealed class AnonymousCommandHandler<T>(
 
     public Task<int> RunAsync()
     {
-        _options ??= (T)factory(commandLine);
+        _options ??= (T)factory(context);
         if (_options is null)
         {
             throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
@@ -30,7 +30,7 @@ internal sealed class AnonymousCommandHandler<T>(
 }
 
 internal sealed class AnonymousInt32CommandHandler<T>(
-    CommandLine commandLine,
+    CommandRunningContext context,
     CommandObjectFactory factory,
     Func<T, int> handler) : IAnonymousCommandHandler
     where T : notnull
@@ -41,7 +41,7 @@ internal sealed class AnonymousInt32CommandHandler<T>(
 
     public Task<int> RunAsync()
     {
-        _options ??= (T)factory(commandLine);
+        _options ??= (T)factory(context);
         if (_options is null)
         {
             throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
@@ -51,7 +51,7 @@ internal sealed class AnonymousInt32CommandHandler<T>(
 }
 
 internal sealed class AnonymousTaskCommandHandler<T>(
-    CommandLine commandLine,
+    CommandRunningContext context,
     CommandObjectFactory factory,
     Func<T, Task> handler) : IAnonymousCommandHandler
     where T : notnull
@@ -62,7 +62,7 @@ internal sealed class AnonymousTaskCommandHandler<T>(
 
     public async Task<int> RunAsync()
     {
-        _options ??= (T)factory(commandLine);
+        _options ??= (T)factory(context);
         if (_options is null)
         {
             throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
@@ -73,7 +73,7 @@ internal sealed class AnonymousTaskCommandHandler<T>(
 }
 
 internal sealed class AnonymousTaskInt32CommandHandler<T>(
-    CommandLine commandLine,
+    CommandRunningContext context,
     CommandObjectFactory factory,
     Func<T, Task<int>> handler) : IAnonymousCommandHandler
     where T : notnull
@@ -84,7 +84,7 @@ internal sealed class AnonymousTaskInt32CommandHandler<T>(
 
     public Task<int> RunAsync()
     {
-        _options ??= (T)factory(commandLine);
+        _options ??= (T)factory(context);
         if (_options is null)
         {
             throw new InvalidOperationException($"No options of type {typeof(T)} were created.");

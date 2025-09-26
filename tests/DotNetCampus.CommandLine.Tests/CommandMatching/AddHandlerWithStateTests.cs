@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Tests.ParsingStyles;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DotNetCampus.Cli.Tests.CommandMatching;

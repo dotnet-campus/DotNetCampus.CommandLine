@@ -75,9 +75,9 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToUsingString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
                 .AddRawMembers(GenerateCommandNames(model))
                 .AddMethodDeclaration(
-                    $"public static {model.CommandObjectType.ToUsingString()} CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)",
+                    $"public static {model.CommandObjectType.ToUsingString()} CreateInstance(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)",
                     m => m
-                        .AddRawStatements($"return new {model.Namespace}.{model.GetBuilderTypeName()}(commandLine).Build();"))
+                        .AddRawStatements($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"))
                 .AddRawMembers(model.OptionProperties.Select(GenerateArgumentPropertyCode))
                 .AddRawMembers(model.EnumeratePositionalArgumentExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
@@ -103,7 +103,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                     $"private {model.CommandObjectType.ToUsingString()} BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => GenerateBuildCoreCode(m, model))
                 .AddMethodDeclaration(
-                    $"private {model.CommandObjectType.ToUsingString()} BuildDefault()",
+                    $"private {model.CommandObjectType.ToUsingString()} BuildDefault(global::DotNetCampus.Cli.CommandLine commandLine)",
                     m => GenerateBuildDefaultCode(m, model))
                 .AddRawMembers(model.EnumerateEnumPropertyTypes().Select(GenerateEnumDeclarationCode))
             );
@@ -113,8 +113,9 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     private static string GenerateBuilderTypeDeclarationLine(CommandObjectGeneratingModel model)
     {
         var modifier = model.IsPublic ? "public" : "internal";
-        var type = model.UseFullStackParser ? "partial struct" : "sealed class";
-        return $"{modifier} {type} {model.GetBuilderTypeName()}(global::DotNetCampus.Cli.CommandLine commandLine)";
+        return model.UseFullStackParser
+            ? $"{modifier} partial struct {model.GetBuilderTypeName()}()"
+            : $"{modifier} sealed class {model.GetBuilderTypeName()}";
     }
 
     private static string GenerateCommandNames(CommandObjectGeneratingModel model)
@@ -144,22 +145,22 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     };
 
     private static string GenerateBuildCode(CommandObjectGeneratingModel model) => $$"""
-    public {{model.CommandObjectType.ToUsingString()}} Build()
+    public {{model.CommandObjectType.ToUsingString()}} Build(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)
     {
-        if (commandLine.RawArguments.Count is 0)
+        if (context.CommandLine.RawArguments.Count is 0)
         {
-            return BuildDefault();
+            return BuildDefault(context.CommandLine);
         }
     
-        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(commandLine, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}})
+        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(context.CommandLine, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}})
         {
             MatchLongOption = MatchLongOption,
             MatchShortOption = MatchShortOption,
             MatchPositionalArguments = MatchPositionalArguments,
             AssignPropertyValue = AssignPropertyValue,
         };
-        parser.Parse().WithFallback(commandLine);
-        return BuildCore(commandLine);
+        parser.Parse().WithFallback(context);
+        return BuildCore(context.CommandLine);
     }
     """;
 

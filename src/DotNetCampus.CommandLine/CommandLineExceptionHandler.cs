@@ -34,6 +34,6 @@ public static class CommandLineExceptionHandlerExtensions
     [Obsolete("此方法的实现正在讨论中，API 可能不稳定，请谨慎使用。")]
     public static IAsyncCommandRunnerBuilder HandleException(this ICoreCommandRunnerBuilder builder, bool ignoreAllExceptions)
     {
-        return builder.AsRunner().AddFallbackHandler(cl => new CommandLineExceptionHandler(cl, ignoreAllExceptions));
+        return builder.AsRunner().AddFallbackHandler(c => new CommandLineExceptionHandler(c.CommandLine, ignoreAllExceptions));
     }
 }

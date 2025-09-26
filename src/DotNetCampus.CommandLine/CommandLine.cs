@@ -106,7 +106,7 @@ public class CommandLine
     [Pure, EditorBrowsable(EditorBrowsableState.Never)]
     public T As<T>(CommandObjectFactory factory) where T : notnull
     {
-        return (T)factory(this);
+        return (T)factory(new CommandRunningContext { CommandLine = this });
     }
 
     /// <summary>
