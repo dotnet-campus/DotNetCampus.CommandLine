@@ -235,6 +235,30 @@ public class Options
 public string OptionName { get; set; } = "Default Value"
 ```
 
+## 异常
+
+命令行库的异常分为以下几种：
+
+1. 命令行解析异常 `CommandLineParseException`
+    - 选项或位置参数未匹配异常
+    - 命令行参数格式异常
+    - 命令行值转换异常
+2. 命令行对象创建异常
+    - 仅此一个 `RequiredPropertyNotAssignedException`，当属性标记了 `required` 而未在命令行中传入时发生异常
+3. 命令与子命令匹配异常
+    - 多次匹配异常 `CommandNameAmbiguityException`
+    - 未匹配异常 `CommandNameNotFoundException`
+
+一个很常见的情况是多个协同工作的应用程序未同步升级时，可能某程序使用了新的命令行选项调用了本程序，本程序当前版本不可能认识这种「下个版本」才会出现的选项。此时有可能需要忽略这种兼容性错误（选项或位置参数未匹配异常）。如果你预感到这种情况会经常发生，你可以忽略这种错误：
+
+```csharp
+var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
+{
+    // 可以只忽略选项，也可以只忽略位置参数；也可以像这样都忽略。
+    UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreAllUnknownArguments,
+});
+```
+
 ## 命令与子命令
 
 你可以使用命令处理器模式处理不同的命令，类似于`git commit`、`git remote add`等。DotNetCampus.CommandLine 提供了多种添加命令处理器的方式：
