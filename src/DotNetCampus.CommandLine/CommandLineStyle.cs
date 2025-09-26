@@ -167,6 +167,26 @@ public readonly partial record struct CommandLineStyle()
     }
 
     /// <summary>
+    /// 遇到未知选项时，命令行解析器应如何处理后续的非选项参数。
+    /// </summary>
+    public UnknownOptionBehavior UnknownOptionTakesValue
+    {
+        get => _booleans[14, 15] switch
+        {
+            (false, false) => UnknownOptionBehavior.TakesNoValue,
+            (false, true) => UnknownOptionBehavior.TakesOptionalValue,
+            (true, _) => UnknownOptionBehavior.TakesAllValues,
+        };
+        init => _booleans[14, 15] = value switch
+        {
+            UnknownOptionBehavior.TakesNoValue => (false, false),
+            UnknownOptionBehavior.TakesOptionalValue => (false, true),
+            UnknownOptionBehavior.TakesAllValues => (true, false),
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+        };
+    }
+
+    /// <summary>
     /// 允许用户使用哪些分隔符来分隔选项名和选项值。<br/>
     /// 如 ':', '=', ' ' 分别对应: --option:value, --option=value, --option value。
     /// </summary>
@@ -261,4 +281,25 @@ public enum CommandOptionPrefix : byte
     /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
     /// </summary>
     Any,
+}
+
+/// <summary>
+/// 指定遇到未知选项时，命令行解析器应如何处理后续的非选项参数。
+/// </summary>
+public enum UnknownOptionBehavior : byte
+{
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，则视为位置参数。
+    /// </summary>
+    TakesNoValue,
+
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，最多取走一个作为选项值，其他视为位置参数。
+    /// </summary>
+    TakesOptionalValue,
+
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，取走直到下一个选项之前的所有值作为选项值。
+    /// </summary>
+    TakesAllValues,
 }

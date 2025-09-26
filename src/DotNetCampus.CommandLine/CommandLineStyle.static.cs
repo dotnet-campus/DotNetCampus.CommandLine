@@ -4,11 +4,11 @@ namespace DotNetCampus.Cli;
 
 partial record struct CommandLineStyle
 {
-    private const ushort FlexibleMagic = 0x38C7;
-    private const ushort DotNetMagic = 0x3AE1;
-    private const ushort GnuMagic = 0x0DE1;
-    private const ushort PosixMagic = 0x29A2;
-    private const ushort PowerShellMagic = 0x3ADA;
+    private const ushort FlexibleMagic = 0x78C7;
+    private const ushort DotNetMagic = 0xBAE1;
+    private const ushort GnuMagic = 0x8DE1;
+    private const ushort PosixMagic = 0xA9A2;
+    private const ushort PowerShellMagic = 0x7ADA;
     private const ushort UrlMagic = 0x1043;
 
     /// <summary>
@@ -139,6 +139,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.Any,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesAllValues,
     };
 
     private static CommandLineStyle DotNetDefinition => new CommandLineStyle
@@ -155,6 +156,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.KebabCase,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     private static CommandLineStyle GnuDefinition => new CommandLineStyle
@@ -171,6 +173,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.KebabCase,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     private static CommandLineStyle PosixDefinition => new CommandLineStyle
@@ -188,6 +191,7 @@ partial record struct CommandLineStyle
         NamingPolicy = CommandNamingPolicy.PascalCase,
         // Posix 不支持长选项，使用 DoubleDash 的含义是 '-' 一定表示短选项。
         OptionPrefix = CommandOptionPrefix.DoubleDash,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
     private static CommandLineStyle PowerShellDefinition => new CommandLineStyle
@@ -204,6 +208,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = true,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         OptionPrefix = CommandOptionPrefix.SlashOrDash,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesAllValues,
     };
 
     /// <summary>
@@ -223,6 +228,7 @@ partial record struct CommandLineStyle
         SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
+        UnknownOptionTakesValue = UnknownOptionBehavior.TakesNoValue,
     };
 
     /// <summary>
