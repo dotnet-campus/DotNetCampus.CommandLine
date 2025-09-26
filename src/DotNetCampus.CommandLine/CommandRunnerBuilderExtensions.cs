@@ -10,6 +10,25 @@ namespace DotNetCampus.Cli;
 public static class CommandRunnerBuilderExtensions
 {
     /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
+        where T : class, ICommandHandler
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder)" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
+        where T : class, ICommandHandler
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <summary>
     /// 为命令执行器指定一个状态对象，后续添加的命令处理器如果被执行，将会收到这个状态对象。
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
@@ -33,30 +52,6 @@ public static class CommandRunnerBuilderExtensions
         return new StatedCommandRunnerBuilder<TState>(builder.AsRunner(), state);
     }
 
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>命令行执行器构造的链式调用。</returns>
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
-        where T : class, ICommandHandler
-    {
-        throw CommandLine.MethodShouldBeInspected();
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>命令行执行器构造的链式调用。</returns>
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
-        where T : class, ICommandHandler
-    {
-        throw CommandLine.MethodShouldBeInspected();
-    }
-
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
     public static ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Action<T> handler)
         where T : class
@@ -65,22 +60,8 @@ public static class CommandRunnerBuilderExtensions
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
-        where T : class
-    {
-        throw CommandLine.MethodShouldBeInspected();
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, int> handler)
-        where T : class
-    {
-        throw CommandLine.MethodShouldBeInspected();
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
         where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -101,6 +82,34 @@ public static class CommandRunnerBuilderExtensions
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task<int>> handler)
+        where T : class
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
+        where T : class
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
+        where T : class
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task> handler)
+        where T : class
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task<int>> handler)
         where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -149,16 +158,6 @@ public static class CommandRunnerBuilderExtensions
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
-        where T : class
-    {
-        return (IAsyncCommandRunnerBuilder)((ICommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, int> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
@@ -166,16 +165,6 @@ public static class CommandRunnerBuilderExtensions
     {
         return builder.AsRunner()
             .AddHandlerCore(command, c => new AnonymousInt32CommandHandler<T>(c, factory, handler), null);
-    }
-
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
-        where T : class
-    {
-        return (IAsyncCommandRunnerBuilder)((ICommandRunnerBuilder)builder).AddHandler<T>(handler, command, factory);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
@@ -200,6 +189,50 @@ public static class CommandRunnerBuilderExtensions
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task<int>> handler,
+        NamingPolicyNameGroup command, CommandObjectFactory factory
+    )
+        where T : class
+    {
+        return builder.AsRunner()
+            .AddHandlerCore(command, c => new AnonymousTaskInt32CommandHandler<T>(c, factory, handler), null);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
+        NamingPolicyNameGroup command, CommandObjectFactory factory
+    )
+        where T : class
+    {
+        return builder.AsRunner()
+            .AddHandlerCore(command, c => new AnonymousCommandHandler<T>(c, factory, handler), null);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
+        NamingPolicyNameGroup command, CommandObjectFactory factory
+    )
+        where T : class
+    {
+        return builder.AsRunner()
+            .AddHandlerCore(command, c => new AnonymousInt32CommandHandler<T>(c, factory, handler), null);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task> handler,
+        NamingPolicyNameGroup command, CommandObjectFactory factory
+    )
+        where T : class
+    {
+        return builder.AsRunner()
+            .AddHandlerCore(command, c => new AnonymousTaskCommandHandler<T>(c, factory, handler), null);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task<int>> handler,
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : class

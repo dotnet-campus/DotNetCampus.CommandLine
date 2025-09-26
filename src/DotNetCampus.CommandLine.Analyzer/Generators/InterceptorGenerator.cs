@@ -16,65 +16,60 @@ public class InterceptorGenerator : IIncrementalGenerator
     {
         var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
         var asProvider = context.SelectCommandLineAsProvider();
-        var ahProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder");
-        var ahAsyncProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder");
-        var ahStatedProvider = context.SelectCommandBuilderAddHandlerProvider("StatedCommandRunnerBuilder");
-        var ahStatedLinkedProvider = context.SelectCommandBuilderAddHandlerProvider("StatedCommandRunnerLinkedBuilder");
-        var ahActionProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Action<T>");
-        var ahAsyncActionProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
-        var ahFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Func<T, int>");
-        var ahAsyncFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "global::System.Func<T, int>");
-        var ahFuncTaskProvider =
-            context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
-        var ahFuncTaskIntProvider =
-            context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
+        var sync = context.SelectAddHandlers("ICommandRunnerBuilder");
+        var async = context.SelectAddHandlers("IAsyncCommandRunnerBuilder");
+        var statedSync = context.SelectAddHandlers("StatedCommandRunnerBuilder");
+        var statedAsync = context.SelectAddHandlers("StatedCommandRunnerLinkedBuilder");
+        var syncVoid = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Action<T>");
+        var syncInt32 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, int>");
+        var syncTask = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var syncTaskInt32 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
+        var asyncVoid = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
+        var asyncInt32 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, int>");
+        var asyncTask = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var asyncTaskInt32 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
+        // CommandLine.As<T>
         context.RegisterSourceOutput(asProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
 
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
-        context.RegisterSourceOutput(ahProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        // CommandRunner.AddHandler<T>()
+        context.RegisterSourceOutput(sync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandler(c, args, "ICommandRunnerBuilder", "AddHandler()"));
-
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
-        context.RegisterSourceOutput(ahAsyncProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        context.RegisterSourceOutput(async.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandler(c, args, "IAsyncCommandRunnerBuilder", "AddHandler()"));
 
-        // StatedCommandRunnerLinkedBuilder<TState> AddHandler<T, TState>(this StatedCommandRunnerBuilder<TState> builder)
-        context.RegisterSourceOutput(ahStatedProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        // StatedCommandRunner.AddHandler<T>()
+        context.RegisterSourceOutput(statedSync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             StatedCommandRunnerAddHandler(c, args, "StatedCommandRunnerBuilder", "AddHandler()"));
-
-        // StatedCommandRunnerLinkedBuilder<TState> AddHandler<T, TState>(this StatedCommandRunnerBuilder<TState> builder)
-        context.RegisterSourceOutput(ahStatedLinkedProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        context.RegisterSourceOutput(statedAsync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             StatedCommandRunnerAddHandler(c, args, "StatedCommandRunnerLinkedBuilder", "AddHandler()"));
 
-        // ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Action<T> handler)
-        context.RegisterSourceOutput(ahActionProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        // CommandRunner.AddHandler<T>(Action/Func/...)
+        context.RegisterSourceOutput(syncVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Action{T})",
                 "System.Action<T>", "ICommandRunnerBuilder"));
-
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler)
-        context.RegisterSourceOutput(ahAsyncActionProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Action{T})",
-                "System.Action<T>", "IAsyncCommandRunnerBuilder"));
-
-        // ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, int> handler)
-        context.RegisterSourceOutput(ahFuncIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        context.RegisterSourceOutput(syncInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,int})",
                 "System.Func<T, int>", "ICommandRunnerBuilder"));
-
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler)
-        context.RegisterSourceOutput(ahAsyncFuncIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,int})",
-                "System.Func<T, int>", "IAsyncCommandRunnerBuilder"));
-
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task> handler)
-        context.RegisterSourceOutput(ahFuncTaskProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        context.RegisterSourceOutput(syncTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,Task})",
                 "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
-
-        // IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task<int>> handler)
-        context.RegisterSourceOutput(ahFuncTaskIntProvider.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+        context.RegisterSourceOutput(syncTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,Task{int}})",
+                "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+
+        // AsyncCommandRunner.AddHandler<T>(Action/Func/...)
+        context.RegisterSourceOutput(asyncVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Action{T})",
+                "System.Action<T>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(asyncInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,int})",
+                "System.Func<T, int>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(asyncTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task})",
+                "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(asyncTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task{int}})",
                 "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
     }
 

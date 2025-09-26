@@ -24,14 +24,14 @@ internal static class InterceptorModelProvider
             "DotNetCampus.Cli.CommandLine", "As");
     }
 
-    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
+    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectAddHandlers(
         this IncrementalGeneratorInitializationContext context, string thisTypeName)
     {
         return SelectMethodInvocationProvider(context,
             $"DotNetCampus.Cli.{thisTypeName}", "AddHandler");
     }
 
-    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
+    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectAddHandlers(
         this IncrementalGeneratorInitializationContext context, string thisTypeName, string parameterTypeFullName)
     {
         return SelectMethodInvocationProvider(context,
