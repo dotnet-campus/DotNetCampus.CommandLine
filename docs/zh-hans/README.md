@@ -98,7 +98,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 | 短选项            | 支持           | 支持           | 支持              | 支持       | 支持         | 不支持            |
 | 长选项前缀        | `--` `-` `/`   | `--`           | `--`              | 不支持     | `-` `/`      |                   |
 | 短选项前缀        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
-| 长选项 ` `        | --option value | --option value | -o value          | -o value   | -o value     |                   |
+| 长选项 ` `        | --option value | --option value | --option value    |            | -o value     |                   |
 | 长选项 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
 | 长选项 `:`        | --option:value | --option:value |                   |            | -o:value     |                   |
 | 短选项 ` `        | -o value       | -o value       | -o value          | -o value   | -o value     |                   |

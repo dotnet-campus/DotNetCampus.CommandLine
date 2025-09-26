@@ -98,7 +98,7 @@ By default, their detailed differences are:
 | Short options          | Supported      | Supported      | Supported         | Supported     | Supported     | Not supported     |
 | Long option prefixes   | `--` `-` `/`   | `--`           | `--`              | (None)        | `-` `/`       |                   |
 | Short option prefixes  | `-` `/`        | `-`            | `-`               | `-`           | `-` `/`       |                   |
-| Long option (space)    | --option value | --option value | -o value          | -o value      | -o value      |                   |
+| Long option (space)    | --option value | --option value | --option value    | -o value      | -o value      |                   |
 | Long option `=`        | --option=value | --option=value | --option=value    |               | -o=value      | option=value      |
 | Long option `:`        | --option:value | --option:value |                   |               | -o:value      |                   |
 | Short option (space)   | -o value       | -o value       | -o value          | -o value      | -o value      |                   |
