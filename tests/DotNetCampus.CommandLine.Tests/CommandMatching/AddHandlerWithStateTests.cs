@@ -73,6 +73,28 @@ public class AddHandlerWithStateTests
         Assert.AreEqual(123, state);
     }
 
+    [TestMethod]
+    [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] test1 --option=value")]
+    [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] test1 --option=value")]
+    [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] test1 --option=value")]
+    [DataRow(new[] { "test1", "test", "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] test1 -Option=value")]
+    public async Task MultipleAddHandlerWithState2(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var result = await commandLine.ToRunner()
+            .AddHandler<Test0Handler>()
+            .ForState(123).AddHandler<Test1Handler>().AddHandler<Test11Handler>()
+            .ForState("test2").AddHandler<Test2Handler>()
+            .RunAsync();
+        var state = ((Test11Handler)result.HandledBy!).State;
+
+        // Assert
+        Assert.AreEqual(123, state);
+    }
+
     public record Test0Handler : ICommandHandler
     {
         [Option('o', "option")]
