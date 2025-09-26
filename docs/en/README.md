@@ -234,6 +234,30 @@ What value a property ultimately receives depends on:
 public string OptionName { get; set; } = "Default Value";
 ```
 
+## Exceptions
+
+The command-line library's exceptions fall into several categories:
+
+1. Command-line parsing exceptions `CommandLineParseException`
+    - Option or positional argument mismatch exceptions
+    - Command-line argument format exceptions
+    - Command-line value conversion exceptions
+2. Command-line object creation exceptions
+    - Only one: `RequiredPropertyNotAssignedException`, which occurs when a property marked `required` is not provided in the command line
+3. Command and subcommand matching exceptions
+    - Multiple match exception `CommandNameAmbiguityException`
+    - No match exception `CommandNameNotFoundException`
+
+A common scenario occurs when multiple cooperating applications are not upgraded synchronously; one application might call this program using new command-line options, but the current version cannot recognize options that will only appear in the "next version". In such cases, you might need to ignore these compatibility errors (option or positional argument mismatch exceptions). If you anticipate this situation happening frequently, you can ignore such errors:
+
+```csharp
+var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
+{
+    // You can ignore only options, only positional arguments, or both like this.
+    UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreAllUnknownArguments,
+});
+```
+
 ## Commands and Subcommands
 
 You can use the command handler pattern to process different commands, like `git commit` or `git remote add`. Multiple ways are provided:

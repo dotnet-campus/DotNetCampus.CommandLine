@@ -234,6 +234,30 @@ public class Options
 public string OptionName { get; set; } = "Default Value";
 ```
 
+## 異常
+
+命令列程式庫的異常分為以下幾種：
+
+1. 命令列解析異常 `CommandLineParseException`
+    - 選項或位置參數未匹配異常
+    - 命令列參數格式異常
+    - 命令列值轉換異常
+2. 命令列物件建立異常
+    - 僅此一個 `RequiredPropertyNotAssignedException`，當屬性標記了 `required` 而未在命令列中傳入時發生異常
+3. 命令與子命令匹配異常
+    - 多次匹配異常 `CommandNameAmbiguityException`
+    - 未匹配異常 `CommandNameNotFoundException`
+
+一個很常見的情況是多個協同工作的應用程式未同步升級時，可能某程式使用了新的命令列選項呼叫了本程式，本程式當前版本不可能認識這種「下個版本」才會出現的選項。此時有可能需要忽略這種相容性錯誤（選項或位置參數未匹配異常）。如果你預感到這種情況會經常發生，你可以忽略這種錯誤：
+
+```csharp
+var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
+{
+    // 可以只忽略選項，也可以只忽略位置參數；也可以像這樣都忽略。
+    UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreAllUnknownArguments,
+});
+```
+
 ## 命令與子命令
 
 可使用命令處理器模式處理不同命令，類似 `git commit`、`git remote add`。提供多種方式：
