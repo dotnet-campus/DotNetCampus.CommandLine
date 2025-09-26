@@ -121,7 +121,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 | 布尔/开关值       | 1/0            | 1/0            | 1/0               | 1/0        | 1/0          | 1/0               |
 | 短布尔选项合并    |                |                | -abc              | -abc       |              |                   |
 | 集合选项          | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B  | -o A -o B    | option=A&option=B |
-| 集合选项 ` `      | -o A B C       | -o A B C       |                   |            | -o A B C     |                   |
+| 集合选项 ` `[^2]  |                |                |                   |            |              |                   |
 | 集合选项 `,`      | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C   | -o A,B,C     |                   |
 | 集合选项 `;`      | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C   | -o A;B;C     |                   |
 | 字典选项          | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |            | -o:A=X;B=Y   |                   |
@@ -132,6 +132,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 | 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
 
 [^1]: GNU 风格并不支持布尔选项显式带值，但因为这种情况并没有歧义，所以我们考虑额外支持它。
+[^2]: 所有风格默认都不支持空格分隔集合，以尽可能避免与位置参数的歧义。但如果你需要，可以通过 `CommandLineParsingOptions.Style.SupportsSpaceSeparatedCollectionValues` 启用它。
 
 说明：
 
@@ -733,26 +734,26 @@ public sealed class BenchmarkOptions41Builder(global::DotNetCampus.Cli.CommandLi
 test DotNetCampus.CommandLine.Performance.dll DotNetCampus.CommandLine.Sample.dll DotNetCampus.CommandLine.Test.dll -c 20 --test-name BenchmarkTest --detail-level High --debug
 ```
 
-| Method                           | Runtime       |         Mean |       Error |      StdDev |    Gen0 | Allocated |
-| -------------------------------- | ------------- | -----------: | ----------: | ----------: | ------: | --------: |
-| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     |     355.9 ns |     4.89 ns |     4.58 ns |  0.0548 |     920 B |
-| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     |     339.7 ns |     6.81 ns |     7.57 ns |  0.0548 |     920 B |
-| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     |     945.9 ns |    14.87 ns |    13.19 ns |  0.1583 |    2656 B |
-| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     |     882.1 ns |    11.30 ns |    10.57 ns |  0.1631 |    2736 B |
-| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     |     495.7 ns |     9.26 ns |     9.09 ns |  0.1040 |    1752 B |
-| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     |  18,025.5 ns |   194.73 ns |   162.61 ns |  0.4883 |    8730 B |
-| 'NuGet: ConsoleAppFramework'     | .NET 10.0     |     134.1 ns |     2.70 ns |     2.65 ns |  0.0215 |     360 B |
-| 'NuGet: CommandLineParser'       | .NET 10.0     | 177,520.8 ns | 2,225.66 ns | 1,737.65 ns |  3.9063 |   68895 B |
-| 'NuGet: System.CommandLine'      | .NET 10.0     |  66,581.6 ns | 1,323.17 ns | 3,245.76 ns |  1.0986 |   18505 B |
-| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 |     624.3 ns |     7.06 ns |     6.60 ns |  0.0505 |     856 B |
-| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 |     600.3 ns |     6.72 ns |     6.28 ns |  0.0505 |     856 B |
-| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 |   1,395.6 ns |    20.43 ns |    19.11 ns |  0.1507 |    2529 B |
-| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 |   1,438.1 ns |    19.84 ns |    18.55 ns |  0.1545 |    2609 B |
-| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 |     720.8 ns |     7.47 ns |     6.99 ns |  0.1030 |    1737 B |
-| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
-| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 |     195.3 ns |     3.76 ns |     3.69 ns |  0.0234 |     392 B |
-| 'NuGet: CommandLineParser'       | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
-| 'NuGet: System.CommandLine'      | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
+| Method                           | Runtime       |         Mean |       Error |      StdDev |   Gen0 | Allocated |
+| -------------------------------- | ------------- | -----------: | ----------: | ----------: | -----: | --------: |
+| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     |     355.9 ns |     4.89 ns |     4.58 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     |     339.7 ns |     6.81 ns |     7.57 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     |     945.9 ns |    14.87 ns |    13.19 ns | 0.1583 |    2656 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     |     882.1 ns |    11.30 ns |    10.57 ns | 0.1631 |    2736 B |
+| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     |     495.7 ns |     9.26 ns |     9.09 ns | 0.1040 |    1752 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     |  18,025.5 ns |   194.73 ns |   162.61 ns | 0.4883 |    8730 B |
+| 'NuGet: ConsoleAppFramework'     | .NET 10.0     |     134.1 ns |     2.70 ns |     2.65 ns | 0.0215 |     360 B |
+| 'NuGet: CommandLineParser'       | .NET 10.0     | 177,520.8 ns | 2,225.66 ns | 1,737.65 ns | 3.9063 |   68895 B |
+| 'NuGet: System.CommandLine'      | .NET 10.0     |  66,581.6 ns | 1,323.17 ns | 3,245.76 ns | 1.0986 |   18505 B |
+| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 |     624.3 ns |     7.06 ns |     6.60 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 |     600.3 ns |     6.72 ns |     6.28 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 |   1,395.6 ns |    20.43 ns |    19.11 ns | 0.1507 |    2529 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 |   1,438.1 ns |    19.84 ns |    18.55 ns | 0.1545 |    2609 B |
+| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 |     720.8 ns |     7.47 ns |     6.99 ns | 0.1030 |    1737 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 |     195.3 ns |     3.76 ns |     3.69 ns | 0.0234 |     392 B |
+| 'NuGet: CommandLineParser'       | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: System.CommandLine'      | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
 
 其中：
 

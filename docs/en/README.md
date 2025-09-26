@@ -89,49 +89,50 @@ Supported styles include:
 
 By default, their detailed differences are:
 
-| Style                 | Flexible       | DotNet         | Gnu               | Posix         | PowerShell    | URL               |
-| --------------------- | -------------- | -------------- | ----------------- | ------------- | ------------- | ----------------- |
-| Positional args       | Supported      | Supported      | Supported         | Supported     | Supported     | Supported         |
-| Trailing args `--`    | Supported      | Supported      | Supported         | Supported     | Not supported | Not supported     |
-| Case                  | Insensitive    | Sensitive      | Sensitive         | Sensitive     | Insensitive   | Insensitive       |
-| Long options          | Supported      | Supported      | Supported         | Not supported | Supported     | Supported         |
-| Short options         | Supported      | Supported      | Supported         | Supported     | Supported     | Not supported     |
-| Long option prefixes  | `--` `-` `/`   | `--`           | `--`              | (None)        | `-` `/`       |                   |
-| Short option prefixes | `-` `/`        | `-`            | `-`               | `-`           | `-` `/`       |                   |
-| Long option (space)   | --option value | --option value | -o value          | -o value      | -o value      |                   |
-| Long option `=`       | --option=value | --option=value | --option=value    |               | -o=value      | option=value      |
-| Long option `:`       | --option:value | --option:value |                   |               | -o:value      |                   |
-| Short option (space)  | -o value       | -o value       | -o value          | -o value      | -o value      |                   |
-| Short option `=`      | -o=value       | -o=value       |                   |               | -o=value      | option=value      |
-| Short option `:`      | -o:value       | -o:value       |                   |               | -o:value      |                   |
-| Short option inline   |                |                | -ovalue           |               |               |                   |
-| Multi-char short opt  | -abc value     | -abc value     |                   |               | -abc value    |                   |
-| Long boolean option   | --option       | --option       | --option          |               | -Option       | option            |
-| Long boolean ` `      | --option true  | --option true  |                   |               | -Option true  |                   |
-| Long boolean `=`      | --option=true  | --option=true  | --option=true[^1] |               | -Option=true  |                   |
-| Long boolean `:`      | --option:true  | --option:true  |                   |               | -Option:true  |                   |
-| Short boolean option  | -o             | -o             | -o                | -o            | -o            |                   |
-| Short boolean ` `     | -o true        | -o true        |                   |               | -o true       |                   |
-| Short boolean `=`     | -o=true        | -o=true        |                   |               | -o=true       | option=true       |
-| Short boolean `:`     | -o:true        | -o:true        |                   |               | -o:true       |                   |
-| Short boolean inline  |                |                | -o1               |               |               |                   |
-| Boolean values        | true/false     | true/false     | true/false        | true/false    | true/false    | true/false        |
-| Boolean values        | yes/no         | yes/no         | yes/no            | yes/no        | yes/no        | yes/no            |
-| Boolean values        | on/off         | on/off         | on/off            | on/off        | on/off        | on/off            |
-| Boolean values        | 1/0            | 1/0            | 1/0               | 1/0           | 1/0           | 1/0               |
-| Combined short bools  |                |                | -abc              | -abc          |               |                   |
-| Collection option     | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B     | -o A -o B     | option=A&option=B |
-| Collection (space)    | -o A B C       | -o A B C       |                   |               | -o A B C      |                   |
-| Collection `,`        | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C      | -o A,B,C      |                   |
-| Collection `;`        | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C      | -o A;B;C      |                   |
-| Dictionary option     | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |               | -o:A=X;B=Y    |                   |
-| Naming                | --kebab-case   | --kebab-case   | --kebab-case      |               |               | kebab-case        |
-| Naming                | -PascalCase    |                |                   |               | -PascalCase   |                   |
-| Naming                | -camelCase     |                |                   |               | -camelCase    |                   |
-| Naming                | /PascalCase    |                |                   |               | /PascalCase   |                   |
-| Naming                | /camelCase     |                |                   |               | /camelCase    |                   |
+| Style                  | Flexible       | DotNet         | Gnu               | Posix         | PowerShell    | URL               |
+| ---------------------- | -------------- | -------------- | ----------------- | ------------- | ------------- | ----------------- |
+| Positional args        | Supported      | Supported      | Supported         | Supported     | Supported     | Supported         |
+| Trailing args `--`     | Supported      | Supported      | Supported         | Supported     | Not supported | Not supported     |
+| Case                   | Insensitive    | Sensitive      | Sensitive         | Sensitive     | Insensitive   | Insensitive       |
+| Long options           | Supported      | Supported      | Supported         | Not supported | Supported     | Supported         |
+| Short options          | Supported      | Supported      | Supported         | Supported     | Supported     | Not supported     |
+| Long option prefixes   | `--` `-` `/`   | `--`           | `--`              | (None)        | `-` `/`       |                   |
+| Short option prefixes  | `-` `/`        | `-`            | `-`               | `-`           | `-` `/`       |                   |
+| Long option (space)    | --option value | --option value | -o value          | -o value      | -o value      |                   |
+| Long option `=`        | --option=value | --option=value | --option=value    |               | -o=value      | option=value      |
+| Long option `:`        | --option:value | --option:value |                   |               | -o:value      |                   |
+| Short option (space)   | -o value       | -o value       | -o value          | -o value      | -o value      |                   |
+| Short option `=`       | -o=value       | -o=value       |                   |               | -o=value      | option=value      |
+| Short option `:`       | -o:value       | -o:value       |                   |               | -o:value      |                   |
+| Short option inline    |                |                | -ovalue           |               |               |                   |
+| Multi-char short opt   | -abc value     | -abc value     |                   |               | -abc value    |                   |
+| Long boolean option    | --option       | --option       | --option          |               | -Option       | option            |
+| Long boolean ` `       | --option true  | --option true  |                   |               | -Option true  |                   |
+| Long boolean `=`       | --option=true  | --option=true  | --option=true[^1] |               | -Option=true  |                   |
+| Long boolean `:`       | --option:true  | --option:true  |                   |               | -Option:true  |                   |
+| Short boolean option   | -o             | -o             | -o                | -o            | -o            |                   |
+| Short boolean ` `      | -o true        | -o true        |                   |               | -o true       |                   |
+| Short boolean `=`      | -o=true        | -o=true        |                   |               | -o=true       | option=true       |
+| Short boolean `:`      | -o:true        | -o:true        |                   |               | -o:true       |                   |
+| Short boolean inline   |                |                | -o1               |               |               |                   |
+| Boolean values         | true/false     | true/false     | true/false        | true/false    | true/false    | true/false        |
+| Boolean values         | yes/no         | yes/no         | yes/no            | yes/no        | yes/no        | yes/no            |
+| Boolean values         | on/off         | on/off         | on/off            | on/off        | on/off        | on/off            |
+| Boolean values         | 1/0            | 1/0            | 1/0               | 1/0           | 1/0           | 1/0               |
+| Combined short bools   |                |                | -abc              | -abc          |               |                   |
+| Collection option      | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B     | -o A -o B     | option=A&option=B |
+| Collection (space)[^2] |                |                |                   |               |               |                   |
+| Collection `,`         | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C      | -o A,B,C      |                   |
+| Collection `;`         | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C      | -o A;B;C      |                   |
+| Dictionary option      | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |               | -o:A=X;B=Y    |                   |
+| Naming                 | --kebab-case   | --kebab-case   | --kebab-case      |               |               | kebab-case        |
+| Naming                 | -PascalCase    |                |                   |               | -PascalCase   |                   |
+| Naming                 | -camelCase     |                |                   |               | -camelCase    |                   |
+| Naming                 | /PascalCase    |                |                   |               | /PascalCase   |                   |
+| Naming                 | /camelCase     |                |                   |               | /camelCase    |                   |
 
 [^1]: GNU style does not officially support supplying an explicit value to a boolean option, but since the syntax is unambiguous we additionally allow it.
+[^2]: All styles default to not supporting space-separated collections, to avoid ambiguity with positional arguments as much as possible. If you need it, you can enable it via `CommandLineParsingOptions.Style.SupportsSpaceSeparatedCollectionValues`.
 
 Notes:
 
@@ -721,26 +722,26 @@ Parsing GNU style command line arguments:
 test DotNetCampus.CommandLine.Performance.dll DotNetCampus.CommandLine.Sample.dll DotNetCampus.CommandLine.Test.dll -c 20 --test-name BenchmarkTest --detail-level High --debug
 ```
 
-| Method                           | Runtime       |         Mean |       Error |      StdDev |    Gen0 | Allocated |
-| -------------------------------- | ------------- | -----------: | ----------: | ----------: | ------: | --------: |
-| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     |     355.9 ns |     4.89 ns |     4.58 ns |  0.0548 |     920 B |
-| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     |     339.7 ns |     6.81 ns |     7.57 ns |  0.0548 |     920 B |
-| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     |     945.9 ns |    14.87 ns |    13.19 ns |  0.1583 |    2656 B |
-| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     |     882.1 ns |    11.30 ns |    10.57 ns |  0.1631 |    2736 B |
-| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     |     495.7 ns |     9.26 ns |     9.09 ns |  0.1040 |    1752 B |
-| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     |  18,025.5 ns |   194.73 ns |   162.61 ns |  0.4883 |    8730 B |
-| 'NuGet: ConsoleAppFramework'     | .NET 10.0     |     134.1 ns |     2.70 ns |     2.65 ns |  0.0215 |     360 B |
-| 'NuGet: CommandLineParser'       | .NET 10.0     | 177,520.8 ns | 2,225.66 ns | 1,737.65 ns |  3.9063 |   68895 B |
-| 'NuGet: System.CommandLine'      | .NET 10.0     |  66,581.6 ns | 1,323.17 ns | 3,245.76 ns |  1.0986 |   18505 B |
-| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 |     624.3 ns |     7.06 ns |     6.60 ns |  0.0505 |     856 B |
-| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 |     600.3 ns |     6.72 ns |     6.28 ns |  0.0505 |     856 B |
-| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 |   1,395.6 ns |    20.43 ns |    19.11 ns |  0.1507 |    2529 B |
-| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 |   1,438.1 ns |    19.84 ns |    18.55 ns |  0.1545 |    2609 B |
-| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 |     720.8 ns |     7.47 ns |     6.99 ns |  0.1030 |    1737 B |
-| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
-| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 |     195.3 ns |     3.76 ns |     3.69 ns |  0.0234 |     392 B |
-| 'NuGet: CommandLineParser'       | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
-| 'NuGet: System.CommandLine'      | NativeAOT 9.0 |           NA |          NA |          NA |      NA |        NA |
+| Method                           | Runtime       |         Mean |       Error |      StdDev |   Gen0 | Allocated |
+| -------------------------------- | ------------- | -----------: | ----------: | ----------: | -----: | --------: |
+| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     |     355.9 ns |     4.89 ns |     4.58 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     |     339.7 ns |     6.81 ns |     7.57 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     |     945.9 ns |    14.87 ns |    13.19 ns | 0.1583 |    2656 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     |     882.1 ns |    11.30 ns |    10.57 ns | 0.1631 |    2736 B |
+| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     |     495.7 ns |     9.26 ns |     9.09 ns | 0.1040 |    1752 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     |  18,025.5 ns |   194.73 ns |   162.61 ns | 0.4883 |    8730 B |
+| 'NuGet: ConsoleAppFramework'     | .NET 10.0     |     134.1 ns |     2.70 ns |     2.65 ns | 0.0215 |     360 B |
+| 'NuGet: CommandLineParser'       | .NET 10.0     | 177,520.8 ns | 2,225.66 ns | 1,737.65 ns | 3.9063 |   68895 B |
+| 'NuGet: System.CommandLine'      | .NET 10.0     |  66,581.6 ns | 1,323.17 ns | 3,245.76 ns | 1.0986 |   18505 B |
+| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 |     624.3 ns |     7.06 ns |     6.60 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 |     600.3 ns |     6.72 ns |     6.28 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 |   1,395.6 ns |    20.43 ns |    19.11 ns | 0.1507 |    2529 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 |   1,438.1 ns |    19.84 ns |    18.55 ns | 0.1545 |    2609 B |
+| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 |     720.8 ns |     7.47 ns |     6.99 ns | 0.1030 |    1737 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 |     195.3 ns |     3.76 ns |     3.69 ns | 0.0234 |     392 B |
+| 'NuGet: CommandLineParser'       | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: System.CommandLine'      | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
 
 Notes:
 
