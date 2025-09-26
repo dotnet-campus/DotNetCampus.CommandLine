@@ -182,9 +182,8 @@ public class InterceptorGenerator : IIncrementalGenerator
                 .WithSummaryComment($$"""<see cref="global::DotNetCampus.Cli.CommandLine.As{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。""")
                 .AddAttributes(models.Select(GenerateInterceptsLocationCode))
                 .AddTypeConstraints(model.UseFullStackParser ? "where T : struct" : "where T : notnull")
+                .AddRawStatement(GenerateComment(model))
                 .AddRawStatements($$"""""
-                    // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-                    // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
                     var context = new global::DotNetCampus.Cli.Compiler.CommandRunningContext { CommandLine = commandLine };
                     var instance = new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}().Build(context);
                     {{(
@@ -212,9 +211,8 @@ public class InterceptorGenerator : IIncrementalGenerator
                 $$"""<see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。""")
             .AddAttributes(models.Select(GenerateInterceptsLocationCode))
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
+            .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-                // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
                 return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
@@ -230,9 +228,8 @@ public class InterceptorGenerator : IIncrementalGenerator
                 $$"""<see cref="global::DotNetCampus.Cli.StatedCommandRunnerBuilder{TState}.AddHandler{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。""")
             .AddAttributes(models.Select(GenerateInterceptsLocationCode))
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler<TState>")
+            .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-                // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
                 return builder.AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
@@ -248,12 +245,16 @@ public class InterceptorGenerator : IIncrementalGenerator
                 $$"""<see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{T}(global::DotNetCampus.Cli.ICommandRunnerBuilder,global::{{parameterTypeFullName.Replace('<', '{').Replace('>', '}')}})"/> 方法的拦截器。拦截以提高性能。""")
             .AddAttributes(models.Select(GenerateInterceptsLocationCode))
             .AddTypeConstraints("where T : class")
+            .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
-                // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
                 return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
+
+    private string GenerateComment(InterceptorGeneratingModel model) => $"""
+        // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
+        // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
+        """;
 }
 
 file static class Extensions
