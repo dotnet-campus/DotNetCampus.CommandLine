@@ -298,6 +298,43 @@ commandLine.ToRunner()
     .RunAsync();
 ```
 
+### 3. Using the ICommandHandler<TState> Interface
+
+Sometimes, the program's state is not entirely determined by command line arguments; there may be some internal program state that affects the execution of command line handlers. Since we cannot pass any parameters when using `AddHandler<T>` as shown before, we have other methods to pass state in:
+
+```csharp
+using var scope = serviceProvider.BeginScope();
+var state = scope.ServiceProvider.GetRequiredService<MyState>();
+var commandLine = CommandLine.Parse(args);
+commandLine.ToRunner()
+    .ForState(state).AddHandler<CommandHandlerWithState>()
+    .RunAsync();
+```
+
+```csharp
+internal class CommandHandlerWithState : ICommandHandler
+{
+    [Option('o', "option")]
+    public required string Option { get; init; }
+
+    public Task<int> RunAsync(MyState state)
+    {
+        // At this point, you can additionally use the passed-in state.
+    }
+}
+```
+
+If multiple handlers can be executed for the same state, you can keep chaining `AddHandler` calls; if different command handlers need to handle different states, you can use `ForState` again; if no state is needed afterwards, don't pass parameters to `ForState`. Here's a more complex example:
+
+```csharp
+commandLine.ToRunner()
+    .AddHandler<Handler0>()
+    .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
+    .ForState(state2).AddHandler<Handler3>()
+    .ForState().AddHandler<Handler4>()
+    .RunAsync();
+```
+
 ### Notes
 
 1. `[Command]` supports multiple words, representing subcommands (e.g., `[Command("remote add")]`).

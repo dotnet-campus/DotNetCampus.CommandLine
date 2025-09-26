@@ -298,6 +298,43 @@ commandLine.ToRunner()
     .RunAsync();
 ```
 
+### 3. 使用 ICommandHandler<TState> 介面
+
+有時候，程式的狀態不完全由命令列決定，程式內部也會有一些狀態會影響到命令列處理器的執行。由於我們前面使用 `AddHandler<T>` 沒有辦法傳入任何參數，所以我們還有其他方法傳入狀態進去：
+
+```csharp
+using var scope = serviceProvider.BeginScope();
+var state = scope.ServiceProvider.GetRequiredService<MyState>();
+var commandLine = CommandLine.Parse(args);
+commandLine.ToRunner()
+    .ForState(state).AddHandler<CommandHandlerWithState>()
+    .RunAsync();
+```
+
+```csharp
+internal class CommandHandlerWithState : ICommandHandler
+{
+    [Option('o', "option")]
+    public required string Option { get; init; }
+
+    public Task<int> RunAsync(MyState state)
+    {
+        // 這時，你可以額外使用這個傳入的 state。
+    }
+}
+```
+
+如果對同一個狀態可以執行多個處理器，可以一直鏈式呼叫 `AddHandler`；而如果不同的命令處理器要處理不同的狀態，可以再次使用 `ForState`；如果後面不再需要狀態，則 `ForState` 中不要傳入參數。一個更複雜的例子如下：
+
+```csharp
+commandLine.ToRunner()
+    .AddHandler<Handler0>()
+    .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
+    .ForState(state2).AddHandler<Handler3>()
+    .ForState().AddHandler<Handler4>()
+    .RunAsync();
+```
+
 ### 說明
 
 1. `[Command]` 支援多個單字，表示子命令（例：`[Command("remote add")]`）。
