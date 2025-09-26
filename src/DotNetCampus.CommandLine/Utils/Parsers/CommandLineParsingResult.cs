@@ -21,6 +21,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <param name="other">
     /// 两个都失败，则会使用此实例的错误信息。
     /// </param>
+    /// <returns>合并后的解析结果。</returns>
     public CommandLineParsingResult Combine(CommandLineParsingResult other)
     {
         return (IsSuccess, other.IsSuccess) switch
@@ -29,6 +30,57 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
             (false, true) => this,
             (true, false) => other,
             (false, false) => other,
+        };
+    }
+
+    /// <summary>
+    /// 将另一个解析结果与当前实例按照忽略优先级合并。合并后，会优先保留没有被忽略的错误信息。
+    /// </summary>
+    /// <param name="other">
+    /// 两个都失败且未被忽略，则会使用此实例的错误信息。
+    /// </param>
+    /// <param name="unknownHandling">对于未知参数的处理方式。</param>
+    /// <returns>合并后的解析结果。</returns>
+    public CommandLineParsingResult Combine(CommandLineParsingResult other, UnknownCommandArgumentHandling unknownHandling)
+    {
+        return unknownHandling switch
+        {
+            UnknownCommandArgumentHandling.AllArgumentsMustBeRecognized => (IsSuccess, other.IsSuccess) switch
+            {
+                (true, true) => Success,
+                (false, true) => this,
+                (true, false) => other,
+                (false, false) => other,
+            },
+            UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments => (ErrorType, other.ErrorType) switch
+            {
+                (CommandLineParsingError.None, CommandLineParsingError.None) => Success,
+                (_, CommandLineParsingError.None) => this,
+                (CommandLineParsingError.None, _) => other,
+                (CommandLineParsingError.OptionalArgumentNotFound, CommandLineParsingError.OptionalArgumentNotFound) => this,
+                (_, CommandLineParsingError.OptionalArgumentNotFound) => this,
+                _ => other,
+            },
+            UnknownCommandArgumentHandling.IgnoreUnknownPositionalArguments => (ErrorType, other.ErrorType) switch
+            {
+                (CommandLineParsingError.None, CommandLineParsingError.None) => Success,
+                (_, CommandLineParsingError.None) => this,
+                (CommandLineParsingError.None, _) => other,
+                (CommandLineParsingError.PositionalArgumentNotFound, CommandLineParsingError.PositionalArgumentNotFound) => this,
+                (_, CommandLineParsingError.PositionalArgumentNotFound) => this,
+                _ => other,
+            },
+            UnknownCommandArgumentHandling.IgnoreAllUnknownArguments => (ErrorType, other.ErrorType) switch
+            {
+                (CommandLineParsingError.None, CommandLineParsingError.None) => Success,
+                (_, CommandLineParsingError.None) => this,
+                (CommandLineParsingError.None, _) => other,
+                (CommandLineParsingError.OptionalArgumentNotFound or CommandLineParsingError.PositionalArgumentNotFound, CommandLineParsingError
+                    .OptionalArgumentNotFound or CommandLineParsingError.PositionalArgumentNotFound) => this,
+                (_, CommandLineParsingError.OptionalArgumentNotFound or CommandLineParsingError.PositionalArgumentNotFound) => this,
+                _ => other,
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(unknownHandling), unknownHandling, null)
         };
     }
 

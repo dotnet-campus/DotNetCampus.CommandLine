@@ -42,6 +42,7 @@ public readonly ref struct CommandLineParser
         SupportsExplicitBooleanOptionValue = Style.SupportsExplicitBooleanOptionValue;
         SupportsSpaceSeparatedCollectionValues = Style.SupportsSpaceSeparatedCollectionValues;
         UnknownOptionTakesValue = Style.UnknownOptionTakesValue;
+        UnknownArgumentsHandling = commandLine.ParsingOptions.UnknownArgumentsHandling;
     }
 
     /// <summary>
@@ -78,6 +79,9 @@ public readonly ref struct CommandLineParser
 
     /// <inheritdoc cref="CommandLineStyle.SupportsSpaceSeparatedCollectionValues"/>
     internal bool SupportsSpaceSeparatedCollectionValues { get; }
+
+    /// <inheritdoc cref="CommandLineParsingOptions.UnknownArgumentsHandling"/>
+    public UnknownCommandArgumentHandling UnknownArgumentsHandling { get; }
 
     /// <summary>
     /// 要求源生成器匹配长名称，返回此长选项的值类型。
@@ -147,19 +151,19 @@ public readonly ref struct CommandLineParser
                         // 如果选项不存在，则报告错误。
                         optionMatch = optionMatch.HandleNotExist(UnknownOptionTakesValue);
                         result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption())
-                            .Combine(result);
+                            .Combine(result, UnknownArgumentsHandling);
                     }
                     if (optionMatch.ValueType is OptionValueType.Boolean)
                     {
                         // 布尔选项必须立即赋值，因为后面是不一定需要跟值的。
-                        result = AssignOptionValue(optionMatch, []).Combine(result);
+                        result = AssignOptionValue(optionMatch, []).Combine(result, UnknownArgumentsHandling);
                     }
                     currentOption = optionMatch;
                     break;
                 }
                 case Cat.OptionValue:
                 {
-                    result = AssignOptionValue(currentOption, value).Combine(result);
+                    result = AssignOptionValue(currentOption, value).Combine(result, UnknownArgumentsHandling);
                     if (currentOption.ValueType is not OptionValueType.List)
                     {
                         // 如果不是集合，那么此选项已经结束。
@@ -175,7 +179,7 @@ public readonly ref struct CommandLineParser
                     {
                         // 如果位置参数不存在，则报告错误。
                         result = CommandLineParsingResult.PositionalArgumentNotFound(_commandLine, index, _commandObjectName, currentPositionArgumentIndex)
-                            .Combine(result);
+                            .Combine(result, UnknownArgumentsHandling);
                     }
                     currentPositionArgumentIndex++;
                     if (positionalArgumentMatch.ValueType is not PositionalArgumentValueType.NotExist)
@@ -200,18 +204,19 @@ public readonly ref struct CommandLineParser
                     {
                         // 如果选项不存在，则报告错误。
                         result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, optionName, state.IsLongOption())
-                            .Combine(result);
+                            .Combine(result, UnknownArgumentsHandling);
                     }
                     else
                     {
-                        result = AssignOptionValue(optionMatch, value).Combine(result);
+                        result = AssignOptionValue(optionMatch, value).Combine(result, UnknownArgumentsHandling);
                     }
                     break;
                 }
                 case Cat.ErrorOption:
                 {
                     // 如果当前参数疑似选项但解析失败，则报告错误。
-                    result = CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index, _commandObjectName).Combine(result);
+                    result = CommandLineParsingResult.OptionalArgumentParseError(_commandLine, index, _commandObjectName)
+                        .Combine(result, UnknownArgumentsHandling);
                     break;
                 }
                 case Cat.MultiShortOptions:
@@ -227,7 +232,7 @@ public readonly ref struct CommandLineParser
                             if (optionMatch.ValueType is OptionValueType.Boolean)
                             {
                                 // 布尔选项必须立即赋值，因为后面是不一定需要跟值的。
-                                result = AssignOptionValue(optionMatch, []).Combine(result);
+                                result = AssignOptionValue(optionMatch, []).Combine(result, UnknownArgumentsHandling);
                             }
                             // 短选项已经无歧义地确定为了正常短选项了。
                             lastState = Cat.ShortOption;
@@ -239,7 +244,8 @@ public readonly ref struct CommandLineParser
                     if (!SupportsShortOptionCombination && !SupportsShortOptionValueWithoutSeparator)
                     {
                         // 如果既不支持组合短选项，也不支持无分隔符带值的短选项，则报告错误。
-                        result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false).Combine(result);
+                        result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false)
+                            .Combine(result, UnknownArgumentsHandling);
                         break;
                     }
                     var first = name[..1];
@@ -252,7 +258,7 @@ public readonly ref struct CommandLineParser
                         // 后面是一个布尔值。
                         if (parsedBoolean is { } @bool)
                         {
-                            result = AssignOptionValue(firstOptionMatch, @bool.ToBooleanSpan()).Combine(result);
+                            result = AssignOptionValue(firstOptionMatch, @bool.ToBooleanSpan()).Combine(result, UnknownArgumentsHandling);
                             break;
                         }
                         // 后面不是布尔值。而由于第一个是布尔值，所以后面必须全是布尔值才能组合。
@@ -269,14 +275,15 @@ public readonly ref struct CommandLineParser
                             else if (optionMatch.ValueType is OptionValueType.NotExist)
                             {
                                 // 后面的某个组合选项不存在了，报告错误。
-                                result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n, false).Combine(result);
+                                result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, n, false)
+                                    .Combine(result, UnknownArgumentsHandling);
                                 break;
                             }
                             else
                             {
                                 // 后面的某个组合选项不是布尔选项，报告不可组合错误。
                                 result = CommandLineParsingResult.OptionalArgumentCombinationIsNotBoolean(_commandLine, index, _commandObjectName, n)
-                                    .Combine(result);
+                                    .Combine(result, UnknownArgumentsHandling);
                                 break;
                             }
                         }
@@ -286,11 +293,12 @@ public readonly ref struct CommandLineParser
                     if (SupportsShortOptionValueWithoutSeparator && firstOptionMatch.ValueType is not OptionValueType.Boolean and not OptionValueType.NotExist)
                     {
                         // 第一个字符不是布尔选项，则不允许组合，后面只可能是值（无分隔符带值的短选项）。
-                        result = AssignOptionValue(firstOptionMatch, others).Combine(result);
+                        result = AssignOptionValue(firstOptionMatch, others).Combine(result, UnknownArgumentsHandling);
                         break;
                     }
                     // 能进到这里，说明短选项的上述三种情况都不满足，应该报告错误。
-                    result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false).Combine(result);
+                    result = CommandLineParsingResult.OptionalArgumentNotFound(_commandLine, index, _commandObjectName, name, false)
+                        .Combine(result, UnknownArgumentsHandling);
                     break;
                 }
                 // 其他状态要么已经处理过了，要不还未处理，要么不需要处理，所以不需要做任何事情。
@@ -328,7 +336,7 @@ public readonly ref struct CommandLineParser
                 }
                 else
                 {
-                    result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result);
+                    result = CommandLineParsingResult.BooleanValueParseError(_commandLine, value).Combine(result, UnknownArgumentsHandling);
                 }
                 break;
             }
@@ -365,14 +373,14 @@ public readonly ref struct CommandLineParser
                     if (index < 0)
                     {
                         // 剩余部分没有分隔符，全部作为一个值。
-                        result = SplitKeyValue(value[start..], out var k, out var v).Combine(result);
+                        result = SplitKeyValue(value[start..], out var k, out var v).Combine(result, UnknownArgumentsHandling);
                         AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
                         break;
                     }
                     if (index > 0)
                     {
                         // 截取分隔符前的部分作为一个值。
-                        result = SplitKeyValue(value.Slice(start, index), out var k, out var v).Combine(result);
+                        result = SplitKeyValue(value.Slice(start, index), out var k, out var v).Combine(result, UnknownArgumentsHandling);
                         AssignPropertyValue(match.PropertyName, match.PropertyIndex, k, v);
                     }
                     // 跳过分隔符，继续处理后续部分。
