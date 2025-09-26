@@ -18,9 +18,10 @@ internal static class InterceptorModelProvider
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context)
+        this IncrementalGeneratorInitializationContext context, string extensionMethodThisTypeName)
     {
-        return SelectMethodInvocationProvider(context, "DotNetCampus.Cli.CommandRunnerBuilderExtensions", "AddHandler");
+        return SelectMethodInvocationProvider(context,
+            $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler");
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(

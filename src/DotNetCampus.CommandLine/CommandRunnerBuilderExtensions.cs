@@ -28,7 +28,7 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="state">命令处理器的状态，会在 <see cref="ICommandHandler{TState}.RunAsync"/> 中传入。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, object state)
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICoreCommandRunnerBuilder builder, object? state)
         where T : class, IStatedCommandHandler
     {
         throw CommandLine.MethodShouldBeInspected();
