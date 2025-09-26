@@ -8,11 +8,33 @@ namespace DotNetCampus.Cli.Tests.CommandMatching;
 public class AddHandlerTests
 {
     [TestMethod]
+    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
+    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
+    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
+    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    public void AddHandler(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var result = commandLine.ToRunner()
+            .AddHandler<DefaultHandler>()
+            .RunAsync();
+        var matchedTypeName = result.Result.HandledBy!.GetType().Name;
+        var exitCode = result.Result.ExitCode;
+
+        // Assert
+        Assert.AreEqual(expectedCommand, matchedTypeName);
+        Assert.AreEqual(1, exitCode);
+    }
+
+    [TestMethod]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
-    public void AddHandler(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    public void AddHandler_Action(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
         string? matched = null;
@@ -23,8 +45,6 @@ public class AddHandlerTests
             .AddHandler<DefaultOptions>(o => matched = o.Value)
             .AddHandler<FooOptions>(o => matched = o.Value)
             .AddHandler<BarOptions>(o => matched = o.Value)
-            .AddHandler<MatchCommandTests.BarBazOptions>(o => matched = o.Value)
-            .AddHandler<MatchCommandTests.SubCommandOptions>(o => matched = o.Value)
             .Run();
         var matchedTypeName = result.HandledBy!.GetType().Name;
 
@@ -38,7 +58,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
-    public void AddHandlerWithExitCode(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    public void AddHandler_FuncInt32(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
         string? matched = null;
@@ -49,8 +69,6 @@ public class AddHandlerTests
             .AddHandler<DefaultOptions>(o => RunWithExitCode(ref matched, o.Value))
             .AddHandler<FooOptions>(o => RunWithExitCode(ref matched, o.Value))
             .AddHandler<BarOptions>(o => RunWithExitCode(ref matched, o.Value))
-            .AddHandler<MatchCommandTests.BarBazOptions>(o => RunWithExitCode(ref matched, o.Value))
-            .AddHandler<MatchCommandTests.SubCommandOptions>(o => RunWithExitCode(ref matched, o.Value))
             .Run();
         var matchedTypeName = result.HandledBy!.GetType().Name;
         var exitCode = result.ExitCode;
@@ -66,7 +84,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
-    public void AsyncAddHandler(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    public void AddHandler_FuncTask(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
         Task<string?>? matched = null;
@@ -77,8 +95,6 @@ public class AddHandlerTests
             .AddHandler<DefaultOptions>(o => matched = Task.FromResult(o.Value))
             .AddHandler<FooOptions>(o => matched = Task.FromResult(o.Value))
             .AddHandler<BarOptions>(o => matched = Task.FromResult(o.Value))
-            .AddHandler<MatchCommandTests.BarBazOptions>(o => matched = Task.FromResult(o.Value))
-            .AddHandler<MatchCommandTests.SubCommandOptions>(o => matched = Task.FromResult(o.Value))
             .RunAsync();
         var matchedTypeName = result.Result.HandledBy!.GetType().Name;
 
@@ -92,7 +108,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
-    public void AsyncAddHandlerWithExitCode(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    public void AddHandler_FuncTaskInt32(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
         Task<string?>? matched = null;
@@ -103,8 +119,32 @@ public class AddHandlerTests
             .AddHandler<DefaultOptions>(o => RunWithExitCode(ref matched, o.Value))
             .AddHandler<FooOptions>(o => RunWithExitCode(ref matched, o.Value))
             .AddHandler<BarOptions>(o => RunWithExitCode(ref matched, o.Value))
-            .AddHandler<MatchCommandTests.BarBazOptions>(o => RunWithExitCode(ref matched, o.Value))
-            .AddHandler<MatchCommandTests.SubCommandOptions>(o => RunWithExitCode(ref matched, o.Value))
+            .RunAsync();
+        var matchedTypeName = result.Result.HandledBy!.GetType().Name;
+        var exitCode = result.Result.ExitCode;
+
+        // Assert
+        Assert.AreEqual(expectedCommand, matchedTypeName);
+        Assert.AreEqual(expectedValue, matched?.Result);
+        Assert.AreEqual(1, exitCode);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    public void AddHandler_Mix(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    {
+        // Arrange
+        Task<string?>? matched = null;
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var result = commandLine.ToRunner()
+            .AddHandler<DefaultOptions>(o => RunWithExitCode(ref matched, o.Value))
+            .AddHandler<FooOptions>(o => RunSyncWithExitCode(ref matched, o.Value))
+            .AddHandler<BarOptions>(o => RunSyncVoidWithExitCode(ref matched, o.Value))
             .RunAsync();
         var matchedTypeName = result.Result.HandledBy!.GetType().Name;
         var exitCode = result.Result.ExitCode;
@@ -129,6 +169,19 @@ public class AddHandlerTests
         return Task.FromResult(1);
     }
 
+    // ReSharper disable once RedundantAssignment
+    private int RunSyncWithExitCode<T>(ref Task<T>? field, T value)
+    {
+        field = Task.FromResult(value);
+        return 1;
+    }
+
+    // ReSharper disable once RedundantAssignment
+    private void RunSyncVoidWithExitCode<T>(ref Task<T>? field, T value)
+    {
+        field = Task.FromResult(value);
+    }
+
     public record DefaultOptions
     {
         [Value(0)]
@@ -147,5 +200,16 @@ public class AddHandlerTests
     {
         [Value(0)]
         public string? Value { get; set; } = "Bar";
+    }
+
+    public record DefaultHandler : ICommandHandler
+    {
+        [Value(0)]
+        public string? Value { get; set; } = "DefaultHandler";
+
+        public Task<int> RunAsync()
+        {
+            return Task.FromResult(1);
+        }
     }
 }
