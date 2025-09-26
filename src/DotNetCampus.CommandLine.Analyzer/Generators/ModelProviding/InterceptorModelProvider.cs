@@ -11,6 +11,13 @@ namespace DotNetCampus.CommandLine.Generators.ModelProviding;
 
 internal static class InterceptorModelProvider
 {
+    private static readonly SymbolDisplayFormat NoGenericTypeNameFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        kindOptions: SymbolDisplayKindOptions.None
+    );
+
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandLineAsProvider(this IncrementalGeneratorInitializationContext context)
     {
         return SelectMethodInvocationProvider(context,
@@ -18,13 +25,6 @@ internal static class InterceptorModelProvider
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context, string extensionMethodThisTypeName)
-    {
-        return SelectMethodInvocationProvider(context,
-            $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler");
-    }
-
-    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectStatedCommandBuilderAddHandlerProvider(
         this IncrementalGeneratorInitializationContext context, string thisTypeName)
     {
         return SelectMethodInvocationProvider(context,
@@ -32,10 +32,10 @@ internal static class InterceptorModelProvider
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context, string extensionMethodThisTypeName, string parameterTypeFullName)
+        this IncrementalGeneratorInitializationContext context, string thisTypeName, string parameterTypeFullName)
     {
         return SelectMethodInvocationProvider(context,
-            $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler",
+            $"DotNetCampus.Cli.{thisTypeName}", "AddHandler",
             parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.:\?]+>").Replace("<T,", @"<[\w_\.:\?]+,"));
     }
 
@@ -76,8 +76,8 @@ internal static class InterceptorModelProvider
                     // 没有方法。
                     return null;
                 }
-                if (methodSymbol.ContainingType.ToDisplayString() != typeFullName
-                    && methodSymbol.ReceiverType?.ToDisplayString() != typeFullName)
+                if (methodSymbol.ContainingType.ToDisplayString(NoGenericTypeNameFormat) != typeFullName
+                    && methodSymbol.ReceiverType?.ToDisplayString(NoGenericTypeNameFormat) != typeFullName)
                 {
                     // 方法所在的类型不匹配，且扩展方法的 this 参数类型不匹配。
                     return null;

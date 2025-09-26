@@ -18,8 +18,8 @@ public class InterceptorGenerator : IIncrementalGenerator
         var asProvider = context.SelectCommandLineAsProvider();
         var ahProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder");
         var ahAsyncProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder");
-        var ahStatedProvider = context.SelectStatedCommandBuilderAddHandlerProvider("StatedCommandRunnerBuilder");
-        var ahStatedLinkedProvider = context.SelectStatedCommandBuilderAddHandlerProvider("StatedCommandRunnerLinkedBuilder");
+        var ahStatedProvider = context.SelectCommandBuilderAddHandlerProvider("StatedCommandRunnerBuilder");
+        var ahStatedLinkedProvider = context.SelectCommandBuilderAddHandlerProvider("StatedCommandRunnerLinkedBuilder");
         var ahActionProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Action<T>");
         var ahAsyncActionProvider = context.SelectCommandBuilderAddHandlerProvider("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
         var ahFuncIntProvider = context.SelectCommandBuilderAddHandlerProvider("ICommandRunnerBuilder", "global::System.Func<T, int>");
@@ -224,16 +224,16 @@ public class InterceptorGenerator : IIncrementalGenerator
     {
         var model = models[0];
         builder.AddMethodDeclaration($"""
-            public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandBuilder_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} builder)
+            public static global::DotNetCampus.Cli.StatedCommandRunnerLinkedBuilder<TState> CommandBuilder_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<TState, T>(this in global::DotNetCampus.Cli.{parameterThisName}<TState> builder)
             """, m => m
             .WithSummaryComment(
-                $$"""<see cref="global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler{{{model.CommandObjectType.Name}}}(global::DotNetCampus.Cli.ICommandRunnerBuilder)"/> 方法的拦截器。拦截以提高性能。""")
+                $$"""<see cref="global::DotNetCampus.Cli.StatedCommandRunnerBuilder{TState}.AddHandler{{{model.CommandObjectType.Name}}}()"/> 方法的拦截器。拦截以提高性能。""")
             .AddAttributes(models.Select(GenerateInterceptsLocationCode))
-            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
+            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler<TState>")
             .AddRawStatements($"""
                 // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
                 // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return builder.AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
 
