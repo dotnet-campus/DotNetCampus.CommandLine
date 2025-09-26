@@ -151,22 +151,21 @@ public class CommandLine
 [Obsolete("此类型仅供辅助升级代码用。", true)]
 public static class CommandLineExtensions
 {
-    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。", true)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder) => throw MethodShouldBeInspected();
 
-    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。", true)]
     public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Action<T> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
-    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。", true)]
     public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, int> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。", true)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。", true)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task<int>> handler) => throw MethodShouldBeInspected();
 
-    private static NotSupportedException MethodShouldBeInspected() => new("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。");
+    private static NotSupportedException MethodShouldBeInspected() => new("在本调用前先调用 ToRunner() 方法。");
 }
 #pragma warning restore CS1591
