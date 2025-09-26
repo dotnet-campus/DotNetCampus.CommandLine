@@ -20,13 +20,6 @@ public class OptionCollectionValueTests
     [DataRow(new[] { "-o", "a", "-o", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o a -o b")]
     [DataRow(new[] { "-o", "a", "-o", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o a -o b")]
     [DataRow(new[] { "-o", "a", "-o", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o a -o b")]
-    // option a b
-    [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option a b")]
-    [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option a b")]
-    [DataRow(new[] { "-Option", "a", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option a b")]
-    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o a b")]
-    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o a b")]
-    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o a b")]
     // option a,b
     [DataRow(new[] { "--option", "a,b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option a,b")]
     [DataRow(new[] { "--option", "a,b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option a,b")]
@@ -107,8 +100,14 @@ public class OptionCollectionValueTests
 
     [TestMethod]
     // option a b
+    [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option a b")]
+    [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option a b")]
     [DataRow(new[] { "--option", "a", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option a b")]
+    [DataRow(new[] { "-Option", "a", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option a b")]
+    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o a b")]
+    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o a b")]
     [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o a b")]
+    [DataRow(new[] { "-o", "a", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o a b")]
     public void NotSupported_Collection(string[] args, TestCommandLineStyle style)
     {
         // Arrange

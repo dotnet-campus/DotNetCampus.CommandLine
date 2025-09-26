@@ -4,11 +4,11 @@ namespace DotNetCampus.Cli;
 
 partial record struct CommandLineStyle
 {
-    private const ushort FlexibleMagic = 0xB8C7;
-    private const ushort DotNetMagic = 0xBAE1;
+    private const ushort FlexibleMagic = 0x98C7;
+    private const ushort DotNetMagic = 0x9AE1;
     private const ushort GnuMagic = 0x8DE1;
-    private const ushort PosixMagic = 0xA9A2;
-    private const ushort PowerShellMagic = 0xBADA;
+    private const ushort PosixMagic = 0x89A2;
+    private const ushort PowerShellMagic = 0x9ADA;
     private const ushort UrlMagic = 0x9043;
 
     /// <summary>
@@ -38,7 +38,7 @@ partial record struct CommandLineStyle
     /// <item>选项和值之间使用这些分隔符之一：冒号(:)、等号(=)、空格( )</item>
     /// <item>布尔选项可以不带值，视为 true；也可以带 true/false、on/off、yes/no、1/0 等值</item>
     /// <item>位置参数按顺序解析，可与选项交叉出现；使用 -- 单独一项来标记位置参数的开始，后续所有参数均视为位置参数</item>
-    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)、空格( )，也可多次指定，如 --option value1 value2</item>
+    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)，也可多次指定，如 --option value1 --option value2</item>
     /// <item>当值为字典时，使用等号(=)分隔键和值，如 --option key=value</item>
     /// </list>
     /// </summary>
@@ -58,7 +58,7 @@ partial record struct CommandLineStyle
     /// <item>选项和值之间使用这些分隔符之一：等号(=)、空格( )；短选项还支持直接跟值，如 -o1.txt</item>
     /// <item>布尔选项可以不带值，视为 true；也可以带 true/false、on/off、yes/no、1/0 等值</item>
     /// <item>位置参数按顺序解析，可与选项交叉出现；使用 -- 单独一项来标记位置参数的开始，后续所有参数均视为位置参数</item>
-    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)、空格( )，也可多次指定，如 --option value1 value2</item>
+    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)，也可多次指定，如 --option value1 --option value2</item>
     /// <item>当值为字典时，使用等号(=)分隔键和值，如 --option key=value</item>
     /// </list>
     /// </summary>
@@ -77,7 +77,7 @@ partial record struct CommandLineStyle
     /// <item>选项和值之间使用空格( ) 分隔；不支持其他分隔符</item>
     /// <item>布尔选项可以不带值，视为 true；也可以带 true/false、on/off、yes/no、1/0 等值</item>
     /// <item>位置参数按顺序解析，可与选项交叉出现；使用 -- 单独一项来标记位置参数的开始，后续所有参数均视为位置参数</item>
-    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)，也可多次指定，如 -o value1 value2</item>
+    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)，也可多次指定，如 -o value1 -o value2</item>
     /// <item>当值为字典时，使用等号(=)分隔键和值，如 -o key=value</item>
     /// </list>
     /// </summary>
@@ -97,7 +97,7 @@ partial record struct CommandLineStyle
     /// <item>选项和值之间使用这些分隔符之一：冒号(:)、等号(=)、空格( )</item>
     /// <item>布尔选项可以不带值，视为 true；也可以带 true/false、on/off、yes/no、1/0 等值</item>
     /// <item>位置参数按顺序解析，可与选项交叉出现</item>
-    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)、空格( )，也可多次指定，如 -Option value1 value2</item>
+    /// <item>当值为集合时，可使用这些分隔符之一：逗号(,)、分号(;)，也可多次指定，如 -Option value1 -Option value2</item>
     /// <item>当值为字典时，使用等号(=)分隔键和值，如 -Option key=value</item>
     /// </list>
     /// </summary>
@@ -136,7 +136,7 @@ partial record struct CommandLineStyle
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
         SupportsExplicitBooleanOptionValue = true,
-        SupportsSpaceSeparatedCollectionValues = true,
+        SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.Both,
         OptionPrefix = CommandOptionPrefix.Any,
         UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
@@ -153,7 +153,7 @@ partial record struct CommandLineStyle
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
         SupportsExplicitBooleanOptionValue = true,
-        SupportsSpaceSeparatedCollectionValues = true,
+        SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.KebabCase,
         OptionPrefix = CommandOptionPrefix.DoubleDash,
         UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
@@ -187,7 +187,7 @@ partial record struct CommandLineStyle
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
         SupportsExplicitBooleanOptionValue = false,
-        SupportsSpaceSeparatedCollectionValues = true,
+        SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         // Posix 不支持长选项，使用 DoubleDash 的含义是 '-' 一定表示短选项。
         OptionPrefix = CommandOptionPrefix.DoubleDash,
@@ -205,7 +205,7 @@ partial record struct CommandLineStyle
         SupportsShortOptionValueWithoutSeparator = false,
         SupportsSpaceSeparatedOptionValue = true,
         SupportsExplicitBooleanOptionValue = true,
-        SupportsSpaceSeparatedCollectionValues = true,
+        SupportsSpaceSeparatedCollectionValues = false,
         NamingPolicy = CommandNamingPolicy.PascalCase,
         OptionPrefix = CommandOptionPrefix.SlashOrDash,
         UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
