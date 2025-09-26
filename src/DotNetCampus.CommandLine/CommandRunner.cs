@@ -7,36 +7,34 @@ using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
 
+using FactoryAndRunner = (CommandObjectFactory Factory, CommandHandlerRunner? Runner);
+
 /// <summary>
 /// 辅助 <see cref="Cli.CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private readonly SortedList<string, CommandObjectFactory> _factories;
+    private readonly CommandLine _commandLine;
+    private readonly SortedList<string, FactoryAndRunner> _factories;
     private readonly StringComparison _stringComparison;
     private readonly bool _supportsOrdinal;
     private readonly bool _supportsPascalCase;
-    private CommandObjectFactory? _defaultFactory;
+    private FactoryAndRunner? _defaultFactory;
     private CommandObjectFactory? _fallbackFactory;
 
     internal CommandRunner(CommandLine commandLine)
     {
-        CommandLine = commandLine;
+        _commandLine = commandLine;
         var caseSensitive = commandLine.ParsingOptions.Style.CaseSensitive;
         _factories = caseSensitive
-            ? new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseSensitive)
-            : new SortedList<string, CommandObjectFactory>(StringLengthDescendingComparer.CaseInsensitive);
+            ? new SortedList<string, FactoryAndRunner>(StringLengthDescendingComparer.CaseSensitive)
+            : new SortedList<string, FactoryAndRunner>(StringLengthDescendingComparer.CaseInsensitive);
         _stringComparison = caseSensitive
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
         _supportsOrdinal = commandLine.ParsingOptions.Style.NamingPolicy.SupportsOrdinal();
         _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
-
-    /// <summary>
-    /// 要执行的命令行。
-    /// </summary>
-    internal CommandLine CommandLine { get; }
 
     /// <inheritdoc />
     public CommandRunningResult Run()
@@ -62,7 +60,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <exception cref="NotImplementedException"></exception>
     internal bool RunFallback(CommandLineParsingResult result)
     {
-        if (_fallbackFactory?.Invoke(CommandLine) is not ICommandHandler fallback)
+        if (_fallbackFactory?.Invoke(_commandLine) is not ICommandHandler fallback)
         {
             return false;
         }
@@ -77,14 +75,14 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     }
 
     /// <inheritdoc />
-    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
+    CommandRunner ICoreCommandRunnerBuilder.AsRunner() => this;
 
     /// <inheritdoc />
     public async Task<CommandRunningResult> RunAsync()
     {
-        var (possibleCommandNames, factory) = MatchCreator();
+        var (possibleCommandNames, nullableFactoryAndRunner) = MatchCreator();
 
-        if (factory is null)
+        if (nullableFactoryAndRunner is not { } factoryAndRunner)
         {
             throw new CommandNameNotFoundException(
                 string.IsNullOrEmpty(possibleCommandNames)
@@ -93,11 +91,17 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 possibleCommandNames);
         }
 
-        var handler = (ICommandHandler)factory(CommandLine);
-        var exitCode = await handler.RunAsync();
+        var (factory, runner) = factoryAndRunner;
+        var handler = factory(_commandLine);
+        var exitCode = runner switch
+        {
+            null => await ((ICommandHandler)handler).RunAsync(),
+            _ => await runner(handler),
+        };
         return new CommandRunningResult
         {
             ExitCode = exitCode,
+            CommandLine = _commandLine,
             HandledBy = handler switch
             {
                 IAnonymousCommandHandler anonymousHandler => anonymousHandler.CreatedCommandOptions,
@@ -106,12 +110,12 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         };
     }
 
-    private (string PossibleCommandNames, CommandObjectFactory? Creator) MatchCreator()
+    private (string PossibleCommandNames, FactoryAndRunner? FactoryAndRunner) MatchCreator()
     {
         if (_factories.Count > 0)
         {
             var maxLength = _factories.Keys[0].Length;
-            var header = CommandLine.GetHeader(maxLength);
+            var header = _commandLine.GetHeader(maxLength);
 
             foreach (var (command, factory) in _factories)
             {
@@ -131,7 +135,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             return ("", defaultFactory);
         }
 
-        return (CommandLine.GetHeader(1), null);
+        return (_commandLine.GetHeader(1), null);
     }
 
     /// <summary>
@@ -139,16 +143,17 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// </summary>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="default"/> 表示此处理器没有命令名称。</param>
     /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="runner">由拦截器传入的命令处理器运行方法。</param>
     /// <returns>返回一个命令处理器构建器。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandlerCore(NamingPolicyNameGroup command, CommandObjectFactory factory)
+    internal CommandRunner AddHandlerCore(NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner)
     {
         if (_supportsOrdinal)
         {
             if (command.Ordinal is { } ordinal && !string.IsNullOrWhiteSpace(ordinal))
             {
                 // 包含命令名称。
-                var isAdded = _factories.TryAdd(ordinal, factory);
+                var isAdded = _factories.TryAdd(ordinal, (factory, runner));
                 if (!isAdded)
                 {
                     throw new CommandNameAmbiguityException($"The command '{ordinal}' is already registered.", ordinal);
@@ -161,7 +166,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 {
                     throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
                 }
-                _defaultFactory = factory;
+                _defaultFactory = (factory, runner);
             }
         }
         if (_supportsPascalCase)
@@ -169,7 +174,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
             if (command.PascalCase is { } pascal && !string.IsNullOrWhiteSpace(pascal))
             {
                 // 包含命令名称。
-                var isAdded = _factories.TryAdd(pascal, factory);
+                var isAdded = _factories.TryAdd(pascal, (factory, runner));
                 if (!isAdded && !_supportsOrdinal)
                 {
                     // 转换的名称，之后在仅用转换名称时才需要抛出异常；否则很可能前面已经添加了一个相同的名称。
@@ -184,7 +189,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                     // 如果支持双命名法，则允许前面已经注册了一个默认命令。
                     throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
                 }
-                _defaultFactory = factory;
+                _defaultFactory = (factory, runner);
             }
         }
         return this;
@@ -213,9 +218,14 @@ public readonly record struct CommandRunningResult
     public required int ExitCode { get; init; }
 
     /// <summary>
+    /// 被执行的命令行。
+    /// </summary>
+    public required CommandLine CommandLine { get; init; }
+
+    /// <summary>
     /// 处理此命令行的命令处理器实例。
     /// </summary>
-    public object? HandledBy { get; init; }
+    public required object? HandledBy { get; init; }
 
     /// <summary>
     /// 隐式转换为退出代码。

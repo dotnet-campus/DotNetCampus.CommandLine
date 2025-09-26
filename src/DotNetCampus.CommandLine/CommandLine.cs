@@ -9,13 +9,8 @@ namespace DotNetCampus.Cli;
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。
 /// </summary>
-public class CommandLine : ICoreCommandRunnerBuilder
+public class CommandLine
 {
-    /// <summary>
-    /// 存储与此命令行解析类型关联的命令行执行器。
-    /// </summary>
-    private CommandRunner? _commandRunner;
-
     /// <summary>
     /// 存储特殊处理过 URL 的命令行参数。
     /// </summary>
@@ -134,7 +129,13 @@ public class CommandLine : ICoreCommandRunnerBuilder
         return string.Join(" ", RawArguments.Select(x => x.Contains(' ') ? $"\"{x}\"" : x));
     }
 
-    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => _commandRunner ??= new(this);
+    /// <summary>
+    /// 创建一个命令行执行器，以支持根据命令自动选择命令处理器运行。<br/>
+    /// 创建后，可通过 AddHandler 方法添加多个命令处理器。
+    /// </summary>
+    /// <returns>命令行执行器。</returns>
+    [Pure]
+    public ICommandRunnerBuilder ToRunner() => new CommandRunner(this);
 
     /// <summary>
     /// 当某个方法本应该被源生成器拦截时，却仍然被调用了，就调用此方法抛出异常。
@@ -145,3 +146,27 @@ public class CommandLine : ICoreCommandRunnerBuilder
         return new InvalidOperationException("源生成器本应该在编译时拦截了此方法的调用。请检查编译警告，查看 DotNetCampus.CommandLine 的源生成器是否正常工作。");
     }
 }
+
+#pragma warning disable CS1591
+[Obsolete("此类型仅供辅助升级代码用。", true)]
+public static class CommandLineExtensions
+{
+    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder) => throw MethodShouldBeInspected();
+
+    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Action<T> handler) => throw MethodShouldBeInspected();
+
+    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, int> handler) => throw MethodShouldBeInspected();
+
+    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task> handler) => throw MethodShouldBeInspected();
+
+    [Obsolete("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。", true)]
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task<int>> handler) => throw MethodShouldBeInspected();
+
+    private static NotSupportedException MethodShouldBeInspected() => new("CommandLine 是不可变对象，调用 ToRunner() 方法创建了命令行执行器后，才可继续添加命令处理器。");
+}
+#pragma warning restore CS1591

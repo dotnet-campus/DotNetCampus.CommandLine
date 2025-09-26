@@ -30,7 +30,7 @@ public class CommandAttributeTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        commandLine
+        commandLine.ToRunner()
             .AddHandler<CommandObject0InAnotherAssembly>(o => matched = (o.GetType().Name, o.Option))
             .AddHandler<CommandObject1InAnotherAssembly>(o => matched = (o.GetType().Name, o.Option))
             .AddHandler<CommandObject2InAnotherAssembly>(o => matched = (o.GetType().Name, o.Option))

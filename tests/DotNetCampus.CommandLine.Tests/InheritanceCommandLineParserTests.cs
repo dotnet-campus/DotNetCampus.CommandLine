@@ -24,7 +24,7 @@ public class InheritanceCommandLineParserTests
         string? parentValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithOptionalParentProps>(o => parentValue = o.ParentValue)
             .Run();
 
@@ -40,7 +40,7 @@ public class InheritanceCommandLineParserTests
         string? childValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithOptionalParentProps>(o => childValue = o.ChildValue)
             .Run();
 
@@ -57,7 +57,7 @@ public class InheritanceCommandLineParserTests
         string? childValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithOptionalParentProps>(o =>
             {
                 parentValue = o.ParentValue;
@@ -79,7 +79,7 @@ public class InheritanceCommandLineParserTests
         string? childValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithRequiredParentProps>(o =>
             {
                 parentValue = o.ParentRequired;
@@ -101,7 +101,7 @@ public class InheritanceCommandLineParserTests
         // Act & Assert
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<ChildWithRequiredParentProps>(_ => { })
                 .Run();
         });
@@ -115,7 +115,7 @@ public class InheritanceCommandLineParserTests
         string? childValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithRequiredProps>(o => childValue = o.ChildRequired)
             .Run();
 
@@ -132,7 +132,7 @@ public class InheritanceCommandLineParserTests
         // Act & Assert
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<ChildWithRequiredProps>(_ => { })
                 .Run();
         });
@@ -156,7 +156,7 @@ public class InheritanceCommandLineParserTests
         string? childValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<GrandChildOptions>(o =>
             {
                 grandparentValue = o.GrandparentValue;
@@ -185,7 +185,7 @@ public class InheritanceCommandLineParserTests
         string? childRequired = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<GrandChildWithRequiredProps>(o =>
             {
                 grandparentRequired = o.GrandparentRequired;
@@ -212,7 +212,7 @@ public class InheritanceCommandLineParserTests
         // Act & Assert
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() =>
         {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<GrandChildWithRequiredProps>(_ => { })
                 .Run();
         });
@@ -230,7 +230,7 @@ public class InheritanceCommandLineParserTests
         string? sameNameValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<OverrideOptions>(o => sameNameValue = o.SameNameValue)
             .Run();
 
@@ -246,7 +246,7 @@ public class InheritanceCommandLineParserTests
         int? typeValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<DifferentTypeOptions>(o => typeValue = o.TypeValue)
             .Run();
 
@@ -266,7 +266,7 @@ public class InheritanceCommandLineParserTests
         string? defaultValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithDefaultValues>(o => defaultValue = o.DefaultValue)
             .Run();
 
@@ -282,7 +282,7 @@ public class InheritanceCommandLineParserTests
         string? defaultValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<ChildWithOverrideDefaultValues>(o => defaultValue = o.DefaultValue)
             .Run();
 

@@ -16,8 +16,8 @@ public class AddHandlerWithStateTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = await commandLine
-            .AddHandler<TestHandler>(123)
+        var result = await commandLine.ToRunner()
+            .ForState(123).AddHandler<TestHandler>()
             .RunAsync();
         var state = ((TestHandler)result.HandledBy!).State;
 

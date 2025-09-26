@@ -27,7 +27,7 @@ public class AddHandlerTests
         string? capturedValue = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<SimpleOptions>(o => capturedValue = o.Value)
             .Run();
 
@@ -44,7 +44,7 @@ public class AddHandlerTests
         const int expectedExitCode = 42;
 
         // Act
-        int exitCode = CommandLine.Parse(args, Flexible)
+        int exitCode = CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<SimpleOptions>(o =>
             {
                 capturedValue = o.Value;
@@ -66,7 +66,7 @@ public class AddHandlerTests
         var taskCompletionSource = new TaskCompletionSource<bool>();
 
         // Act
-        await CommandLine.Parse(args, Flexible)
+        await CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<SimpleOptions>(async o =>
             {
                 await Task.Delay(10); // 模拟异步操作
@@ -92,7 +92,7 @@ public class AddHandlerTests
         const int expectedExitCode = 42;
 
         // Act
-        int exitCode = await CommandLine.Parse(args, Flexible)
+        int exitCode = await CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<SimpleOptions>(async o =>
             {
                 await Task.Delay(10); // 模拟异步操作
@@ -116,7 +116,7 @@ public class AddHandlerTests
         string[] args = ["--handler-option", "handler-value"];
 
         // Act
-        int exitCode = await CommandLine.Parse(args, Flexible)
+        int exitCode = await CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<SimpleCommandHandler>()
             .RunAsync();
 
@@ -145,7 +145,7 @@ public class AddHandlerTests
         string? capturedRemoveItem = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<AddOptions>(o => capturedAddItem = o.ItemToAdd)
             .AddHandler<RemoveOptions>(o => capturedRemoveItem = o.ItemToRemove)
             .Run();
@@ -164,7 +164,7 @@ public class AddHandlerTests
         string? capturedRemoveItem = null;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<AddOptions>(o => capturedAddItem = o.ItemToAdd)
             .AddHandler<RemoveOptions>(o => capturedRemoveItem = o.ItemToRemove)
             .Run();
@@ -184,7 +184,7 @@ public class AddHandlerTests
 
         // Act & Assert
         var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() => {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<AddOptions>(_ => addHandlerCalled = true)
                 .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
                 .Run();
@@ -205,7 +205,7 @@ public class AddHandlerTests
         bool otherHandlerCalled = false;
 
         // Act
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<DefaultOptions>(o => {
                 defaultHandlerCalled = true;
                 Assert.IsTrue(o.ShowHelp);
@@ -222,7 +222,6 @@ public class AddHandlerTests
 
     #region 3. 链式调用与处理器顺序测试
 
-    [Ignore("之前多次添加竟然是不同实例，这单元测试就有问题。")]
     [TestMethod("3.1. 链式调用返回正确类型")]
     public void ChainedCalls_ReturnCorrectBuilderTypes()
     {
@@ -231,8 +230,8 @@ public class AddHandlerTests
         var commandLine = CommandLine.Parse(args, Flexible);
 
         // Act
-        var syncBuilder = commandLine.AddHandler<SimpleOptions>(_ => { });
-        var asyncBuilder = commandLine.AddHandler<SimpleOptions>(async _ => {
+        var syncBuilder = commandLine.ToRunner().AddHandler<SimpleOptions>(_ => { });
+        var asyncBuilder = commandLine.ToRunner().AddHandler<SimpleOptions>(async _ => {
             await Task.Delay(1);
             return 0;
         });
@@ -252,7 +251,7 @@ public class AddHandlerTests
         string? capturedItem = null;
 
         // Act
-        await CommandLine.Parse(args, Flexible)
+        await CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<AddOptions>(o => {
                 syncHandlerCalled = true;
                 capturedItem = o.ItemToAdd;
@@ -281,7 +280,7 @@ public class AddHandlerTests
         bool removeHandlerCalled = false;
 
         // Act - 先注册remove处理器，再注册add处理器
-        CommandLine.Parse(args, Flexible)
+        CommandLine.Parse(args, Flexible).ToRunner()
             .AddHandler<RemoveOptions>(_ => removeHandlerCalled = true)
             .AddHandler<AddOptions>(_ => addHandlerCalled = true)
             .Run();
@@ -302,7 +301,7 @@ public class AddHandlerTests
         string[] args = ["--value", "test"];
         var expectedException = new InvalidOperationException("Test exception");        // Act & Assert
         var exception = Assert.ThrowsExactly<InvalidOperationException>(() => {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<SimpleOptions>(new Action<SimpleOptions>(_ => { throw expectedException; }))
                 .Run();
         });
@@ -318,7 +317,7 @@ public class AddHandlerTests
 
         // Act & Assert
         var exception = Assert.ThrowsExactly<CommandNameNotFoundException>(() => {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<AddOptions>(_ => { })
                 .AddHandler<RemoveOptions>(_ => { })
                 .Run();
@@ -336,7 +335,7 @@ public class AddHandlerTests
 
         // Act & Assert
         Assert.ThrowsExactly<RequiredPropertyNotAssignedException>(() => {
-            CommandLine.Parse(args, Flexible)
+            CommandLine.Parse(args, Flexible).ToRunner()
                 .AddHandler<AddOptions>(_ => { })
                 .Run();
         });

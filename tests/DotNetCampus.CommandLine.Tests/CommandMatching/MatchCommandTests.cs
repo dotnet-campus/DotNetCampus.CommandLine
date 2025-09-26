@@ -55,7 +55,7 @@ public class MatchCommandTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = commandLine
+        var result = commandLine.ToRunner()
             .AddHandler<DefaultOptions>(o => matched = o.Value)
             .AddHandler<FooOptions>(o => matched = o.Value)
             .AddHandler<BarOptions>(o => matched = o.Value)
@@ -78,7 +78,7 @@ public class MatchCommandTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.ToRunner()
             .AddHandler<DefaultOptions>(o => matched = o.Value)
             .AddHandler<FooOptions>(o => matched = o.Value)
             .AddHandler<BarBazOptions>(o => matched = o.Value)

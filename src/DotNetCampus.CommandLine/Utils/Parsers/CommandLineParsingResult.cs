@@ -109,7 +109,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         }
 
         // 尝试使用命令行参数解析器的回调来处理错误。
-        var runner = ((ICoreCommandRunnerBuilder)commandLine).GetOrCreateRunner();
+        var runner = ((ICoreCommandRunnerBuilder)commandLine).AsRunner();
         if (runner.RunFallback(this))
         {
             return;
