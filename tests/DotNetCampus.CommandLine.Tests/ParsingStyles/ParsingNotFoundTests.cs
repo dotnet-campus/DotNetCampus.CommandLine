@@ -22,6 +22,10 @@ public class OptionNotFoundTests
     [DataRow(new[] { "--not-exist", "test1", "test2", "--option", "value" }, DotNet, DisplayName = "[DotNet] --not-exist test --option value")]
     [DataRow(new[] { "--not-exist", "test1", "test2", "--option", "value" }, Gnu, DisplayName = "[Gnu] --not-exist test --option value")]
     [DataRow(new[] { "-NotExist", "test1", "test2", "-Option", "value" }, PowerShell, DisplayName = "[PowerShell] -NotExist test -Option value")]
+    [DataRow(new[] { "--not-exist", "a=b,c;d", "--option", "value" }, Flexible, DisplayName = "[Flexible] --not-exist test --option value")]
+    [DataRow(new[] { "--not-exist", "a=b,c;d", "--option", "value" }, DotNet, DisplayName = "[DotNet] --not-exist test --option value")]
+    [DataRow(new[] { "--not-exist", "a=b,c;d", "--option", "value" }, Gnu, DisplayName = "[Gnu] --not-exist test --option value")]
+    [DataRow(new[] { "-NotExist", "a=b,c;d", "-Option", "value" }, PowerShell, DisplayName = "[PowerShell] -NotExist test -Option value")]
     public void OptionNotFound_IgnoreAllUnknownArguments(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -38,6 +42,10 @@ public class OptionNotFoundTests
     }
 
     [TestMethod]
+    [DataRow(new[] { "--not-exist=test1", "test2", "--option", "value" }, Flexible, DisplayName = "[Flexible] --not-exist test --option value")]
+    [DataRow(new[] { "--not-exist=test1", "test2", "--option", "value" }, DotNet, DisplayName = "[DotNet] --not-exist test --option value")]
+    [DataRow(new[] { "--not-exist=test1", "test2", "--option", "value" }, Gnu, DisplayName = "[Gnu] --not-exist test --option value")]
+    [DataRow(new[] { "-NotExist=test1", "test2", "-Option", "value" }, PowerShell, DisplayName = "[PowerShell] -NotExist test -Option value")]
     [DataRow(new[] { "--not-exist", "test1", "test2", "--option", "value" }, Flexible, DisplayName = "[Flexible] --not-exist test --option value")]
     [DataRow(new[] { "--not-exist", "test1", "test2", "--option", "value" }, DotNet, DisplayName = "[DotNet] --not-exist test --option value")]
     [DataRow(new[] { "--not-exist", "test1", "test2", "--option", "value" }, Gnu, DisplayName = "[Gnu] --not-exist test --option value")]
