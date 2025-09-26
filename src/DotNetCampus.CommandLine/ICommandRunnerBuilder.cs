@@ -64,7 +64,7 @@ public readonly ref struct StatedCommandRunnerBuilder<TState>
     /// </summary>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    public StatedCommandRunnerWithHandlerBuilder<TState> AddHandler<T>()
+    public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>()
         where T : class, ICommandHandler<TState>
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -78,7 +78,7 @@ public readonly ref struct StatedCommandRunnerBuilder<TState>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public StatedCommandRunnerWithHandlerBuilder<TState> AddHandler<T>(
+    public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>(
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : class, ICommandHandler<TState>
@@ -86,7 +86,7 @@ public readonly ref struct StatedCommandRunnerBuilder<TState>
         var state = _state;
         _builder.AsRunner()
             .AddHandlerCore(command, factory, o => ((T)o).RunAsync(state));
-        return new StatedCommandRunnerWithHandlerBuilder<TState>(_builder, _state);
+        return new StatedCommandRunnerLinkedBuilder<TState>(_builder, _state);
     }
 }
 
@@ -94,7 +94,7 @@ public readonly ref struct StatedCommandRunnerBuilder<TState>
 /// 带有状态的命令行执行器构造器，专门用来添加执行时需要额外状态的命令处理器。
 /// </summary>
 /// <typeparam name="TState">状态对象的类型。</typeparam>
-public readonly ref struct StatedCommandRunnerWithHandlerBuilder<TState>
+public readonly ref struct StatedCommandRunnerLinkedBuilder<TState>
 {
     private readonly IAsyncCommandRunnerBuilder _builder;
     private readonly TState _state;
@@ -104,7 +104,7 @@ public readonly ref struct StatedCommandRunnerWithHandlerBuilder<TState>
     /// </summary>
     /// <param name="builder">命令行执行器构造器。</param>
     /// <param name="state">状态对象。</param>
-    public StatedCommandRunnerWithHandlerBuilder(IAsyncCommandRunnerBuilder builder, TState state)
+    public StatedCommandRunnerLinkedBuilder(IAsyncCommandRunnerBuilder builder, TState state)
     {
         _builder = builder;
         _state = state;
@@ -135,7 +135,7 @@ public readonly ref struct StatedCommandRunnerWithHandlerBuilder<TState>
     /// </summary>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    public StatedCommandRunnerWithHandlerBuilder<TState> AddHandler<T>()
+    public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>()
         where T : class, ICommandHandler<TState>
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -149,7 +149,7 @@ public readonly ref struct StatedCommandRunnerWithHandlerBuilder<TState>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public StatedCommandRunnerWithHandlerBuilder<TState> AddHandler<T>(
+    public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>(
         NamingPolicyNameGroup command, CommandObjectFactory factory
     )
         where T : class, ICommandHandler<TState>
