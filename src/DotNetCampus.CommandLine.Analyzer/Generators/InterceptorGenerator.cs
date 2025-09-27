@@ -29,6 +29,12 @@ public class InterceptorGenerator : IIncrementalGenerator
         var asyncTask = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
         var asyncTaskInt32 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
+        var obsolete = context.SelectAddHandlers("CommandLine");
+        var obsoleteVoid = context.SelectAddHandlers("CommandLine", "global::System.Action<T>");
+        var obsoleteInt32 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, int>");
+        var obsoleteTask = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var obsoleteTaskInt32 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
+
         // CommandLine.As<T>
         context.RegisterSourceOutput(asProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
 
@@ -71,6 +77,24 @@ public class InterceptorGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(asyncTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
             CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task{int}})",
                 "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+
+#pragma warning disable CS0618
+        // Obsolete APIs for migration
+        context.RegisterSourceOutput(obsolete.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            ObsoleteAddHandler(c, args, "CommandLine", "AddHandler()"));
+        context.RegisterSourceOutput(obsoleteVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Action{T})",
+                "System.Action<T>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(obsoleteInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,int})",
+                "System.Func<T, int>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(obsoleteTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,Task})",
+                "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(obsoleteTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
+            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,Task{int}})",
+                "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+#pragma warning restore CS0618
     }
 
     /// <summary>
@@ -250,6 +274,74 @@ public class InterceptorGenerator : IIncrementalGenerator
         // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
         // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
         """;
+
+    /// <summary>
+    /// CommandLine.AddHandler
+    /// </summary>
+    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
+    private void ObsoleteAddHandler(SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
+        string thisName, string methodSignature)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, (t, x) =>
+            GenerateObsoleteAddHandlerCode(t, x, thisName));
+        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
+    }
+
+    /// <summary>
+    /// CommandLine.AddHandler(Action)
+    /// </summary>
+    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
+    private void ObsoleteAddHandlerAction(SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
+        string thisName, string methodSignature, string parameterTypeFullName, string returnName)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, (t, x) =>
+            GenerateObsoleteAddHandlerActionCode(t, x, thisName, parameterTypeFullName, returnName));
+        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
+    }
+
+    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
+    private void GenerateObsoleteAddHandlerCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
+        string parameterThisName)
+    {
+        var model = models[0];
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine)
+            """, m => m
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
+            .AddRawStatement(GenerateComment(model))
+            .AddRawStatements($"""
+                return commandLine.ToRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
+    }
+
+    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
+    private void GenerateObsoleteAddHandlerActionCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
+        string parameterThisName, string parameterTypeFullName, string returnName)
+    {
+        var model = models[0];
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.{returnName} CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine, global::{parameterTypeFullName} handler)
+            """, m => m
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class")
+            .AddRawStatement(GenerateComment(model))
+            .AddRawStatements($"""
+                return commandLine.ToRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
+    }
 }
 
 file static class Extensions
