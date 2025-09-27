@@ -151,19 +151,19 @@ public class CommandLine
 [Obsolete("此类型仅供辅助升级代码用。")]
 public static class CommandLineExtensions
 {
-    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。")]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以避免分多次从 CommandLine 调用 AddHandler 时命令丢失引起误解。")]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder) => throw MethodShouldBeInspected();
 
-    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。")]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以避免分多次从 CommandLine 调用 AddHandler 时命令丢失引起误解。")]
     public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Action<T> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。")]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以避免分多次从 CommandLine 调用 AddHandler 时命令丢失引起误解。")]
     public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, int> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。")]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以避免分多次从 CommandLine 调用 AddHandler 时命令丢失引起误解。")]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task> handler) => throw MethodShouldBeInspected();
 
-    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以确保对象可被正确垃圾回收。")]
+    [Obsolete("请在调用本方法前先调用 ToRunner() 方法，以避免分多次从 CommandLine 调用 AddHandler 时命令丢失引起误解。")]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task<int>> handler) => throw MethodShouldBeInspected();
 
     private static NotSupportedException MethodShouldBeInspected() => new("在本调用前先调用 ToRunner() 方法。");
