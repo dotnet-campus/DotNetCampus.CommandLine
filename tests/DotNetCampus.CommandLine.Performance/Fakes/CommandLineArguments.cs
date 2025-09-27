@@ -26,7 +26,7 @@ internal static class CommandLineArguments
         "--debug",
     ];
 
-    public static readonly string[] PowerShellArgs =
+    public static readonly string[] WindowsArgs =
     [
         "DotNetCampus.CommandLine.Performance.dll",
         "DotNetCampus.CommandLine.Sample.dll",
@@ -37,7 +37,7 @@ internal static class CommandLineArguments
         "-Debug",
     ];
 
-    public static readonly string[] PowerShellArgsFor40 =
+    public static readonly string[] WindowsArgsFor40 =
     [
         "DotNetCampus.CommandLine.Performance.dll",
         "DotNetCampus.CommandLine.Sample.dll",

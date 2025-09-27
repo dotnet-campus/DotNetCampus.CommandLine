@@ -65,7 +65,7 @@ public enum DetailLevel
 | 风格           | 示例                                                                                       |
 | -------------- | ------------------------------------------------------------------------------------------ |
 | DotNet         | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
-| PowerShell     | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| Windows 经典   | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
 | CMD            | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
 | Gnu            | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
 | 灵活(Flexible) | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
@@ -81,22 +81,22 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 支持的风格包括：
 
-- `CommandLineStyle.Flexible`（默认）：灵活风格，在各种风格间提供最大的兼容性，默认大小写不敏感
-- `CommandLineStyle.DotNet`：.NET CLI 风格，默认大小写敏感
-- `CommandLineStyle.Gnu`：符合 GNU 规范的风格，默认大小写敏感
-- `CommandLineStyle.Posix`：符合 POSIX 规范的风格，默认大小写敏感
-- `CommandLineStyle.PowerShell`：PowerShell 风格，默认大小写不敏感
+- `CommandLineStyle.Flexible`（默认）：灵活风格，在各种风格间提供最大的兼容性，大小写不敏感
+- `CommandLineStyle.DotNet`：.NET CLI 风格，大小写敏感
+- `CommandLineStyle.Gnu`：符合 GNU 规范的风格，大小写敏感
+- `CommandLineStyle.Posix`：符合 POSIX 规范的风格，大小写敏感
+- `CommandLineStyle.Windows`：Windows 经典风格，大小写不敏感，混用 `-` 和 `/` 作为选项前缀
 
 默认情况下，这些风格的详细区别如下：
 
-| 风格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
+| 风格              | Flexible       | DotNet         | Gnu               | Posix      | Windows      | URL               |
 | ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
 | 位置参数          | 支持           | 支持           | 支持              | 支持       | 支持         | 支持              |
 | 后置位置参数 `--` | 支持           | 支持           | 支持              | 支持       | 不支持       | 不支持            |
 | 大小写            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
 | 长选项            | 支持           | 支持           | 支持              | 不支持     | 支持         | 支持              |
 | 短选项            | 支持           | 支持           | 支持              | 支持       | 支持         | 不支持            |
-| 长选项前缀        | `--` `-` `/`   | `--`           | `--`              | 不支持     | `-` `/`      |                   |
+| 长选项前缀        | `--` `-` `/`   | `--`           | `--`              | (无)       | `-` `/`      |                   |
 | 短选项前缀        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
 | 长选项 ` `        | --option value | --option value | --option value    |            | -o value     |                   |
 | 长选项 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
@@ -136,7 +136,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 说明：
 
-1. 除 PowerShell 风格外，其他风格均支持 `--` 作为后置位置参数的标记，之后的所有参数均视为位置参数；另外，URL 风格写不出来后置位置参数。
+1. 除 Windows 风格外，其他风格均支持 `--` 作为后置位置参数的标记，之后的所有参数均视为位置参数；另外，URL 风格写不出来后置位置参数。
 1. 在 `--` 之前，选项和位置参数是可以混合使用的，规则如下。
 
 选项会优先取出紧跟着的值，但凡能放入该选项的，均会放入该选项，一旦放不下了，后面如果还有值，就会算作位置参数。
@@ -168,7 +168,7 @@ public class Options
 这里存在两个使用了 kebab-case 命名法的地方，一个是 `Command` 特性，另一个是 `Option` 特性。你可以接受以下这些命令行传入：
 
 - DotNet/Gnu 风格: `demo.exe open command-line --option-name value`
-- PowerShell 风格: `demo.exe Open CommandLine -OptionName value`
+- Windows 风格: `demo.exe Open CommandLine -OptionName value`
 - CMD 风格: `demo.exe Open CommandLine /optionName value`
 
 但加入你把这两处的名字都写成其他风格，你可能会获得不太符合预期的结果（当然，也可能你故意如此）：
@@ -188,7 +188,7 @@ public class Options
 由于我们视这些都是 kebab-case 风格，所以你将接受以下这些命令行传入（注意 DotNet/Gnu 风格已经发生了变化）：
 
 - DotNet/Gnu 风格: `demo.exe Open CommandLine --OptionName value`
-- PowerShell 风格: `demo.exe Open CommandLine -OptionName value`
+- Windows 风格: `demo.exe Open CommandLine -OptionName value`
 - CMD 风格: `demo.exe Open CommandLine /optionName value`
 
 ## 数据类型

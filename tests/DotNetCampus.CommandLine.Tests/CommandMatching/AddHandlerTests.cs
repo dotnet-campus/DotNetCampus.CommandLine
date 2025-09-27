@@ -11,7 +11,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(DefaultHandler), "DefaultHandler", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
@@ -33,7 +33,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler_Action(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
@@ -57,7 +57,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler_FuncInt32(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
@@ -83,7 +83,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler_FuncTask(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
@@ -107,7 +107,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler_FuncTaskInt32(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange
@@ -133,7 +133,7 @@ public class AddHandlerTests
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     public void AddHandler_Mix(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
     {
         // Arrange

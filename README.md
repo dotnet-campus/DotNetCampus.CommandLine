@@ -68,13 +68,13 @@ public enum DetailLevel
 
 Then use different command line styles to populate instances of this type (the library supports multiple styles):
 
-| Style      | Example                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| DotNet     | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
-| PowerShell | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
-| CMD        | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
-| Gnu        | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
-| Flexible   | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
+| Style           | Example                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| DotNet          | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
+| Windows Classic | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| CMD             | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
+| Gnu             | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
+| Flexible        | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
 
 ## Command Styles and Features
 
@@ -83,7 +83,7 @@ Multiple command line styles are supported; select one when parsing (Flexible is
 Core capabilities:
 - Rich option syntax: long & short options; separators `= : space`; multi-value & repeat forms
 - Boolean literals: `true/false`, `yes/no`, `on/off`, `1/0`
-- Collections & dictionaries: repeat, space, comma, semicolon forms; key-value dictionaries
+- Collections & dictionaries: repeat, comma, semicolon forms; key-value dictionaries
 - Positional arguments: via `[Value(index)]` (ranges supported with `(index, length)` overload — second parameter is count)
 - Property semantics: `required`, `init`, nullable reference/value types unified behavior
 - Commands & subcommands: multi-word `[Command]` supported with handler chaining or `ICommandHandler`

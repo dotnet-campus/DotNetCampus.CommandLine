@@ -1,4 +1,5 @@
 using System.Diagnostics.Contracts;
+using System.Runtime.Versioning;
 using DotNetCampus.Cli.Utils;
 
 namespace DotNetCampus.Cli;

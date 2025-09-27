@@ -15,8 +15,8 @@ public class SlashPrefixValueTests
     [DataRow(new[] { "/option", "/var/log" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option /var/log")]
     [DataRow(new[] { "--option", "/var/log" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option /var/log")]
     [DataRow(new[] { "--option", "/var/log" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option /var/log")]
-    [DataRow(new[] { "-Option", "/var/log" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option /var/log")]
-    [DataRow(new[] { "/option", "/var/log" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option /var/log")]
+    [DataRow(new[] { "-Option", "/var/log" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option /var/log")]
+    [DataRow(new[] { "/option", "/var/log" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option /var/log")]
     public void LinuxPathAsOptionValue(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -46,7 +46,7 @@ public class SlashPrefixValueTests
 
     [TestMethod]
     [DataRow(new[] { "/var/log" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /var/log")]
-    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /var/log")]
+    [DataRow(new[] { "/var/log" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /var/log")]
     public void LinuxPathAsPositionalArgumentValue_NotSupported1(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -61,7 +61,7 @@ public class SlashPrefixValueTests
 
     [TestMethod]
     [DataRow(new[] { "/var" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /var/log")]
-    [DataRow(new[] { "/var" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /var/log")]
+    [DataRow(new[] { "/var" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /var/log")]
     public void LinuxPathAsPositionalArgumentValue_NotSupported2(string[] args, TestCommandLineStyle style)
     {
         // Arrange

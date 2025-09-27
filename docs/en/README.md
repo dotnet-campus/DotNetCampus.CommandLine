@@ -62,13 +62,13 @@ public enum DetailLevel
 
 Then use different styles of command lines to populate an instance. The library supports multiple styles:
 
-| Style      | Example                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------ |
-| DotNet     | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
-| PowerShell | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
-| CMD        | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
-| Gnu        | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
-| Flexible   | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
+| Style           | Example                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| DotNet          | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
+| Windows Classic | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| CMD             | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
+| Gnu             | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
+| Flexible        | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
 
 ## Command Line Styles
 
@@ -81,15 +81,15 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 Supported styles include:
 
-- `CommandLineStyle.Flexible` (default): Flexible style offering broad compatibility among styles; case-insensitive by default
-- `CommandLineStyle.DotNet`: .NET CLI style; case-sensitive by default
-- `CommandLineStyle.Gnu`: GNU-compliant style; case-sensitive by default
-- `CommandLineStyle.Posix`: POSIX-compliant style; case-sensitive by default
-- `CommandLineStyle.PowerShell`: PowerShell style; case-insensitive by default
+- `CommandLineStyle.Flexible` (default): Flexible style offering broad compatibility among styles; case-insensitive
+- `CommandLineStyle.DotNet`: .NET CLI style; case-sensitive
+- `CommandLineStyle.Gnu`: GNU-compliant style; case-sensitive
+- `CommandLineStyle.Posix`: POSIX-compliant style; case-sensitive
+- `CommandLineStyle.Windows`: Windows style; case-insensitive, mixing `-` and `/` as option prefixes
 
 By default, their detailed differences are:
 
-| Style                  | Flexible       | DotNet         | Gnu               | Posix         | PowerShell    | URL               |
+| Style                  | Flexible       | DotNet         | Gnu               | Posix         | Windows       | URL               |
 | ---------------------- | -------------- | -------------- | ----------------- | ------------- | ------------- | ----------------- |
 | Positional args        | Supported      | Supported      | Supported         | Supported     | Supported     | Supported         |
 | Trailing args `--`     | Supported      | Supported      | Supported         | Supported     | Not supported | Not supported     |
@@ -136,7 +136,7 @@ By default, their detailed differences are:
 
 Notes:
 
-1. Except for PowerShell style, all other styles support using `--` to mark the start of trailing positional arguments; everything after is treated as a positional argument. URL style cannot express trailing positionals.
+1. Except for Windows style, all other styles support using `--` to mark the start of trailing positional arguments; everything after is treated as a positional argument. URL style cannot express trailing positionals.
 2. Before `--`, options and positional arguments may be interleaved. The rule: an option greedily consumes following tokens as long as they can be accepted by that option; once it can no longer take a token, the remaining tokens (until the next option or `--`) are treated as positional arguments.
 
 An option takes the immediate values greedily:
@@ -168,7 +168,7 @@ public class Options
 Two kebab-case usages here: the `Command` attribute and the `Option` attribute. You can accept:
 
 - DotNet/Gnu style: `demo.exe open command-line --option-name value`
-- PowerShell style: `demo.exe Open CommandLine -OptionName value`
+- Windows style: `demo.exe Open CommandLine -OptionName value`
 - CMD style: `demo.exe Open CommandLine /optionName value`
 
 If you instead write them in other styles, you might get results different from expectations (or maybe intentional):
@@ -188,7 +188,7 @@ public class Options
 Because we treat them as kebab-case anyway, you will accept:
 
 - DotNet/Gnu style: `demo.exe Open CommandLine --OptionName value`
-- PowerShell style: `demo.exe Open CommandLine -OptionName value`
+- Windows style: `demo.exe Open CommandLine -OptionName value`
 - CMD style: `demo.exe Open CommandLine /optionName value`
 
 ## Data Types

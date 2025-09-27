@@ -17,10 +17,10 @@ public class ParseCmdArgs
         commandLine.As<BenchmarkOptions41>();
     }
 
-    [Benchmark(Description = "parse [CMD] -v=4.1 -p=powershell")]
-    public void Parse41_PowerShell()
+    [Benchmark(Description = "parse [CMD] -v=4.1 -p=windows")]
+    public void Parse41_Windows()
     {
-        var commandLine = CommandLine41.Parse(CmdArgs, Options41.PowerShell);
+        var commandLine = CommandLine41.Parse(CmdArgs, Options41.Windows);
         commandLine.As<BenchmarkOptions41>();
     }
 
@@ -31,10 +31,10 @@ public class ParseCmdArgs
         commandLine.As<BenchmarkOptions40>();
     }
 
-    [Benchmark(Description = "parse [CMD] -v=4.0 -p=dotnet")]
+    [Benchmark(Description = "parse [CMD] -v=4.0 -p=powershell")]
     public void Parse40_PowerShell()
     {
-        var commandLine = CommandLine40.Parse(CmdArgs, Options40.DotNet);
+        var commandLine = CommandLine40.Parse(CmdArgs, Options40.PowerShell);
         commandLine.As<BenchmarkOptions40>();
     }
 

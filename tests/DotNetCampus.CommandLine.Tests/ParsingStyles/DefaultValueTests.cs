@@ -13,12 +13,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void Required_ThrowsException(string[] args, TestCommandLineStyle style)
     {
@@ -40,12 +40,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void WithoutInit_KeepsDefaultValue(string[] args, TestCommandLineStyle style)
     {
@@ -69,12 +69,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void InitNullable_AssignsNull(string[] args, TestCommandLineStyle style)
     {
@@ -96,12 +96,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void InitCollection_Empty(string[] args, TestCommandLineStyle style)
     {
@@ -119,12 +119,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void InitString_Empty(string[] args, TestCommandLineStyle style)
     {
@@ -142,12 +142,12 @@ public class DefaultValueTests
     [DataRow(new string[] { }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "test://value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://value")]
     public void InitValueType_Default(string[] args, TestCommandLineStyle style)
     {

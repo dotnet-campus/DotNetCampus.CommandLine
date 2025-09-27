@@ -14,15 +14,15 @@ public class PositionalArgumentTests
     [DataRow(new[] { "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value")]
     [DataRow(new[] { "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value")]
-    [DataRow(new[] { "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value")]
+    [DataRow(new[] { "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value")]
     [DataRow(new[] { "-o", "option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o option value")]
     [DataRow(new[] { "-o", "option", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o option value")]
     [DataRow(new[] { "-o", "option", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o option value")]
-    [DataRow(new[] { "-o", "option", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o option value")]
+    [DataRow(new[] { "-o", "option", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o option value")]
     [DataRow(new[] { "value", "-o", "option" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value -o option")]
     [DataRow(new[] { "value", "-o", "option" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value -o option")]
     [DataRow(new[] { "value", "-o", "option" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value -o option")]
-    [DataRow(new[] { "value", "-o", "option" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value -o option")]
+    [DataRow(new[] { "value", "-o", "option" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value -o option")]
     [DataRow(new[] { "-o", "option", "--", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o option -- value")]
     [DataRow(new[] { "-o", "option", "--", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o option -- value")]
     [DataRow(new[] { "-o", "option", "--", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o option -- value")]
@@ -42,11 +42,11 @@ public class PositionalArgumentTests
     [TestMethod]
     [DataRow(new[] { "-o", "true", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o true value")]
     [DataRow(new[] { "-o", "true", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o true value")]
-    [DataRow(new[] { "-o", "true", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o true value")]
+    [DataRow(new[] { "-o", "true", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o true value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value")]
     [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o value")]
-    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o value")]
+    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o value")]
     public void Supported_Boolean(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -61,7 +61,7 @@ public class PositionalArgumentTests
     }
 
     [TestMethod]
-    [DataRow(new[] { "-o", "option", "--", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o option -- value")]
+    [DataRow(new[] { "-o", "option", "--", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o option -- value")]
     public void DoesNotSupportPostPositionalArguments(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -92,14 +92,14 @@ public class PositionalArgumentTests
     [DataRow(new[] { "value", "-o", "a", "b" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] value -o a b")]
     [DataRow(new[] { "value", "-o", "a", "b" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] value -o a b")]
     [DataRow(new[] { "value", "-o", "a", "b" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] value -o a b")]
-    [DataRow(new[] { "value", "-o", "a", "b" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] value -o a b")]
+    [DataRow(new[] { "value", "-o", "a", "b" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] value -o a b")]
     [DataRow(new[] { "-o", "a", "b", "--", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o a b -- value")]
     [DataRow(new[] { "-o", "a", "b", "--", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o a b -- value")]
     [DataRow(new[] { "-o", "a", "b", "--", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o a b -- value")]
     [DataRow(new[] { "-o", "a", "b", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o a b value")]
     [DataRow(new[] { "-o", "a", "b", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o a b value")]
     [DataRow(new[] { "-o", "a", "b", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o a b value")]
-    [DataRow(new[] { "-o", "a", "b", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o a b value")]
+    [DataRow(new[] { "-o", "a", "b", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o a b value")]
     public void DoesNotMatchPositionalArgumentRange_Collection(string[] args, TestCommandLineStyle style)
     {
         // Arrange

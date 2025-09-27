@@ -65,7 +65,7 @@ public enum DetailLevel
 | 風格            | 範例                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------ |
 | DotNet          | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
-| PowerShell      | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| Windows 经典    | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
 | CMD             | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
 | Gnu             | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
 | 彈性 (Flexible) | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
@@ -81,22 +81,22 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 支援的風格包含：
 
-- `CommandLineStyle.Flexible`（預設）：彈性風格，於各種風格間提供最大相容性，預設大小寫不敏感
-- `CommandLineStyle.DotNet`：.NET CLI 風格，預設大小寫敏感
-- `CommandLineStyle.Gnu`：符合 GNU 規範，預設大小寫敏感
-- `CommandLineStyle.Posix`：符合 POSIX 規範，預設大小寫敏感
-- `CommandLineStyle.PowerShell`：PowerShell 風格，預設大小寫不敏感
+- `CommandLineStyle.Flexible`（預設）：彈性風格，於各種風格間提供最大相容性，大小寫不敏感
+- `CommandLineStyle.DotNet`：.NET CLI 風格，大小寫敏感
+- `CommandLineStyle.Gnu`：符合 GNU 規範，大小寫敏感
+- `CommandLineStyle.Posix`：符合 POSIX 規範，大小寫敏感
+- `CommandLineStyle.Windows`：Windows 風格，大小寫不敏感，混用 `-` 和 `/` 作为选项前缀
 
 預設情況下，這些風格的詳細差異如下：
 
-| 風格              | Flexible       | DotNet         | Gnu               | Posix      | PowerShell   | URL               |
+| 風格              | Flexible       | DotNet         | Gnu               | Posix      | Windows      | URL               |
 | ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
 | 位置參數          | 支援           | 支援           | 支援              | 支援       | 支援         | 支援              |
 | 後置位置參數 `--` | 支援           | 支援           | 支援              | 支援       | 不支援       | 不支援            |
 | 大小寫            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
 | 長選項            | 支援           | 支援           | 支援              | 不支援     | 支援         | 支援              |
 | 短選項            | 支援           | 支援           | 支援              | 支援       | 支援         | 不支援            |
-| 長選項前綴        | `--` `-` `/`   | `--`           | `--`              | 不支援     | `-` `/`      |                   |
+| 長選項前綴        | `--` `-` `/`   | `--`           | `--`              | (無)       | `-` `/`      |                   |
 | 短選項前綴        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
 | 長選項 ` `        | --option value | --option value | --option value    | -o value   | -o value     |                   |
 | 長選項 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
@@ -136,7 +136,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 
 說明：
 
-1. 除 PowerShell 風格外，其他風格都支援使用 `--` 作為後置位置參數標記，其後所有參數皆視為位置參數；另外，URL 風格無法表達後置位置參數。
+1. 除 Windows 風格外，其他風格都支援使用 `--` 作為後置位置參數標記，其後所有參數皆視為位置參數；另外，URL 風格無法表達後置位置參數。
 2. 在 `--` 之前，選項與位置參數可以交錯出現，規則如下。
 
 選項會優先取得緊跟的值；凡是能放進該選項的值都會被取走。一旦放不下，後面若還有值，就視為位置參數。
@@ -168,7 +168,7 @@ public class Options
 此處有兩個 kebab-case：`Command` 特性與 `Option` 特性。可接受：
 
 - DotNet/Gnu：`demo.exe open command-line --option-name value`
-- PowerShell：`demo.exe Open CommandLine -OptionName value`
+- Windows：`demo.exe Open CommandLine -OptionName value`
 - CMD：`demo.exe Open CommandLine /optionName value`
 
 若改寫為其他風格，可能出現與預期不同（或是刻意的）結果：
@@ -188,7 +188,7 @@ public class Options
 因為仍視為 kebab-case，於是可接受：
 
 - DotNet/Gnu：`demo.exe Open CommandLine --OptionName value`
-- PowerShell：`demo.exe Open CommandLine -OptionName value`
+- Windows：`demo.exe Open CommandLine -OptionName value`
 - CMD：`demo.exe Open CommandLine /optionName value`
 
 ## 資料型別

@@ -17,8 +17,12 @@ public readonly record struct CommandLineParsingOptions
     /// <inheritdoc cref="CommandLineStyle.Posix" />
     public static CommandLineParsingOptions Posix => new() { Style = CommandLineStyle.Posix };
 
-    /// <inheritdoc cref="CommandLineStyle.PowerShell" />
-    public static CommandLineParsingOptions PowerShell => new() { Style = CommandLineStyle.PowerShell };
+    /// <inheritdoc cref="CommandLineStyle.Windows" />
+    public static CommandLineParsingOptions Windows => new() { Style = CommandLineStyle.Windows };
+
+    /// <inheritdoc cref="CommandLineStyle.Windows" />
+    [Obsolete("为避免理解歧义，已弃用此名称，请使用 Windows 代替。")]
+    public static CommandLineParsingOptions PowerShell => Windows;
 
     /// <summary>
     /// 详细设置命令行解析时的各种细节。

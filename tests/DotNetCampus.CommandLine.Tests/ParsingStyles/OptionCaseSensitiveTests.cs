@@ -30,9 +30,9 @@ public class OptionCaseSensitiveTests
     [DataRow(new[] { "--OPTION-NAME1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --OPTION-NAME1=value")]
     [DataRow(new[] { "-optionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -optionName1=value")]
     [DataRow(new[] { "-optionname1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -optionname1=value")]
-    [DataRow(new[] { "-optionname1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -optionname1=value")]
-    [DataRow(new[] { "-OPTIONNAME1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OPTIONNAME1=value")]
-    [DataRow(new[] { "-optionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -optionName1=value")]
+    [DataRow(new[] { "-optionname1=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -optionname1=value")]
+    [DataRow(new[] { "-OPTIONNAME1=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -OPTIONNAME1=value")]
+    [DataRow(new[] { "-optionName1=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -optionName1=value")]
     [DataRow(new[] { "test://?Option-Name1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?Option-Name1=value")]
     [DataRow(new[] { "test://?OPTION-NAME1=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?OPTION-NAME1=value")]
     public void CaseInsensitive(string[] args, TestCommandLineStyle style)

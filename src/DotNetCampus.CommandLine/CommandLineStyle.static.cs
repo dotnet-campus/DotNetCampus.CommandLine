@@ -8,19 +8,19 @@ partial record struct CommandLineStyle
     private const ushort DotNetMagic = 0x9AE1;
     private const ushort GnuMagic = 0x8DE1;
     private const ushort PosixMagic = 0x89A2;
-    private const ushort PowerShellMagic = 0x9ADA;
+    private const ushort WindowsMagic = 0x9ADA;
     private const ushort UrlMagic = 0x9043;
 
     /// <summary>
     /// 灵活风格。<br/>
-    /// 在绝大多数情况下，接受用户输入各种风格的命令行参数（包括 <see cref="DotNet"/>、<see cref="PowerShell"/> 等）；<br/>
+    /// 在绝大多数情况下，接受用户输入各种风格的命令行参数（包括 <see cref="DotNet"/>、<see cref="Windows"/> 等）；<br/>
     /// 此风格给了用户最大的灵活性。但同时，作为开发者，你定义命令行选项时也应该尽可能避免不同风格间可能出现的歧义。<br/>
     /// 当然，绝大多数情况下，你都不会碰到可能歧义的情况。
     /// </summary>
     /// <remarks>
     /// 注意：在非 Windows 系统上使用 <see cref="Flexible"/> 可能在某些情况下出现解析歧义，<br/>
     /// 这是因为 Linux/macOS 系统中，`/` 字符是合法的文件名字符，<br/>
-    /// 如果正好存在某个文件在 `/` 目录下，且文件名与某个选项名相同时，可能会被误解析为选项。
+    /// 如果你定义了一个需要传入路径的位置参数，那么这个位置参数可能会被误解析为选项。
     /// </remarks>
     public static CommandLineStyle Flexible => new CommandLineStyle(FlexibleMagic)
     {
@@ -88,8 +88,18 @@ partial record struct CommandLineStyle
         CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
     };
 
+    /// <inheritdoc cref="Windows"/>
+    [Obsolete("为避免理解歧义，已弃用此名称，请使用 Windows 代替。")]
+    public static CommandLineStyle PowerShell => Windows;
+
     /// <summary>
-    /// PowerShell 风格。<br/>
+    /// <para>Windows 经典风格。</para>
+    /// 这是一种源自 Windows 传统与现代生态的混合命令行风格。它深深植根于 MS-DOS 和 Windows Command Prompt (CMD) 的历史，其最显著的特征是使用斜杠 (/) 作为选项前缀（例如 dir /w, taskkill /f）。同时，为了适应现代跨平台开发和 POSIX 风格的影响，它也广泛接纳了连字符 (-) 作为选项前缀（例如 wsl -l -v）。
+    /// 其核心特点包括：<br/>
+    /// 1. 前缀混用：同时接受 / 和 - 作为选项引导符。<br/>
+    /// 2. 大小写不敏感：这与 Windows 环境的普遍习惯保持一致。<br/>
+    /// 3. 命名法偏好：选项名称常采用 PascalCase 或 camelCase，反映了 Windows 开发生态（如 .NET）的命名习惯。<br/>
+    /// 4. 灵活性：在选项和值的连接上通常比较灵活，支持空格、冒号等多种形式。<br/>
     /// <list type="number">
     /// <item>命令和选项采用 PascalCase 命名法，不区分大小写</item>
     /// <item>长选项使用 - 前缀，如 -OptionName</item>
@@ -102,13 +112,13 @@ partial record struct CommandLineStyle
     /// </list>
     /// </summary>
     /// <remarks>
-    /// 注意：在非 Windows 系统上使用 <see cref="PowerShell"/> 可能在某些情况下出现解析歧义，<br/>
+    /// 注意：在非 Windows 系统上使用 <see cref="Windows"/> 可能在某些情况下出现解析歧义，<br/>
     /// 这是因为 Linux/macOS 系统中，`/` 字符是合法的文件名字符，<br/>
-    /// 如果正好存在某个文件在 `/` 目录下，且文件名与某个选项名相同时，可能会被误解析为选项。
+    /// 如果你定义了一个需要传入路径的位置参数，那么这个位置参数可能会被误解析为选项。
     /// </remarks>
-    public static CommandLineStyle PowerShell => new CommandLineStyle(PowerShellMagic)
+    public static CommandLineStyle Windows => new CommandLineStyle(WindowsMagic)
     {
-        Name = "PowerShell",
+        Name = "Windows",
         OptionValueSeparators = CommandSeparatorChars.Create(':', '='),
         CollectionValueSeparators = CommandSeparatorChars.Create(',', ';'),
     };
@@ -127,7 +137,6 @@ partial record struct CommandLineStyle
 
     private static CommandLineStyle FlexibleDefinition => new CommandLineStyle
     {
-        Name = "Flexible",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -144,7 +153,6 @@ partial record struct CommandLineStyle
 
     private static CommandLineStyle DotNetDefinition => new CommandLineStyle
     {
-        Name = "DotNet",
         CaseSensitive = true,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -161,7 +169,6 @@ partial record struct CommandLineStyle
 
     private static CommandLineStyle GnuDefinition => new CommandLineStyle
     {
-        Name = "Gnu",
         CaseSensitive = true,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -178,7 +185,6 @@ partial record struct CommandLineStyle
 
     private static CommandLineStyle PosixDefinition => new CommandLineStyle
     {
-        Name = "Posix",
         CaseSensitive = true,
         SupportsLongOption = false,
         SupportsShortOption = true,
@@ -194,9 +200,8 @@ partial record struct CommandLineStyle
         UnknownOptionTakesValue = UnknownOptionBehavior.TakesOptionalValue,
     };
 
-    private static CommandLineStyle PowerShellDefinition => new CommandLineStyle
+    private static CommandLineStyle WindowsDefinition => new CommandLineStyle
     {
-        Name = "PowerShell",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = true,
@@ -216,7 +221,6 @@ partial record struct CommandLineStyle
     /// </summary>
     private static CommandLineStyle UrlDefinition => new CommandLineStyle
     {
-        Name = "Url",
         CaseSensitive = false,
         SupportsLongOption = true,
         SupportsShortOption = false,
@@ -240,11 +244,11 @@ partial record struct CommandLineStyle
         var dotNetMagic = DotNetDefinition.GetMagicNumber();
         var gnuMagic = GnuDefinition.GetMagicNumber();
         var posixMagic = PosixDefinition.GetMagicNumber();
-        var powerShellMagic = PowerShellDefinition.GetMagicNumber();
+        var windowsMagic = WindowsDefinition.GetMagicNumber();
         var urlMagic = UrlDefinition.GetMagicNumber();
         if (flexibleMagic != FlexibleMagic || dotNetMagic != DotNetMagic ||
             gnuMagic != GnuMagic || posixMagic != PosixMagic ||
-            powerShellMagic != PowerShellMagic || urlMagic != UrlMagic)
+            windowsMagic != WindowsMagic || urlMagic != UrlMagic)
         {
             throw new InvalidOperationException($"""
 The magic numbers of predefined command line styles have been changed. Please copy the code to update them:
@@ -253,7 +257,7 @@ private const ushort FlexibleMagic = 0x{flexibleMagic:X4};
 private const ushort DotNetMagic = 0x{dotNetMagic:X4};
 private const ushort GnuMagic = 0x{gnuMagic:X4};
 private const ushort PosixMagic = 0x{posixMagic:X4};
-private const ushort PowerShellMagic = 0x{powerShellMagic:X4};
+private const ushort WindowsMagic = 0x{windowsMagic:X4};
 private const ushort UrlMagic = 0x{urlMagic:X4};
 ```
 """);

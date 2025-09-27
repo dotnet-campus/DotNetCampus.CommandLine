@@ -28,7 +28,7 @@ public class ParseGnuArgs
     }
 
     [Benchmark(Description = "parse [GNU] -v=4.1 -p=gnu")]
-    public void Parse41_PowerShell()
+    public void Parse41_Gnu()
     {
         var commandLine = CommandLine41.Parse(GnuArgs, Options41.Gnu);
         commandLine.As<BenchmarkOptions41>();
@@ -42,7 +42,7 @@ public class ParseGnuArgs
     }
 
     [Benchmark(Description = "parse [GNU] -v=4.0 -p=gnu")]
-    public void Parse40_PowerShell()
+    public void Parse40_Gnu()
     {
         var commandLine = CommandLine40.Parse(GnuArgs, Options40.Gnu);
         commandLine.As<BenchmarkOptions40>();

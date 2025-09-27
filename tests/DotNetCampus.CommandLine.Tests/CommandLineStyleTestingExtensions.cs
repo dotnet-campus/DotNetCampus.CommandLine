@@ -10,7 +10,7 @@ internal static class CommandLineStyleTestingExtensions
         TestCommandLineStyle.DotNet => CommandLineParsingOptions.DotNet,
         TestCommandLineStyle.Gnu => CommandLineParsingOptions.Gnu,
         TestCommandLineStyle.Posix => CommandLineParsingOptions.Posix,
-        TestCommandLineStyle.PowerShell => CommandLineParsingOptions.PowerShell,
+        TestCommandLineStyle.Windows => CommandLineParsingOptions.Windows,
         TestCommandLineStyle.Url => CommandLineParsingOptions.Flexible with { SchemeNames = ["test"] },
         _ => throw new ArgumentOutOfRangeException(nameof(style), style, null),
     };
@@ -22,6 +22,6 @@ public enum TestCommandLineStyle
     DotNet,
     Gnu,
     Posix,
-    PowerShell,
+    Windows,
     Url,
 }

@@ -11,7 +11,7 @@ public class AddHandlerWithStateTests
     [DataRow(new[] { "test1", "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] test1 --option=value")]
     [DataRow(new[] { "test1", "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] test1 --option=value")]
     [DataRow(new[] { "test1", "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] test1 --option=value")]
-    [DataRow(new[] { "test1", "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] test1 -Option=value")]
+    [DataRow(new[] { "test1", "-Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] test1 -Option=value")]
     public async Task AddHandlerWithState1(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -33,7 +33,7 @@ public class AddHandlerWithStateTests
     [DataRow(new[] { "test2", "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] test1 --option=value")]
     [DataRow(new[] { "test2", "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] test1 --option=value")]
     [DataRow(new[] { "test2", "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] test1 --option=value")]
-    [DataRow(new[] { "test2", "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] test1 -Option=value")]
+    [DataRow(new[] { "test2", "-Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] test1 -Option=value")]
     public async Task AddHandlerWithState2(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -55,7 +55,7 @@ public class AddHandlerWithStateTests
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] test1 --option=value")]
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] test1 --option=value")]
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] test1 --option=value")]
-    [DataRow(new[] { "test1", "test", "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] test1 -Option=value")]
+    [DataRow(new[] { "test1", "test", "-Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] test1 -Option=value")]
     public async Task MultipleAddHandlerWithState1(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -77,7 +77,7 @@ public class AddHandlerWithStateTests
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] test1 --option=value")]
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] test1 --option=value")]
     [DataRow(new[] { "test1", "test", "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] test1 --option=value")]
-    [DataRow(new[] { "test1", "test", "-Option=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] test1 -Option=value")]
+    [DataRow(new[] { "test1", "test", "-Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] test1 -Option=value")]
     public async Task MultipleAddHandlerWithState2(string[] args, TestCommandLineStyle style)
     {
         // Arrange

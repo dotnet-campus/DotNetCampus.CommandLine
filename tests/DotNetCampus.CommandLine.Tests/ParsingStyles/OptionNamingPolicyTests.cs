@@ -15,7 +15,7 @@ public class OptionNamingPolicyTests
     [DataRow(new[] { "--option-name1=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --option-name1=value")]
     // -PascalCase
     [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -OptionName1=value")]
-    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OptionName1=value")]
+    [DataRow(new[] { "-OptionName1=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -OptionName1=value")]
     // --PascalCase (Strange but supported in Flexible)
     [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --OptionName1=value")]
     public void Supported1(string[] args, TestCommandLineStyle style)
@@ -36,7 +36,7 @@ public class OptionNamingPolicyTests
     [DataRow(new[] { "-OptionName2=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -OptionName2=value")]
     [DataRow(new[] { "--OptionName2=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --OptionName2=value")]
     [DataRow(new[] { "--OptionName2=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --OptionName2=value")]
-    [DataRow(new[] { "-OptionName2=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -OptionName2=value")]
+    [DataRow(new[] { "-OptionName2=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -OptionName2=value")]
     public void Supported2(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -52,11 +52,11 @@ public class OptionNamingPolicyTests
     [TestMethod]
     [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --OptionName1=value")]
     [DataRow(new[] { "--OptionName1=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --OptionName1=value")]
-    [DataRow(new[] { "-option-name1=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option-name1=value")]
+    [DataRow(new[] { "-option-name1=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option-name1=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option-name2=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option-name2=value")]
     [DataRow(new[] { "--option-name2=value" }, TestCommandLineStyle.Gnu, DisplayName = "[GNU] --option-name2=value")]
-    [DataRow(new[] { "-option-name2=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option-name2=value")]
+    [DataRow(new[] { "-option-name2=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option-name2=value")]
     public void NotSupported(string[] args, TestCommandLineStyle style)
     {
         // Arrange

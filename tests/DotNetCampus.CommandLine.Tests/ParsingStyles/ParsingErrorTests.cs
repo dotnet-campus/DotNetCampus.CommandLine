@@ -18,10 +18,10 @@ public class ParsingErrorTests
     [DataRow(new[] { "--=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --=value")]
     [DataRow(new[] { "--:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --:value")]
     [DataRow(new[] { "--=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --=value")]
-    [DataRow(new[] { "-=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -=value")]
-    [DataRow(new[] { "/=value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /=value")]
-    [DataRow(new[] { "-:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -:value")]
-    [DataRow(new[] { "/:value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /:value")]
+    [DataRow(new[] { "-=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -=value")]
+    [DataRow(new[] { "/=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /=value")]
+    [DataRow(new[] { "-:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -:value")]
+    [DataRow(new[] { "/:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /:value")]
     [DataRow(new[] { "test://?=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] test://?=value")]
     [DataRow(new[] { "-=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -=value")]
     [DataRow(new[] { "-:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -:value")]
@@ -42,7 +42,7 @@ public class ParsingErrorTests
     [DataRow(new[] { "" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new[] { "" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new[] { "" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new[] { "" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new[] { "" }, TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     public void EmptyArgument(string[] args, TestCommandLineStyle style)
     {
         // Arrange

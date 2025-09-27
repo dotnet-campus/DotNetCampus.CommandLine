@@ -18,7 +18,7 @@ public class ParseNoArgs
     }
 
     [Benchmark(Description = "parse [] -v=4.1 -p=dotnet")]
-    public void Parse41_PowerShell()
+    public void Parse41_DotNet()
     {
         var commandLine = CommandLine41.Parse(NoArgs, Options41.DotNet);
         commandLine.As<NullableBenchmarkOptions41>();
@@ -32,7 +32,7 @@ public class ParseNoArgs
     }
 
     [Benchmark(Description = "parse [] -v=4.0 -p=dotnet")]
-    public void Parse40_PowerShell()
+    public void Parse40_DotNet()
     {
         var commandLine = CommandLine40.Parse(NoArgs, Options40.DotNet);
         commandLine.As<NullableBenchmarkOptions40>();

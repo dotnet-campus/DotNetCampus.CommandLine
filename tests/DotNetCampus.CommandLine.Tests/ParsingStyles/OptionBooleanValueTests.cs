@@ -17,17 +17,17 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "/option" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option")]
     [DataRow(new[] { "--option" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option")]
     [DataRow(new[] { "--option" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option")]
-    [DataRow(new[] { "-Option" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option")]
-    [DataRow(new[] { "-option" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option")]
-    [DataRow(new[] { "/Option" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /Option")]
-    [DataRow(new[] { "/option" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option")]
+    [DataRow(new[] { "-Option" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option")]
+    [DataRow(new[] { "-option" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option")]
+    [DataRow(new[] { "/Option" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option")]
+    [DataRow(new[] { "/option" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option")]
     // o
     [DataRow(new[] { "-o" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o")]
     [DataRow(new[] { "/o" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o")]
     [DataRow(new[] { "-o" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o")]
     [DataRow(new[] { "-o" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o")]
-    [DataRow(new[] { "-o" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o")]
-    [DataRow(new[] { "/o" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o")]
+    [DataRow(new[] { "-o" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o")]
+    [DataRow(new[] { "/o" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o")]
     // option=true
     [DataRow(new[] { "--option=true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option=true")]
     [DataRow(new[] { "-Option=true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option=true")]
@@ -36,16 +36,16 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "/option=true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option=true")]
     [DataRow(new[] { "--option=true" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option=true")]
     [DataRow(new[] { "--option=true" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option=true")]
-    [DataRow(new[] { "-Option=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option=true")]
-    [DataRow(new[] { "-option=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option=true")]
-    [DataRow(new[] { "/Option=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /Option=true")]
-    [DataRow(new[] { "/option=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option=true")]
+    [DataRow(new[] { "-Option=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option=true")]
+    [DataRow(new[] { "-option=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option=true")]
+    [DataRow(new[] { "/Option=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option=true")]
+    [DataRow(new[] { "/option=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option=true")]
     // o=true
     [DataRow(new[] { "-o=true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o=true")]
     [DataRow(new[] { "/o=true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o=true")]
     [DataRow(new[] { "-o=true" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o=true")]
-    [DataRow(new[] { "-o=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o=true")]
-    [DataRow(new[] { "/o=true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o=true")]
+    [DataRow(new[] { "-o=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o=true")]
+    [DataRow(new[] { "/o=true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o=true")]
     // option  true
     [DataRow(new[] { "--option", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option true")]
     [DataRow(new[] { "-Option", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option true")]
@@ -53,16 +53,16 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "/Option", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option true")]
     [DataRow(new[] { "/option", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option true")]
     [DataRow(new[] { "--option", "true" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option true")]
-    [DataRow(new[] { "-Option", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -Option true")]
-    [DataRow(new[] { "-option", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -option true")]
-    [DataRow(new[] { "/Option", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /Option true")]
-    [DataRow(new[] { "/option", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /option true")]
+    [DataRow(new[] { "-Option", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option true")]
+    [DataRow(new[] { "-option", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option true")]
+    [DataRow(new[] { "/Option", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option true")]
+    [DataRow(new[] { "/option", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option true")]
     // o true
     [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o true")]
     [DataRow(new[] { "/o", "true" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o true")]
     [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o true")]
-    [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -o true")]
-    [DataRow(new[] { "/o", "true" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /o true")]
+    [DataRow(new[] { "-o", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o true")]
+    [DataRow(new[] { "/o", "true" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o true")]
     // otrue
     [DataRow(new[] { "-otrue" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -otrue")]
     public void Supported_True(string[] args, TestCommandLineStyle style)
@@ -155,8 +155,8 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "-ab" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab")]
     [DataRow(new[] { "/ab" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab")]
     [DataRow(new[] { "-ab" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab")]
-    [DataRow(new[] { "-ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab")]
-    [DataRow(new[] { "/ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab")]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab")]
+    [DataRow(new[] { "/ab" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab")]
     public void DoesNotSupportBooleanOptionCombination(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -173,8 +173,8 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "-ab" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab")]
     [DataRow(new[] { "/ab" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab")]
     [DataRow(new[] { "-ab" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab")]
-    [DataRow(new[] { "-ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab")]
-    [DataRow(new[] { "/ab" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab")]
+    [DataRow(new[] { "-ab" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab")]
+    [DataRow(new[] { "/ab" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab")]
     public void SupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
     {
         // Arrange
@@ -192,8 +192,8 @@ public class OptionBooleanValueTests
     [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
     [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
     [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
-    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] -ab value")]
-    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] /ab value")]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab value")]
+    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab value")]
     public void MultiCharShortOptionsDoesNotSupportValue(string[] args, TestCommandLineStyle style)
     {
         // Arrange

@@ -13,28 +13,28 @@ public class MatchCommandTests
     [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Flexible, DisplayName = "[Flexible]")]
     [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.DotNet, DisplayName = "[DotNet]")]
     [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Gnu, DisplayName = "[Gnu]")]
-    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell]")]
+    [DataRow(new string[] { }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Windows, DisplayName = "[Windows]")]
     [DataRow(new[] { "test://" }, nameof(DefaultOptions), "Default", TestCommandLineStyle.Url, DisplayName = "[Url] test://")]
     [DataRow(new[] { "unknown://" }, nameof(DefaultOptions), "unknown://", TestCommandLineStyle.Url, DisplayName = "[Url] unknown://")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
     [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
     [DataRow(new[] { "test://foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Url, DisplayName = "[Url] test://foo")]
-    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
     [DataRow(new[] { "fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] fooo")]
     [DataRow(new[] { "fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] fooo")]
     [DataRow(new[] { "fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] fooo")]
-    [DataRow(new[] { "fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] fooo")]
+    [DataRow(new[] { "fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.Windows, DisplayName = "[Windows] fooo")]
     [DataRow(new[] { "test://fooo" }, nameof(DefaultOptions), "fooo", TestCommandLineStyle.Url, DisplayName = "[Url] test://fooo")]
     [DataRow(new[] { "bar", "baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] bar baz")]
     [DataRow(new[] { "bar", "baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] bar baz")]
     [DataRow(new[] { "bar", "baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] bar baz")]
-    [DataRow(new[] { "bar", "baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] bar baz")]
+    [DataRow(new[] { "bar", "baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.Windows, DisplayName = "[Windows] bar baz")]
     [DataRow(new[] { "test://bar/baz" }, nameof(BarBazOptions), "BarBaz", TestCommandLineStyle.Url, DisplayName = "[Url] test://bar/baz")]
     [DataRow(new[] { "bar", "bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] bar bazz")]
     [DataRow(new[] { "bar", "bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] bar bazz")]
     [DataRow(new[] { "bar", "bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] bar bazz")]
-    [DataRow(new[] { "bar", "bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] bar bazz")]
+    [DataRow(new[] { "bar", "bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.Windows, DisplayName = "[Windows] bar bazz")]
     [DataRow(new[] { "test://bar/bazz" }, nameof(BarOptions), "bazz", TestCommandLineStyle.Url, DisplayName = "[Url] test://bar/bazz")]
     [DataRow(new[] { "another", "sub-command" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.Flexible,
         DisplayName = "[Flexible] another sub-command")]
@@ -42,10 +42,10 @@ public class MatchCommandTests
         DisplayName = "[DotNet] another sub-command")]
     [DataRow(new[] { "another", "sub-command" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.Gnu,
         DisplayName = "[Gnu] another sub-command")]
-    [DataRow(new[] { "Another", "SubCommand" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.PowerShell,
-        DisplayName = "[PowerShell] Another SubCommand")]
-    [DataRow(new[] { "another", "subCommand" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.PowerShell,
-        DisplayName = "[PowerShell] another subCommand")]
+    [DataRow(new[] { "Another", "SubCommand" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.Windows,
+        DisplayName = "[Windows] Another SubCommand")]
+    [DataRow(new[] { "another", "subCommand" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.Windows,
+        DisplayName = "[Windows] another subCommand")]
     [DataRow(new[] { "test://another/sub-command" }, nameof(SubCommandOptions), "AnotherSubCommand", TestCommandLineStyle.Url,
         DisplayName = "[Url] test://another/sub-command")]
     public void MatchCommand(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
@@ -70,7 +70,7 @@ public class MatchCommandTests
     }
 
     [TestMethod]
-    [DataRow(new[] { "another", "sub-command" }, TestCommandLineStyle.PowerShell, DisplayName = "[PowerShell] another sub-command")]
+    [DataRow(new[] { "another", "sub-command" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] another sub-command")]
     public void MatchCommand_PositionalArgumentNotMatch(string[] args, TestCommandLineStyle style)
     {
         // Arrange
