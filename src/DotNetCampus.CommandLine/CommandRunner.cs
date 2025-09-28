@@ -83,7 +83,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     CommandRunner ICoreCommandRunnerBuilder.AsRunner() => this;
 
     /// <inheritdoc />
-    public async Task<CommandRunningResult> RunAsync()
+    public Task<CommandRunningResult> RunAsync()
     {
         var (possibleCommandNames, nullableFactoryAndRunner) = MatchCreator();
 
@@ -105,19 +105,10 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         var handler = factory(context);
         var exitCode = runner switch
         {
-            null => await ((ICommandHandler)handler).RunAsync(),
-            _ => await runner(handler),
+            null => ((ICommandHandler)handler).RunAsync(),
+            _ => runner(handler),
         };
-        return new CommandRunningResult
-        {
-            ExitCode = exitCode,
-            CommandLine = _commandLine,
-            HandledBy = handler switch
-            {
-                IAnonymousCommandHandler anonymousHandler => anonymousHandler.CreatedCommandOptions,
-                _ => handler,
-            },
-        };
+        return CommandRunningResult.FromTask(exitCode, _commandLine, handler);
     }
 
     private (string PossibleCommandNames, FactoryAndRunner? FactoryAndRunner) MatchCreator()
@@ -245,6 +236,27 @@ public readonly record struct CommandRunningResult
     /// <param name="result">命令行处理结果。</param>
     /// <returns>退出代码。</returns>
     public static implicit operator int(CommandRunningResult result) => result.ExitCode;
+
+    /// <summary>
+    /// 从一个异步的命令行处理任务创建一个命令行处理结果。
+    /// </summary>
+    /// <param name="exitCodeTask">异步的命令行处理任务。</param>
+    /// <param name="commandLine">被执行的命令行。</param>
+    /// <param name="handler">处理此命令行的命令处理器实例。</param>
+    /// <returns>命令行处理结果。</returns>
+    public static async Task<CommandRunningResult> FromTask(Task<int> exitCodeTask, CommandLine commandLine, object handler)
+    {
+        return new CommandRunningResult
+        {
+            ExitCode = await exitCodeTask,
+            CommandLine = commandLine,
+            HandledBy = handler switch
+            {
+                IAnonymousCommandHandler anonymousHandler => anonymousHandler.CreatedCommandOptions,
+                _ => handler,
+            },
+        };
+    }
 }
 
 file static class CommandRunnerExtensions
