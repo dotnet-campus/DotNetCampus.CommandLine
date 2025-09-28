@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetCampus.CodeAnalysisUtils" />
-    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" />
+    <PackageReference Include="DotNetCampus.LatestCSharpFeatures" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

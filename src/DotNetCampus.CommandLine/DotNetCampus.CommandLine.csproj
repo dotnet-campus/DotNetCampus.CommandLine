@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" PrivateAssets="all" />
+    <PackageReference Include="DotNetCampus.LatestCSharpFeatures" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
