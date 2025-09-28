@@ -21,6 +21,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     private readonly bool _supportsPascalCase;
     private FactoryAndRunner? _defaultFactory;
     private CommandObjectFactory? _fallbackFactory;
+    private int _maxCommandLength;
 
     internal CommandRunner(CommandLine commandLine)
     {
@@ -123,7 +124,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     {
         if (_factories.Count > 0)
         {
-            var maxLength = _factories.Keys[0].Length;
+            var maxLength = _maxCommandLength;
             var header = _commandLine.GetHeader(maxLength);
 
             foreach (var (command, factory) in _factories)
@@ -159,7 +160,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     {
         if (_supportsOrdinal)
         {
-            if (command.Ordinal is { } ordinal && !string.IsNullOrWhiteSpace(ordinal))
+            if (command.Ordinal is { } ordinal && !string.IsNullOrEmpty(ordinal))
             {
                 // 包含命令名称。
                 var isAdded = _factories.TryAdd(ordinal, (factory, runner));
@@ -167,6 +168,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                 {
                     throw new CommandNameAmbiguityException($"The command '{ordinal}' is already registered.", ordinal);
                 }
+                _maxCommandLength = Math.Max(_maxCommandLength, ordinal.Length);
             }
             else
             {
@@ -180,7 +182,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         }
         if (_supportsPascalCase)
         {
-            if (command.PascalCase is { } pascal && !string.IsNullOrWhiteSpace(pascal))
+            if (command.PascalCase is { } pascal && !string.IsNullOrEmpty(pascal))
             {
                 // 包含命令名称。
                 var isAdded = _factories.TryAdd(pascal, (factory, runner));
@@ -189,6 +191,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                     // 转换的名称，之后在仅用转换名称时才需要抛出异常；否则很可能前面已经添加了一个相同的名称。
                     throw new CommandNameAmbiguityException($"The command '{pascal}' is already registered.", pascal);
                 }
+                _maxCommandLength = Math.Max(_maxCommandLength, pascal.Length);
             }
             else
             {
