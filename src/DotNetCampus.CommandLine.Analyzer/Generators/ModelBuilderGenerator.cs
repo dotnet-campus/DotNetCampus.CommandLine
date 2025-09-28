@@ -482,7 +482,7 @@ throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedExcepti
                 : $"new {GetArgumentPropertyTypeName(model)}().To{toTarget}(true)",
             (_, true, false, false) => isString
                 ? "\"\""
-                : $"default({model.Type.ToDisplayString()})!",
+                : $"default({model.Type.ToDisplayString()})",
             _ => "/* 非 init 属性，在下面单独赋值 */",
         };
 
