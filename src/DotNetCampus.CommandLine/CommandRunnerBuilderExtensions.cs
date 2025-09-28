@@ -15,14 +15,70 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
-        where T : class, ICommandHandler
+    /// <remarks>
+    /// 请注意，<see cref="CommandLine"/> 对象是不可变的，所以你需要使用这个方法的返回值，否则当你再次调用 AddHandler 时，之前添加的处理器将会丢失。<br/>
+    /// 如果你需要分多次添加处理器，请先调用 <see cref="CommandLine.ToRunner"/> 方法获得 <see cref="ICommandRunnerBuilder"/> 对象；
+    /// 在这个对象上多次调用 AddHandler 方法是安全的。
+    /// </remarks>
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder)
     {
         throw CommandLine.MethodShouldBeInspected();
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder)" />
-    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
+    /// <summary>
+    /// 为命令执行器指定一个状态对象，后续添加的命令处理器如果被执行，将会收到这个状态对象。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="state">状态对象。</param>
+    /// <typeparam name="TState">状态对象的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static StatedCommandRunnerBuilder<TState> ForState<TState>(this CommandLine builder, TState state)
+    {
+        return new StatedCommandRunnerBuilder<TState>(builder.ToRunner().AsRunner(), state);
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Action<T> handler)
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static ICommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, int> handler)
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task> handler)
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    /// <remarks>
+    /// 请注意，<see cref="CommandLine"/> 对象是不可变的，所以你需要使用这个方法的返回值，否则当你再次调用 AddHandler 时，之前添加的处理器将会丢失。<br/>
+    /// 如果你需要分多次添加处理器，请先调用 <see cref="CommandLine.ToRunner"/> 方法获得 <see cref="ICommandRunnerBuilder"/> 对象；
+    /// 在这个对象上多次调用 AddHandler 方法是安全的。
+    /// </remarks>
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task<int>> handler)
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <typeparam name="T">命令处理器的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder)
         where T : class, ICommandHandler
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -36,18 +92,6 @@ public static class CommandRunnerBuilderExtensions
     /// <typeparam name="TState">状态对象的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static StatedCommandRunnerBuilder<TState> ForState<TState>(this ICommandRunnerBuilder builder, TState state)
-    {
-        return new StatedCommandRunnerBuilder<TState>(builder.AsRunner(), state);
-    }
-
-    /// <summary>
-    /// 为命令执行器指定一个状态对象，后续添加的命令处理器如果被执行，将会收到这个状态对象。
-    /// </summary>
-    /// <param name="builder">命令行执行器构造的链式调用。</param>
-    /// <param name="state">状态对象。</param>
-    /// <typeparam name="TState">状态对象的类型。</typeparam>
-    /// <returns>命令行执行器构造的链式调用。</returns>
-    public static StatedCommandRunnerBuilder<TState> ForState<TState>(this IAsyncCommandRunnerBuilder builder, TState state)
     {
         return new StatedCommandRunnerBuilder<TState>(builder.AsRunner(), state);
     }
@@ -85,6 +129,25 @@ public static class CommandRunnerBuilderExtensions
         where T : class
     {
         throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder)" />
+    public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder)
+        where T : class, ICommandHandler
+    {
+        throw CommandLine.MethodShouldBeInspected();
+    }
+
+    /// <summary>
+    /// 为命令执行器指定一个状态对象，后续添加的命令处理器如果被执行，将会收到这个状态对象。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="state">状态对象。</param>
+    /// <typeparam name="TState">状态对象的类型。</typeparam>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static StatedCommandRunnerBuilder<TState> ForState<TState>(this IAsyncCommandRunnerBuilder builder, TState state)
+    {
+        return new StatedCommandRunnerBuilder<TState>(builder.AsRunner(), state);
     }
 
     /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}})" />
