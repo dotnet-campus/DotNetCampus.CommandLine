@@ -259,6 +259,60 @@ public readonly record struct CommandRunningResult
     }
 }
 
+/// <summary>
+/// 命令行处理结果的扩展方法。
+/// </summary>
+public static class CommandRunningResultExtensions
+{
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async Task<int> AsExitCodeTask(this Task<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+#if NETCOREAPP3_1_OR_GREATER
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async Task<int> AsExitCodeTask(this ValueTask<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async ValueTask<int> AsExitCodeValueTask(this Task<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async ValueTask<int> AsExitCodeValueTask(this ValueTask<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+#endif
+}
+
 file static class CommandRunnerExtensions
 {
     /// <summary>
