@@ -14,87 +14,80 @@ public class InterceptorGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var analyzerConfigOptionsProvider = context.AnalyzerConfigOptionsProvider;
-        var asProvider = context.SelectCommandLineAsProvider();
-        var sync = context.SelectAddHandlers("ICommandRunnerBuilder");
-        var async = context.SelectAddHandlers("IAsyncCommandRunnerBuilder");
-        var statedSync = context.SelectAddHandlers("StatedCommandRunnerBuilder");
-        var statedAsync = context.SelectAddHandlers("StatedCommandRunnerLinkedBuilder");
-        var syncVoid = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Action<T>");
-        var syncInt32 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, int>");
-        var syncTask = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
-        var syncTaskInt32 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
-        var asyncVoid = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
-        var asyncInt32 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, int>");
-        var asyncTask = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
-        var asyncTaskInt32 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
+        var ac = context.AnalyzerConfigOptionsProvider;
 
-        var obsolete = context.SelectAddHandlers("CommandLine");
-        var obsoleteVoid = context.SelectAddHandlers("CommandLine", "global::System.Action<T>");
-        var obsoleteInt32 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, int>");
-        var obsoleteTask = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task>");
-        var obsoleteTaskInt32 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
+        // CommandLine.As
+        var ca = context.SelectCommandLineAsProvider();
 
-        // CommandLine.As<T>
-        context.RegisterSourceOutput(asProvider.Collect().Combine(analyzerConfigOptionsProvider), CommandLineAs);
+        // CommandLine.AddHandler
+        var c0 = context.SelectAddHandlers("CommandLine");
+        var c1 = context.SelectAddHandlers("CommandLine", "global::System.Action<T>");
+        var c2 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, int>");
+        var c3 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var c4 = context.SelectAddHandlers("CommandLine", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
-        // CommandRunner.AddHandler<T>()
-        context.RegisterSourceOutput(sync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandler(c, args, "ICommandRunnerBuilder", "AddHandler()"));
-        context.RegisterSourceOutput(async.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandler(c, args, "IAsyncCommandRunnerBuilder", "AddHandler()"));
+        // ICommandRunnerBuilder.AddHandler
+        var s0 = context.SelectAddHandlers("ICommandRunnerBuilder");
+        var s1 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Action<T>");
+        var s2 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, int>");
+        var s3 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var s4 = context.SelectAddHandlers("ICommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
-        // StatedCommandRunner.AddHandler<T>()
-        context.RegisterSourceOutput(statedSync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            StatedCommandRunnerAddHandler(c, args, "StatedCommandRunnerBuilder", "AddHandler()"));
-        context.RegisterSourceOutput(statedAsync.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            StatedCommandRunnerAddHandler(c, args, "StatedCommandRunnerLinkedBuilder", "AddHandler()"));
+        // IAsyncCommandRunnerBuilder.AddHandler
+        var a0 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder");
+        var a1 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Action<T>");
+        var a2 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, int>");
+        var a3 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task>");
+        var a4 = context.SelectAddHandlers("IAsyncCommandRunnerBuilder", "global::System.Func<T, global::System.Threading.Tasks.Task<int>>");
 
-        // CommandRunner.AddHandler<T>(Action/Func/...)
-        context.RegisterSourceOutput(syncVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Action{T})",
-                "System.Action<T>", "ICommandRunnerBuilder"));
-        context.RegisterSourceOutput(syncInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,int})",
-                "System.Func<T, int>", "ICommandRunnerBuilder"));
-        context.RegisterSourceOutput(syncTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,Task})",
-                "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
-        context.RegisterSourceOutput(syncTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "ICommandRunnerBuilder", "AddHandler(Func{T,Task{int}})",
-                "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+        // StatedCommandRunnerBuilder<TState>.AddHandler
+        var t0 = context.SelectAddHandlers("StatedCommandRunnerBuilder");
+        var t1 = context.SelectAddHandlers("StatedCommandRunnerLinkedBuilder");
 
-        // AsyncCommandRunner.AddHandler<T>(Action/Func/...)
-        context.RegisterSourceOutput(asyncVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Action{T})",
-                "System.Action<T>", "IAsyncCommandRunnerBuilder"));
-        context.RegisterSourceOutput(asyncInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,int})",
-                "System.Func<T, int>", "IAsyncCommandRunnerBuilder"));
-        context.RegisterSourceOutput(asyncTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task})",
-                "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
-        context.RegisterSourceOutput(asyncTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            CommandRunnerAddHandlerAction(c, args, "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task{int}})",
-                "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+        // CommandLine.As
+        context.RegisterSourceOutput(ca.Collect().Combine(ac), CommandLineAs);
 
-#pragma warning disable CS0618
-        // Obsolete APIs for migration
-        context.RegisterSourceOutput(obsolete.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            ObsoleteAddHandler(c, args, "CommandLine", "AddHandler()"));
-        context.RegisterSourceOutput(obsoleteVoid.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Action{T})",
-                "System.Action<T>", "ICommandRunnerBuilder"));
-        context.RegisterSourceOutput(obsoleteInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,int})",
-                "System.Func<T, int>", "ICommandRunnerBuilder"));
-        context.RegisterSourceOutput(obsoleteTask.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,Task})",
-                "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
-        context.RegisterSourceOutput(obsoleteTaskInt32.Collect().Combine(analyzerConfigOptionsProvider), (c, args) =>
-            ObsoleteAddHandlerAction(c, args, "CommandLine", "AddHandler(Func{T,Task{int}})",
-                "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
-#pragma warning restore CS0618
+        // CommandLine.AddHandler
+        context.RegisterSourceOutput(c0.Collect().Combine(ac), (c, args) => CommandLineAddHandler(c, args,
+            "CommandLine", "AddHandler()"));
+        context.RegisterSourceOutput(c1.Collect().Combine(ac), (c, args) => CommandLineAddHandlerAction(c, args,
+            "CommandLine", "AddHandler(Action{T})", "System.Action<T>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(c2.Collect().Combine(ac), (c, args) => CommandLineAddHandlerAction(c, args,
+            "CommandLine", "AddHandler(Func{T,int})", "System.Func<T, int>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(c3.Collect().Combine(ac), (c, args) => CommandLineAddHandlerAction(c, args,
+            "CommandLine", "AddHandler(Func{T,Task})", "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(c4.Collect().Combine(ac), (c, args) => CommandLineAddHandlerAction(c, args,
+            "CommandLine", "AddHandler(Func{T,Task{int}})", "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+
+        // ICommandRunnerBuilder.AddHandler
+        context.RegisterSourceOutput(s0.Collect().Combine(ac), (c, args) => CommandRunnerAddHandler(c, args,
+            "ICommandRunnerBuilder", "AddHandler()"));
+        context.RegisterSourceOutput(s1.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "ICommandRunnerBuilder", "AddHandler(Action{T})", "System.Action<T>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(s2.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "ICommandRunnerBuilder", "AddHandler(Func{T,int})", "System.Func<T, int>", "ICommandRunnerBuilder"));
+        context.RegisterSourceOutput(s3.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "ICommandRunnerBuilder", "AddHandler(Func{T,Task})", "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(s4.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "ICommandRunnerBuilder", "AddHandler(Func{T,Task{int}})", "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+
+        // IAsyncCommandRunnerBuilder.AddHandler
+        context.RegisterSourceOutput(a0.Collect().Combine(ac), (c, args) => CommandRunnerAddHandler(c, args,
+            "IAsyncCommandRunnerBuilder", "AddHandler()"));
+        context.RegisterSourceOutput(a1.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "IAsyncCommandRunnerBuilder", "AddHandler(Action{T})", "System.Action<T>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(a2.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,int})", "System.Func<T, int>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(a3.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task})", "System.Func<T, System.Threading.Tasks.Task>", "IAsyncCommandRunnerBuilder"));
+        context.RegisterSourceOutput(a4.Collect().Combine(ac), (c, args) => CommandRunnerAddHandlerAction(c, args,
+            "IAsyncCommandRunnerBuilder", "AddHandler(Func{T,Task{int}})", "System.Func<T, System.Threading.Tasks.Task<int>>", "IAsyncCommandRunnerBuilder"));
+
+        // StatedCommandRunnerBuilder<TState>.AddHandler
+        context.RegisterSourceOutput(t0.Collect().Combine(ac), (c, args) => StatedCommandRunnerAddHandler(c, args,
+            "StatedCommandRunnerBuilder", "AddHandler()"));
+        context.RegisterSourceOutput(t1.Collect().Combine(ac), (c, args) => StatedCommandRunnerAddHandler(c, args,
+            "StatedCommandRunnerLinkedBuilder", "AddHandler()"));
     }
 
     /// <summary>
@@ -110,6 +103,74 @@ public class InterceptorGenerator : IIncrementalGenerator
         var code = GenerateCode(modelGroups, GenerateCommandLineAsCode);
         context.AddSource("CommandLine.Interceptors/CommandLine.As.g.cs", code);
     }
+
+    #region CommandLine.As
+
+    /// <summary>
+    /// CommandLine.AddHandler
+    /// </summary>
+    private void CommandLineAddHandler(SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
+        string thisName, string methodSignature)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, (t, x) =>
+            GenerateCommandLineAddHandlerCode(t, x, thisName));
+        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
+    }
+
+    /// <summary>
+    /// CommandLine.AddHandler(Action)
+    /// </summary>
+    private void CommandLineAddHandlerAction(SourceProductionContext context,
+        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
+        string thisName, string methodSignature, string parameterTypeFullName, string returnName)
+    {
+        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
+        {
+            return;
+        }
+
+        var code = GenerateCode(modelGroups, (t, x) =>
+            GenerateCommandLineAddHandlerActionCode(t, x, thisName, parameterTypeFullName, returnName));
+        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
+    }
+
+    private void GenerateCommandLineAddHandlerCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
+        string parameterThisName)
+    {
+        var model = models[0];
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine)
+            """, m => m
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
+            .AddRawStatement(GenerateComment(model))
+            .AddRawStatements($"""
+                return commandLine.ToRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
+    }
+
+    private void GenerateCommandLineAddHandlerActionCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
+        string parameterThisName, string parameterTypeFullName, string returnName)
+    {
+        var model = models[0];
+        builder.AddMethodDeclaration($"""
+            public static global::DotNetCampus.Cli.{returnName} CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine, global::{parameterTypeFullName} handler)
+            """, m => m
+            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
+            .AddTypeConstraints("where T : class")
+            .AddRawStatement(GenerateComment(model))
+            .AddRawStatements($"""
+                return commandLine.ToRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                """));
+    }
+
+    #endregion
 
     /// <summary>
     /// CommandRunner.AddHandler
@@ -274,74 +335,6 @@ public class InterceptorGenerator : IIncrementalGenerator
         // 请确保 {model.CommandObjectType.Name} 类型中至少有一个属性标记了 [Option] 或 [Value] 特性；
         // 否则下面的 {model.GetBuilderTypeName()} 类型将不存在，导致编译不通过。
         """;
-
-    /// <summary>
-    /// CommandLine.AddHandler
-    /// </summary>
-    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
-    private void ObsoleteAddHandler(SourceProductionContext context,
-        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
-        string thisName, string methodSignature)
-    {
-        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
-        {
-            return;
-        }
-
-        var code = GenerateCode(modelGroups, (t, x) =>
-            GenerateObsoleteAddHandlerCode(t, x, thisName));
-        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
-    }
-
-    /// <summary>
-    /// CommandLine.AddHandler(Action)
-    /// </summary>
-    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
-    private void ObsoleteAddHandlerAction(SourceProductionContext context,
-        (ImmutableArray<InterceptorGeneratingModel> Left, AnalyzerConfigOptionsProvider Right) args,
-        string thisName, string methodSignature, string parameterTypeFullName, string returnName)
-    {
-        if (context.ToDictionary(args) is not { } modelGroups || modelGroups.Count is 0)
-        {
-            return;
-        }
-
-        var code = GenerateCode(modelGroups, (t, x) =>
-            GenerateObsoleteAddHandlerActionCode(t, x, thisName, parameterTypeFullName, returnName));
-        context.AddSource($"CommandLine.Interceptors/{thisName}.{methodSignature}.g.cs", code);
-    }
-
-    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
-    private void GenerateObsoleteAddHandlerCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
-        string parameterThisName)
-    {
-        var model = models[0];
-        builder.AddMethodDeclaration($"""
-            public static global::DotNetCampus.Cli.IAsyncCommandRunnerBuilder CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine)
-            """, m => m
-            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
-            .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
-            .AddRawStatement(GenerateComment(model))
-            .AddRawStatements($"""
-                return commandLine.ToRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
-                """));
-    }
-
-    [Obsolete("仅用于从旧版本迁移到新版本时使用")]
-    private void GenerateObsoleteAddHandlerActionCode(TypeDeclarationSourceTextBuilder builder, IReadOnlyList<InterceptorGeneratingModel> models,
-        string parameterThisName, string parameterTypeFullName, string returnName)
-    {
-        var model = models[0];
-        builder.AddMethodDeclaration($"""
-            public static global::DotNetCampus.Cli.{returnName} CommandLine_AddHandler_{NamingHelper.MakePascalCase(model.CommandObjectType.ToDisplayString())}<T>(this global::DotNetCampus.Cli.{parameterThisName} commandLine, global::{parameterTypeFullName} handler)
-            """, m => m
-            .AddAttributes(models.Select(GenerateInterceptsLocationCode))
-            .AddTypeConstraints("where T : class")
-            .AddRawStatement(GenerateComment(model))
-            .AddRawStatements($"""
-                return commandLine.ToRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
-                """));
-    }
 }
 
 file static class Extensions
