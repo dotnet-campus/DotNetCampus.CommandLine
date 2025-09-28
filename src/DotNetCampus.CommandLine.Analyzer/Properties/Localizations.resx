@@ -150,13 +150,13 @@
     <value>Not supported command-line property type</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
-    <value>The command-line option/command definition names should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The option/command name should be kebab-case nomenclature to disambiguate</value>
   </data>
   <data name="DCL101_Fix1" xml:space="preserve">
     <value>Convert to kebab-case</value>
   </data>
   <data name="DCL101_Message" xml:space="preserve">
-    <value>The option/command definition long name '{0}' should be kebab-case, even though you can use any kind of style in the command line environment.</value>
+    <value>The option/command name should be kebab-case nomenclature to disambiguate</value>
   </data>
   <data name="DCL101" xml:space="preserve">
     <value>Option/Command long name should be kebab-case</value>
@@ -187,5 +187,32 @@
   </data>
   <data name="DCL102_Description" xml:space="preserve">
     <value>The command-line option/command definition names may not be kebab-case.</value>
+  </data>
+  <data name="DCL301" xml:space="preserve">
+    <value>The command type must not be a generic type or be declared in a generic type</value>
+  </data>
+  <data name="DCL301_Message" xml:space="preserve">
+    <value>The command type {0} must not be a generic type or be declared in a generic type.</value>
+  </data>
+  <data name="DCL301_Description" xml:space="preserve">
+    <value>The command type {0} must not be a generic type or be declared in a generic type.</value>
+  </data>
+  <data name="DCL204" xml:space="preserve">
+    <value>Duplicated option name</value>
+  </data>
+  <data name="DCL204_Message" xml:space="preserve">
+    <value>Duplicated option name {0}</value>
+  </data>
+  <data name="DCL204_Description" xml:space="preserve">
+    <value>Duplicated option name {0}</value>
+  </data>
+  <data name="DCL103" xml:space="preserve">
+    <value>The option name is invalid</value>
+  </data>
+  <data name="DCL103_Message" xml:space="preserve">
+    <value>The option name {0} must not be empty string, and not starts with '-', and not contains invalid characters.</value>
+  </data>
+  <data name="DCL103_Description" xml:space="preserve">
+    <value>The option name {0} must not be empty string, and not starts with '-', and not contains invalid characters.</value>
   </data>
 </root>

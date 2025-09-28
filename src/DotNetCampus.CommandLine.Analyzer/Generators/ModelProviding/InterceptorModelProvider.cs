@@ -1,7 +1,7 @@
 ﻿#pragma warning disable RSEXPERIMENTAL002
 using System.Text.RegularExpressions;
 using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Generators.Models;
 using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,28 +11,36 @@ namespace DotNetCampus.CommandLine.Generators.ModelProviding;
 
 internal static class InterceptorModelProvider
 {
+    private static readonly SymbolDisplayFormat NoGenericTypeNameFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        kindOptions: SymbolDisplayKindOptions.None
+    );
+
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandLineAsProvider(this IncrementalGeneratorInitializationContext context)
     {
         return SelectMethodInvocationProvider(context,
             "DotNetCampus.Cli.CommandLine", "As");
     }
 
-    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context)
-    {
-        return SelectMethodInvocationProvider(context, "DotNetCampus.Cli.CommandRunnerBuilderExtensions", "AddHandler");
-    }
-
-    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectCommandBuilderAddHandlerProvider(
-        this IncrementalGeneratorInitializationContext context, string extensionMethodThisTypeName, string parameterTypeFullName)
+    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectAddHandlers(
+        this IncrementalGeneratorInitializationContext context, string thisTypeName)
     {
         return SelectMethodInvocationProvider(context,
-            $"DotNetCampus.Cli.{extensionMethodThisTypeName}", "AddHandler",
+            $"DotNetCampus.Cli.{thisTypeName}", "AddHandler");
+    }
+
+    public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectAddHandlers(
+        this IncrementalGeneratorInitializationContext context, string thisTypeName, string parameterTypeFullName)
+    {
+        return SelectMethodInvocationProvider(context,
+            $"DotNetCampus.Cli.{thisTypeName}", "AddHandler",
             parameterTypeFullName.Replace(".", @"\.").Replace("<T>", @"<[\w_\.:\?]+>").Replace("<T,", @"<[\w_\.:\?]+,"));
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectMethodInvocationProvider(this IncrementalGeneratorInitializationContext context,
-        string typeFullName, string methodName, params string[] parameterTypeFullNameRegexes)
+        string thisTypeFullName, string methodName, params string[] parameterTypeFullNameRegexes)
     {
         return context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
@@ -68,8 +76,8 @@ internal static class InterceptorModelProvider
                     // 没有方法。
                     return null;
                 }
-                if (methodSymbol.ContainingType.ToDisplayString() != typeFullName
-                    && methodSymbol.ReceiverType?.ToDisplayString() != typeFullName)
+                if (methodSymbol.ContainingType.ToDisplayString(NoGenericTypeNameFormat) != thisTypeFullName
+                    && methodSymbol.ReceiverType?.ToDisplayString(NoGenericTypeNameFormat) != thisTypeFullName)
                 {
                     // 方法所在的类型不匹配，且扩展方法的 this 参数类型不匹配。
                     return null;
@@ -100,19 +108,25 @@ internal static class InterceptorModelProvider
                 // 获取 [Command("xxx")] 或 [Verb("xxx")] 特性中的 xxx。
                 var commandAttribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
 #pragma warning disable CS0618 // 类型或成员已过时
-                                ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
+                                       ?? symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<VerbAttribute>())
 #pragma warning restore CS0618 // 类型或成员已过时
                     ;
                 var commandNames = commandAttribute?.ConstructorArguments.FirstOrDefault() is { Kind: TypedConstantKind.Primitive } commandArgument
                     ? commandArgument.Value?.ToString()
                     : null;
+                var useFullStackParser = commandAttribute?.NamedArguments
+                    .FirstOrDefault(kv => kv.Key == "ExperimentalUseFullStackParser").Value.Value as bool? ?? false;
                 // 获取调用代码所在的类和方法。
                 var methodDeclaration = node.FirstAncestorOrSelf<MethodDeclarationSyntax>();
                 var classDeclaration = methodDeclaration?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
                 var invocationFileName = Path.GetFileName(node.SyntaxTree.FilePath);
                 var invocationInfo = $"{classDeclaration?.Identifier.ToString()}.{methodDeclaration?.Identifier.ToString()} @{invocationFileName}";
 
-                return new InterceptorGeneratingModel(interceptableLocation, symbol, commandNames, invocationInfo);
+                return new InterceptorGeneratingModel(interceptableLocation, symbol, invocationInfo)
+                {
+                    CommandNames = commandNames,
+                    UseFullStackParser = useFullStackParser,
+                };
             })
             .Where(model => model is not null)
             .Select((model, ct) => model!);
@@ -122,21 +136,14 @@ internal static class InterceptorModelProvider
 internal record InterceptorGeneratingModel(
     InterceptableLocation InterceptableLocation,
     INamedTypeSymbol CommandObjectType,
-    string? CommandNames,
     string InvocationInfo
 )
 {
-    public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
+    public required string? CommandNames { get; init; }
 
-    public string? GetKebabCaseCommandNames()
-    {
-        if (CommandNames is not { } commandNames)
-        {
-            return null;
-        }
-        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
-    }
+    public required bool UseFullStackParser { get; init; }
+
+    public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
 
     internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =
         new PrivateTypeSymbolEqualityComparer();

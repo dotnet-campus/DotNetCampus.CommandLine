@@ -43,10 +43,10 @@
         <value>不支持此类型的命令行属性</value>
     </data>
   <data name="DCL101_Message" xml:space="preserve">
-    <value>选项/命令名称 {0} 应该使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义应该是 kebab-case 风格。</value>
+    <value>选项/命令名称 {0} 应使用 kebab-case 命名法以消除歧义</value>
   </data>
   <data name="DCL101_Description" xml:space="preserve">
-    <value>选项/命令名称的定义建议使用 kebab-case 命名法命名，即使真实使用命令行传参的时候你可以使用任意风格，但定义也应该是 kebab-case 风格。</value>
+    <value>选项/命令名称应使用 kebab-case 命名法以消除歧义</value>
   </data>
   <data name="DCL101_Fix1" xml:space="preserve">
         <value>改成 kebab-case 命名法</value>
@@ -80,5 +80,32 @@
   </data>
   <data name="DCL102_Description" xml:space="preserve">
     <value>选项/命令名称的定义有可能不是 kebab-case 命名法命名。</value>
+  </data>
+  <data name="DCL301" xml:space="preserve">
+    <value>命令行类型不能是泛型类型或在泛型类型中</value>
+  </data>
+  <data name="DCL301_Description" xml:space="preserve">
+    <value>命令行类型 {0} 不能是泛型类型或在泛型类型中。</value>
+  </data>
+  <data name="DCL301_Message" xml:space="preserve">
+    <value>命令行类型 {0} 不能是泛型类型或在泛型类型中。</value>
+  </data>
+  <data name="DCL204" xml:space="preserve">
+    <value>选项名出现了重复</value>
+  </data>
+  <data name="DCL204_Message" xml:space="preserve">
+    <value>选项名出现了重复 {0}</value>
+  </data>
+  <data name="DCL204_Description" xml:space="preserve">
+    <value>选项名出现了重复 {0}</value>
+  </data>
+  <data name="DCL103" xml:space="preserve">
+    <value>选项名无效</value>
+  </data>
+  <data name="DCL103_Description" xml:space="preserve">
+    <value>选项名 {0} 不应为空字符串，不应有 '-' 前缀，不应包含不支持的字符</value>
+  </data>
+  <data name="DCL103_Message" xml:space="preserve">
+    <value>选项名 {0} 不应为空字符串，不应有 '-' 前缀，不应包含不支持的字符</value>
   </data>
 </root>

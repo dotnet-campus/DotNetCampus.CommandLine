@@ -1,0 +1,97 @@
+using DotNetCampus.Cli.Utils;
+using Microsoft.CodeAnalysis;
+
+namespace DotNetCampus.CommandLine.Generators.Models;
+
+internal record CommandObjectGeneratingModel
+{
+    private static readonly SymbolDisplayFormat SimpleContainingTypeFormat = new SymbolDisplayFormat(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+    public required string Namespace { get; init; }
+
+    public required INamedTypeSymbol CommandObjectType { get; init; }
+
+    public required bool IsPublic { get; init; }
+
+    public required string? CommandNames { get; init; }
+
+    public required bool UseFullStackParser { get; init; }
+
+    public required bool IsHandler { get; init; }
+
+    public required IReadOnlyList<RawArgumentPropertyGeneratingModel> RawArgumentsProperties { get; init; }
+
+    public required IReadOnlyList<OptionalArgumentPropertyGeneratingModel> OptionProperties { get; init; }
+
+    public required IReadOnlyList<PositionalArgumentPropertyGeneratingModel> PositionalArgumentProperties { get; init; }
+
+    public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
+
+    public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
+    {
+        var name = commandObjectType.ToDisplayString(SimpleContainingTypeFormat).Replace('.', '_');
+        return $"{name}Builder";
+    }
+
+    public int GetCommandLevel() => CommandNames switch
+    {
+        null => 0,
+        { } names => names.Count(x => x == ' ') + 1,
+    };
+
+    public string? GetPascalCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(NamingHelper.MakePascalCase));
+    }
+
+    public IEnumerable<PositionalArgumentPropertyGeneratingModel> EnumeratePositionalArgumentExcludingSameNameOptions()
+    {
+        var optionNames = new HashSet<string>(OptionProperties.Select(x => x.PropertyName));
+        foreach (var positionalArgumentProperty in PositionalArgumentProperties)
+        {
+            if (!optionNames.Contains(positionalArgumentProperty.PropertyName))
+            {
+                yield return positionalArgumentProperty;
+            }
+        }
+    }
+
+    public string? GetKebabCaseCommandNames()
+    {
+        if (CommandNames is not { } commandNames)
+        {
+            return null;
+        }
+        return string.Join(" ", commandNames.Split([' '], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => NamingHelper.MakeKebabCase(x, false, false)));
+    }
+
+    public IEnumerable<ITypeSymbol> EnumerateEnumPropertyTypes()
+    {
+        var enums = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+
+        foreach (var option in OptionProperties)
+        {
+            if (option.Type.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol)
+            {
+                enums.Add(enumTypeSymbol);
+            }
+        }
+        foreach (var value in PositionalArgumentProperties)
+        {
+            if (value.Type.GetSymbolInfoAsCommandProperty().AsEnumSymbol() is { } enumTypeSymbol)
+            {
+                enums.Add(enumTypeSymbol);
+            }
+        }
+        return enums;
+    }
+}

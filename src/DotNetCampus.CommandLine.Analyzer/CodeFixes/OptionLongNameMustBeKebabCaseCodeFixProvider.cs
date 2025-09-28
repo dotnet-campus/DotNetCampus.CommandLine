@@ -40,11 +40,10 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
         var diagnostic = context.Diagnostics.First();
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        ExpressionSyntax? syntax = root.FindNode(diagnosticSpan) switch
+        var syntax = root.FindNode(diagnosticSpan) switch
         {
-            AttributeArgumentSyntax attributeArgumentSyntax => attributeArgumentSyntax.Expression,
-            ExpressionSyntax expressionSyntax => expressionSyntax,
-            _ => null,
+            LiteralExpressionSyntax expressionSyntax => expressionSyntax,
+            { } node => node.DescendantNodes().OfType<LiteralExpressionSyntax>().FirstOrDefault(),
         };
         // 判断此 syntax 是属于 CommandAttribute 还是 OptionAttribute。
         var attributeSyntax = syntax?.FirstAncestorOrSelf<AttributeSyntax>();
@@ -62,7 +61,7 @@ public class OptionLongNameMustBeKebabCaseCodeFixProvider : CodeFixProvider
         }
     }
 
-    private async Task<Solution> MakeKebabCaseAsync(Document document, ExpressionSyntax expressionSyntax,
+    private async Task<Solution> MakeKebabCaseAsync(Document document, LiteralExpressionSyntax expressionSyntax,
         bool hasSeparator, CancellationToken cancellationToken)
     {
         var expression = expressionSyntax.ToString();

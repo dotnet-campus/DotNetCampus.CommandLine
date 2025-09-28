@@ -1,5 +1,4 @@
 ﻿#define Benchmark
-using System.Data.Common;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
@@ -11,7 +10,7 @@ class Program
 {
     static void Main(string[] args)
     {
-#if Benchmark
+#if !Benchmark
         // 第一次运行，排除类型初始化的影响，只测试代码执行性能。
         // 注释掉这句话，可以：
         // 1. 测试带类型初始化的性能
@@ -22,10 +21,11 @@ class Program
         stopwatch.Stop();
         Console.WriteLine($"[# Elapsed: {stopwatch.Elapsed.TotalMicroseconds} us #]");
 #else
-        const int testCount = 1000000;
+        const int warmupCount = 10000;
+        const int testCount = 10000000;
         CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
 
-        for (var i = 0; i < testCount; i++)
+        for (var i = 0; i < warmupCount; i++)
         {
             dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
             dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
@@ -39,53 +39,56 @@ class Program
         Console.WriteLine("| Version | Parse   | As(Parser) | As(Runtime) |");
         Console.WriteLine("| ------- | ------- | ---------- | ----------- |");
 
-        Console.Write("| 3.x     | ");
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
         {
-            _ = dotnetCampus.Cli.CommandLine.Parse(args);
+            Console.Write("| 3.x     | ");
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = dotnetCampus.Cli.CommandLine.Parse(args);
+            }
+            stopwatch.Stop();
+            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
+            var oldCommandLine = dotnetCampus.Cli.CommandLine.Parse(args);
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = oldCommandLine.As(new OptionsParser());
+            }
+            stopwatch.Stop();
+            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = oldCommandLine.As<Options>();
+            }
+            stopwatch.Stop();
+            Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
         }
-        stopwatch.Stop();
-        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-        var oldCommandLine = dotnetCampus.Cli.CommandLine.Parse(args);
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
         {
-            _ = oldCommandLine.As(new OptionsParser());
+            Console.Write("| 4.x     | ");
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = CommandLine.Parse(args, parsingOptions);
+            }
+            stopwatch.Stop();
+            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
+            var newCommandLine = CommandLine.Parse(args, parsingOptions);
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = newCommandLine.As<Options>(OptionsBuilder.CreateInstance);
+            }
+            stopwatch.Stop();
+            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
+            stopwatch.Restart();
+            for (var i = 0; i < testCount; i++)
+            {
+                _ = newCommandLine.As<Options>();
+            }
+            stopwatch.Stop();
+            Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
         }
-        stopwatch.Stop();
-        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = oldCommandLine.As<Options>();
-        }
-        stopwatch.Stop();
-        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
-
-        Console.Write("| 4.x     | ");
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = CommandLine.Parse(args, parsingOptions);
-        }
-        stopwatch.Stop();
-        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-        var newCommandLine = CommandLine.Parse(args, parsingOptions);
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = newCommandLine.As<Options>(OptionsBuilder.CreateInstance);
-        }
-        stopwatch.Stop();
-        Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
-        stopwatch.Restart();
-        for (var i = 0; i < testCount; i++)
-        {
-            _ = newCommandLine.As<Options>();
-        }
-        stopwatch.Stop();
-        Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
 #endif
     }
 
@@ -107,10 +110,6 @@ class Program
         {
             Run4xInterceptor(args);
         }
-        else if (args[0] == "4.x-module")
-        {
-            Run4xModule(args);
-        }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -129,52 +128,6 @@ class Program
     private static void Run4xInterceptor(string[] args)
     {
         _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Run4xModule(string[] args)
-    {
-        Initialize();
-        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void Initialize()
-    {
-        // DefaultOptions { CommandName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.DefaultOptions>(
-            null,
-            global::DotNetCampus.Cli.DefaultOptionsBuilder.CreateInstance);
-
-        // EditOptions { CommandName = "Edit" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.EditOptions>(
-            "Edit",
-            global::DotNetCampus.Cli.Tests.Fakes.EditOptionsBuilder.CreateInstance);
-
-        // Options { CommandName = null }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.Options>(
-            null,
-            global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance);
-
-        // PrintOptions { CommandName = "Print" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.PrintOptions>(
-            "Print",
-            global::DotNetCampus.Cli.Tests.Fakes.PrintOptionsBuilder.CreateInstance);
-
-        // SampleCommandHandler { CommandName = "sample" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleCommandHandler>(
-            "sample",
-            global::DotNetCampus.Cli.SampleCommandHandlerBuilder.CreateInstance);
-
-        // SampleOptions { CommandName = "sample-options" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.SampleOptions>(
-            "sample-options",
-            global::DotNetCampus.Cli.SampleOptionsBuilder.CreateInstance);
-
-        // ShareOptions { CommandName = "Share" }
-        global::DotNetCampus.Cli.CommandRunner.Register<global::DotNetCampus.Cli.Tests.Fakes.ShareOptions>(
-            "Share",
-            global::DotNetCampus.Cli.Tests.Fakes.ShareOptionsBuilder.CreateInstance);
     }
 }
 

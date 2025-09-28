@@ -69,7 +69,7 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The command-line option/command definition names should be kebab-case, even though you can use any kind of style in the command line environment..
+        ///   Looks up a localized string similar to The option/command name should be kebab-case nomenclature to disambiguate.
         /// </summary>
         public static string DCL101_Description {
             get {
@@ -87,7 +87,7 @@ namespace DotNetCampus.CommandLine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The option/command definition long name &apos;{0}&apos; should be kebab-case, even though you can use any kind of style in the command line environment..
+        ///   Looks up a localized string similar to The option/command name should be kebab-case nomenclature to disambiguate.
         /// </summary>
         public static string DCL101_Message {
             get {
@@ -119,6 +119,33 @@ namespace DotNetCampus.CommandLine.Properties {
         public static string DCL102_Message {
             get {
                 return ResourceManager.GetString("DCL102_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option name is invalid.
+        /// </summary>
+        public static string DCL103 {
+            get {
+                return ResourceManager.GetString("DCL103", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option name {0} must not be empty string, and not starts with &apos;-&apos;, and not contains invalid characters..
+        /// </summary>
+        public static string DCL103_Description {
+            get {
+                return ResourceManager.GetString("DCL103_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The option name {0} must not be empty string, and not starts with &apos;-&apos;, and not contains invalid characters..
+        /// </summary>
+        public static string DCL103_Message {
+            get {
+                return ResourceManager.GetString("DCL103_Message", resourceCulture);
             }
         }
         
@@ -254,6 +281,60 @@ namespace DotNetCampus.CommandLine.Properties {
         public static string DCL203_Message {
             get {
                 return ResourceManager.GetString("DCL203_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name.
+        /// </summary>
+        public static string DCL204 {
+            get {
+                return ResourceManager.GetString("DCL204", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name {0}.
+        /// </summary>
+        public static string DCL204_Description {
+            get {
+                return ResourceManager.GetString("DCL204_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicated option name {0}.
+        /// </summary>
+        public static string DCL204_Message {
+            get {
+                return ResourceManager.GetString("DCL204_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type must not be a generic type or be declared in a generic type.
+        /// </summary>
+        public static string DCL301 {
+            get {
+                return ResourceManager.GetString("DCL301", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type {0} must not be a generic type or be declared in a generic type..
+        /// </summary>
+        public static string DCL301_Description {
+            get {
+                return ResourceManager.GetString("DCL301_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command type {0} must not be a generic type or be declared in a generic type..
+        /// </summary>
+        public static string DCL301_Message {
+            get {
+                return ResourceManager.GetString("DCL301_Message", resourceCulture);
             }
         }
     }

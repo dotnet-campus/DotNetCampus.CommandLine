@@ -1,252 +1,306 @@
-﻿namespace DotNetCampus.Cli;
+using System.Diagnostics.Contracts;
+using System.Runtime.Versioning;
+using DotNetCampus.Cli.Utils;
+
+namespace DotNetCampus.Cli;
 
 /// <summary>
-/// 命令行参数的风格规范。
-/// 不同的命令行工具可能使用不同的参数风格，本枚举定义了常见的几种命令行参数风格。
+/// 详细指定一种命令行风格的细节。
 /// </summary>
-public enum CommandLineStyle
+public readonly partial record struct CommandLineStyle()
+{
+    private readonly BooleanValues16 _booleans;
+
+    /// <summary>
+    /// 直接由程序员提前算好各种属性赋值完成后的魔数，节省应用程序启动期间的额外计算。
+    /// </summary>
+    /// <param name="magic">魔数。</param>
+    internal CommandLineStyle(ushort magic) : this()
+    {
+        _booleans = new BooleanValues16(magic);
+    }
+
+    /// <summary>
+    /// 允许用户在命令行中使用的命令行参数风格。
+    /// </summary>
+    public CommandNamingPolicy NamingPolicy
+    {
+        // [0] 表示是否额外编译时转换以支持 PascalCase/CamelCase 命名法
+        // [1] 表示视选项上定义的命名法为 kebab-case，并允许用户使用此 kebab-case 命名法输入命令
+        get => _booleans[0, 1] switch
+        {
+            (true, true) => CommandNamingPolicy.Both,
+            (true, false) => CommandNamingPolicy.KebabCase,
+            (false, true) => CommandNamingPolicy.PascalCase,
+            (false, false) => CommandNamingPolicy.Ordinal,
+        };
+        init => _booleans[0, 1] = value switch
+        {
+            CommandNamingPolicy.Both => (true, true),
+            CommandNamingPolicy.KebabCase => (true, false),
+            CommandNamingPolicy.PascalCase => (false, true),
+            CommandNamingPolicy.Ordinal => (false, false),
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+        };
+    }
+
+    /// <summary>
+    /// 指定命令行选项前缀的风格。
+    /// </summary>
+    public CommandOptionPrefix OptionPrefix
+    {
+        get => _booleans[2, 3, 4] switch
+        {
+            (false, false, false) => CommandOptionPrefix.DoubleDash,
+            (false, false, true) => CommandOptionPrefix.SingleDash,
+            (false, true, false) => CommandOptionPrefix.Slash,
+            (false, true, true) => CommandOptionPrefix.SlashOrDash,
+            (true, _, _) => CommandOptionPrefix.Any,
+        };
+        init => _booleans[2, 3, 4] = value switch
+        {
+            CommandOptionPrefix.DoubleDash => (false, false, false),
+            CommandOptionPrefix.SingleDash => (false, false, true),
+            CommandOptionPrefix.Slash => (false, true, false),
+            CommandOptionPrefix.SlashOrDash => (false, true, true),
+            CommandOptionPrefix.Any => (true, false, false),
+            _ => (true, true, true),
+        };
+    }
+
+    /// <summary>
+    /// 在单独的选项没有特别指定时，默认是否区分大小写。
+    /// </summary>
+    public bool CaseSensitive
+    {
+        get => _booleans[5];
+        init => _booleans[5] = value;
+    }
+
+    /// <summary>
+    /// 是否支持长选项。
+    /// </summary>
+    public bool SupportsLongOption
+    {
+        get => _booleans[6];
+        init => _booleans[6] = value;
+    }
+
+    /// <summary>
+    /// 是否支持短选项。
+    /// </summary>
+    public bool SupportsShortOption
+    {
+        get => _booleans[7];
+        init => _booleans[7] = value;
+    }
+
+    /// <summary>
+    /// 当支持短选项时，是否支持将多个短选项组合在一起使用（短选项捆绑）。<br/>
+    /// 例如 -abc 等同于 -a -b -c。<br/>
+    /// 如果为 <see langword="false"/>，则 -abc 会被视为一个名为 "abc" 的短选项。
+    /// </summary>
+    /// <remarks>
+    /// 此选项与 <see cref="SupportsMultiCharShortOption"/> 互斥。
+    /// </remarks>
+    public bool SupportsShortOptionCombination
+    {
+        get => _booleans[8];
+        init => _booleans[8] = value;
+    }
+
+    /// <summary>
+    /// 当支持短选项时，是否支持多字符短选项名称。<br/>
+    /// 例如 -tl 作为 --terminal-logger 的短选项。
+    /// </summary>
+    /// <remarks>
+    /// 此选项与 <see cref="SupportsShortOptionCombination"/> 互斥。
+    /// </remarks>
+    public bool SupportsMultiCharShortOption
+    {
+        get => _booleans[9];
+        init => _booleans[9] = value;
+    }
+
+    /// <summary>
+    /// 当支持短选项时，是否支持短选项直接跟值（不使用分隔符）。<br/>
+    /// 例如 -abc 会被视为短选项 -a，值为 "bc"。<br/>
+    /// 如果为 <see langword="false"/>，则会根据 <see cref="SupportsShortOptionCombination"/> 的值来决定
+    /// -abc 是一个名为 "abc" 的短选项，还是 -a -b -c 三个短选项。
+    /// </summary>
+    public bool SupportsShortOptionValueWithoutSeparator
+    {
+        get => _booleans[10];
+        init => _booleans[10] = value;
+    }
+
+    /// <summary>
+    /// 是否支持使用空格分隔选项名和选项值。<br/>
+    /// 例如 --option value 等同于 --option=value。<br/>
+    /// 如果为 <see langword="false"/>，则 --option value 会被视为 --option 选项，value 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsSpaceSeparatedOptionValue
+    {
+        get => _booleans[11];
+        init => _booleans[11] = value;
+    }
+
+    /// <summary>
+    /// 是否支持为布尔选项显式指定值。<br/>
+    /// 例如 --option true, --option false, --option:1, --option:0 等等。<br/>
+    /// 如果为 <see langword="false"/>，则 --option true 会被视为 --option 选项，true 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsExplicitBooleanOptionValue
+    {
+        get => _booleans[12];
+        init => _booleans[12] = value;
+    }
+
+    /// <summary>
+    /// 当选项值为集合类型时，是否支持使用空格分隔多个选项值。<br/>
+    /// 例如 --option value1 value2 等同于 --option value1,value2。<br/>
+    /// 如果为 <see langword="false"/>，则 --option value1 value2 会被视为 --option 的值为 "value1"，而 "value2" 会被视为下一个位置参数或选项。
+    /// </summary>
+    public bool SupportsSpaceSeparatedCollectionValues
+    {
+        get => _booleans[13];
+        init => _booleans[13] = value;
+    }
+
+    /// <summary>
+    /// 遇到未知选项时，命令行解析器应如何处理后续的非选项参数。
+    /// </summary>
+    public UnknownOptionBehavior UnknownOptionTakesValue
+    {
+        get => _booleans[14, 15] switch
+        {
+            (false, false) => UnknownOptionBehavior.TakesNoValue,
+            (false, true) => UnknownOptionBehavior.TakesOptionalValue,
+            (true, _) => UnknownOptionBehavior.TakesAllValues,
+        };
+        init => _booleans[14, 15] = value switch
+        {
+            UnknownOptionBehavior.TakesNoValue => (false, false),
+            UnknownOptionBehavior.TakesOptionalValue => (false, true),
+            UnknownOptionBehavior.TakesAllValues => (true, false),
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+        };
+    }
+
+    /// <summary>
+    /// 允许用户使用哪些分隔符来分隔选项名和选项值。<br/>
+    /// 如 ':', '=', ' ' 分别对应: --option:value, --option=value, --option value。
+    /// </summary>
+    /// <remarks>
+    /// 如果指定空格(' ')，则表示选项名和选项值之间可以用空格分隔，如 --option value。<br/>
+    /// 如果指定冒号(':')，则表示选项名和选项值之间可以用冒号分隔，如 --option:value。<br/>
+    /// 如果指定等号('=')，则表示选项名和选项值之间可以用等号分隔，如 --option=value。<br/>
+    /// 而如果指定为空字符('\0')，则此字符只会对短选项生效，表示短选项可以直接跟值，如 -oValue。毕竟长选项跟值也分不开，对吧！<br/>
+    /// 基本上不会再存在其他种类的分隔符了……
+    /// </remarks>
+    public CommandSeparatorChars OptionValueSeparators { get; init; }
+
+    /// <summary>
+    /// 允许用户使用哪些分隔符来分隔集合类型的选项值。<br/>
+    /// 如 ',', ';', ' ' 分别对应: --option value1,value2, --option value1;value2, --option value1 value2。
+    /// </summary>
+    public CommandSeparatorChars CollectionValueSeparators { get; init; }
+
+    /// <summary>
+    /// 此命令行风格的名称，用于调试和日志记录。
+    /// </summary>
+    public string Name { get; init; } = "Custom";
+
+    /// <summary>
+    /// 获取用于存储样式细节的魔术数字。
+    /// </summary>
+    /// <returns>魔术数字。</returns>
+    [Pure]
+    internal ushort GetMagicNumber() => _booleans.GetMagicNumber();
+}
+
+/// <summary>
+/// 允许用户在命令行中使用的命令和选项的命名风格。
+/// </summary>
+[Flags]
+public enum CommandNamingPolicy : byte
 {
     /// <summary>
-    /// 灵活风格。<br/>
-    /// 根据实际传入的参数，自动识别并支持多种主流风格，包括 <see cref="Gnu"/>、<see cref="DotNet"/>、<see cref="PowerShell"/> 等风格。
-    /// 适用于希望为用户提供更灵活的参数传递体验的工具。
+    /// 无视明明风格，属性上定义的字符串必须与用户输入的命令或选项名称完全匹配。
     /// </summary>
-    /// <remarks>
-    /// 灵活风格是一种包容性最强的命令行参数风格，旨在让不熟悉命令行操作的用户也能轻松使用。它通过智能识别尝试理解用户输入的意图，支持多种参数格式共存。<br/>
-    /// <br/>
-    /// 详细规则：<br/>
-    /// 1. 参数前缀支持多种形式：双破折线(--), 单破折线(-), 斜杠(/，仅 Windows)<br/>
-    /// 2. 参数值分隔符兼容多种形式：空格、等号(=)、冒号(:)<br/>
-    /// 3. 参数命名风格兼容kebab-case(--parameter-name)、PascalCase(-ParameterName)和camelCase<br/>
-    /// 4. 默认大小写不敏感，便于初学者使用<br/>
-    /// 5. 支持短选项(-a)和长选项(--parameter)，优先识别长选项<br/>
-    /// 6. 支持布尔开关参数，可不带值或使用true/false、yes/no、on/off等常见值<br/>
-    /// 7. 支持位置参数，并可通过双破折号(--)标记位置参数的开始<br/>
-    /// 8. 支持有限的短选项组合(-abc)，但当发生歧义时优先解析为单个选项<br/>
-    /// 9. 当特性之间发生冲突时，优先保留简单、直观的用法，牺牲高级但复杂的功能<br/>
-    /// 10. 自动检测并处理常见的用户错误，如选项名称拼写错误提示最接近的选项<br/>
-    /// 11. 允许不同风格在同一命令行中混合使用<br/>
-    /// <br/>
-    /// 不支持的特性（为避免冲突）：<br/>
-    /// 1. 短选项组合中的最后一个选项不能直接附带参数（如-abc value，c无法接收value作为参数）<br/>
-    /// 2. 不支持POSIX风格中的特殊数字操作数形式（如-42表示数字42）<br/>
-    /// <br/>
-    /// <code>
-    /// # 长选项示例（多种风格）
-    /// app --parameter value      # GNU风格空格分隔
-    /// app --parameter=value      # GNU风格等号分隔
-    /// app --parameter:value      # DotNet风格冒号分隔
-    /// app -Parameter value       # PowerShell风格（Pascal命名）
-    /// app --param-name value     # Kebab-case命名
-    /// app --paramName value      # CamelCase命名
-    ///
-    /// # 短选项示例（兼容多种形式）
-    /// app -p value               # 短选项空格分隔
-    /// app -p=value               # 短选项等号分隔
-    /// app -p:value               # 短选项冒号分隔
-    /// app -pvalue                # 短选项直接跟值（GNU风格）
-    ///
-    /// # 斜杠选项（Windows风格，仅在 Windows 系统可用）
-    /// app /parameter value       # 斜杠前缀长选项
-    /// app /p value               # 斜杠前缀短选项
-    /// app /parameter:value       # 斜杠前缀冒号分隔（类MSBuild）
-    ///
-    /// # 布尔开关参数
-    /// app --enable               # 不带值的布尔参数（视为true）
-    /// app --no-feature           # 否定形式（视为false）
-    /// app --feature=false        # 显式布尔值
-    /// app --feature=off          # 替代布尔值形式
-    /// app -e                     # 短格式布尔参数
-    ///
-    /// # 位置参数和混合用法
-    /// app value1 --param value2  # 位置参数和命名参数混用
-    /// app --param value -- -value1 --value2  # -- 后的内容视为位置参数
-    /// app -a value1 --param-b value2 /c:value3  # 混合使用不同风格
-    ///
-    /// # 大小写不敏感（便于初学者）
-    /// app --PARAMETER value      # 等同于 --parameter value
-    /// app -P value               # 等同于 -p value
-    ///
-    /// # 有限支持的短选项组合
-    /// app -abc                   # 等同于 -a -b -c（所有都是布尔开关）
-    /// </code>
-    /// </remarks>
-    Flexible,
+    Ordinal = 0,
 
     /// <summary>
-    /// GNU风格，支持长选项和短选项：<br/>
-    /// 1. 双破折线(--) + 长选项名称，通过等号(=)或空格赋值<br/>
-    /// 2. 单破折线(-) + 短选项字符，可以空格赋值，也可以紧跟参数值<br/>
-    /// 3. 同时支持多个单字符选项合并（如-abc 表示 -a -b -c）
+    /// PascalCase/camelCase 风格命名。
     /// </summary>
-    /// <remarks>
-    /// GNU风格是现代命令行工具中最广泛采用的标准之一，包括大多数Linux工具和跨平台应用程序。<br/>
-    /// <br/>
-    /// 详细规则：<br/>
-    /// 1. 长选项以双破折线(--)开头，后跟由字母、数字、连字符组成的选项名<br/>
-    /// 2. 长选项参数可以用等号(=)连接或用空格分隔<br/>
-    /// 3. 短选项以单破折线(-)开头，后跟单个字符<br/>
-    /// 4. 短选项参数可以直接跟在选项字符后，无需空格<br/>
-    /// 5. 短选项也可以用空格分隔参数，或用等号连接参数<br/>
-    /// 6. 多个不需要参数的短选项可以合并（如 -abc 等同于 -a -b -c）<br/>
-    /// 7. 合并的短选项中，最后一个短选项可以带参数（如 -abc value 中 -c 接收 value 参数）<br/>
-    /// 8. 双破折号(--) 作为单独参数时表示选项结束标记，之后的所有内容都被视为位置参数<br/>
-    ///
-    /// <code>
-    /// # 长选项示例
-    /// app --option=value     # 长选项用等号赋值
-    /// app --option value     # 长选项用空格赋值
-    /// app --enable-feature   # 布尔类型长选项（不需要值）
-    /// app --no-color         # 否定形式的布尔长选项
-    ///
-    /// # 短选项示例
-    /// app -o=value           # 短选项用等号赋值
-    /// app -o value           # 短选项用空格赋值
-    /// app -ovalue            # 短选项直接跟参数值（无空格）
-    /// app -abc               # 多个布尔短选项合并（等同于 -a -b -c）
-    /// app -abc value         # 合并短选项，其中 c 接收参数值
-    ///
-    /// # 混合使用
-    /// app value1 value2 --option value -f  # 位置参数 + 长选项 + 短选项
-    /// app --option value -- -value1 --value2  # -- 后的 -value1 和 --value2 被视为位置参数
-    /// </code>
-    /// </remarks>
-    Gnu,
+    PascalCase = 1,
 
     /// <summary>
-    /// POSIX/UNIX风格，类似GNU但更严格：<br/>
-    /// 1. 支持 - 开头的短选项，单个字符<br/>
-    /// 2. 短选项可以组合使用（-abc 表示 -a -b -c）<br/>
-    /// 3. 需要参数的选项必须与参数分开或使用特定格式
+    /// kebab-case 风格命名。
     /// </summary>
     /// <remarks>
-    /// POSIX风格是UNIX系统中规范的命令行参数格式，相比GNU风格更加严格和精简，许多传统UNIX工具遵循此规范。<br/>
-    /// <br/>
-    /// 详细规则：<br/>
-    /// 1. 只支持短选项，以单破折线(-)开头，后跟单个字母<br/>
-    /// 2. 短选项参数必须用空格与选项分隔（标准做法）<br/>
-    /// 3. 不需要参数的短选项（布尔选项）可以组合在一起（如 -abc 等同于 -a -b -c）<br/>
-    /// 4. 在组合的短选项中，通常不支持为最后一个选项提供参数（这点与GNU不同）<br/>
-    /// 5. 标准POSIX不支持长选项（以--开头）<br/>
-    /// 6. 有些遵循POSIX的工具允许用破折线后跟操作数而不是选项（如 -42 表示数字42）<br/>
-    /// 7. 双破折号(--)作为选项终止符，之后的参数被当作操作数而非选项<br/>
-    ///
-    /// <code>
-    /// # 标准短选项
-    /// app -o value           # 短选项用空格赋值
-    /// app -a                 # 布尔短选项
-    /// app -abc               # 多个布尔短选项合并（等同于 -a -b -c）
-    ///
-    /// # 选项结束标记
-    /// app -a -- -b file.txt  # -- 后的 -b 被视为文件名而非选项
-    /// app -a -b -- -c        # -a 和 -b 是选项，-c 是参数
-    ///
-    /// # 位置参数
-    /// app file1.txt -a file2.txt  # file1.txt 和 file2.txt 是位置参数
-    /// </code>
+    /// 由于我们已经约定在定义属性时，属性已经用 kebab-case 命名风格标记了名字，所以此选项实际上含义与 <see cref="Ordinal"/> 是等同的。
     /// </remarks>
-    Posix,
+    KebabCase = 1 << 1,
 
     /// <summary>
-    /// .NET CLI风格，使用冒号分隔参数：<br/>
-    /// 1. 短选项形式为 -参数:值<br/>
-    /// 2. 长选项可以是 --参数:值<br/>
-    /// 3. 也支持斜杠前缀 /参数:值（仅 Windows 环境下可用）
+    /// 以 kebab-case 命名风格为主，兼顾支持 PascalCase/camelCase。
     /// </summary>
-    /// <remarks>
-    /// 这种风格在现代.NET工具链（dotnet CLI、NuGet、MSBuild等）和其他Microsoft工具中广泛使用。<br/>
-    /// <br/>
-    /// 详细规则：<br/>
-    /// 1. 支持使用冒号(:)作为选项和参数值的分隔符<br/>
-    /// 2. 短选项以单破折线(-)开头，后跟选项名，然后是冒号和参数值<br/>
-    /// 3. 长选项以双破折线(--)开头，后跟选项名，然后是冒号和参数值<br/>
-    /// 4. 也支持使用斜杠(/)作为选项前缀，仅在Windows环境中可用<br/>
-    /// 5. 参数名可以是单个字母、多字符缩写或完整的单词，支持各种命名规范<br/>
-    /// 6. 布尔选项通常不需要值，或使用true/false、on/off等值<br/>
-    /// 7. 多个短选项一般不支持合并（与GNU/POSIX不同）<br/>
-    /// 8. 某些.NET工具也接受等号(=)作为选项和值的分隔符<br/>
-    ///
-    /// <code>
-    /// # 短选项示例
-    /// dotnet build -c:Release           # 短选项冒号语法
-    /// dotnet test -t:UnitTest           # 短选项指定测试类别
-    /// dotnet publish -o:./publish       # 指定输出目录
-    /// dotnet build -tl:off              # 双字符短选项
-    ///
-    /// # 长选项示例
-    /// dotnet build --verbosity:minimal  # 长选项冒号语法
-    /// dotnet run --project:App1         # 指定项目
-    /// msbuild --target:Rebuild          # MSBuild长选项
-    ///
-    /// # 不同命名风格
-    /// dotnet build -Configuration:Release      # PascalCase，单破折号
-    /// dotnet build --Configuration:Release     # PascalCase，双破折号
-    /// dotnet build /Configuration:Release      # PascalCase，斜杠前缀
-    /// dotnet test --test-category:UnitTest     # kebab-case，双破折号
-    /// dotnet run --projectName:App1            # camelCase，双破折号
-    ///
-    /// # 斜杠选项（Windows风格，仅在 Windows 系统可用）
-    /// msbuild /p:Configuration=Release  # MSBuild属性
-    /// dotnet test /blame                # 启用故障分析
-    /// dotnet nuget push /source:feed    # 指定源
-    /// dotnet test /tl:off               # 斜杠前缀的短选项
-    ///
-    /// # 布尔选项
-    /// dotnet build -m:1                 # 最大并行度
-    /// dotnet test --blame               # 不带值的布尔选项
-    /// dotnet build --no-restore         # 否定形式的布尔选项
-    ///
-    /// # 混合用法
-    /// dotnet publish -c:Release --no-build -o:./bin
-    /// dotnet test -Framework:net8.0 --verbosity:normal /blame
-    /// </code>
-    /// </remarks>
-    DotNet,
+    Both = PascalCase | KebabCase,
+}
+
+/// <summary>
+/// 指定命令行选项前缀的风格。
+/// </summary>
+public enum CommandOptionPrefix : byte
+{
+    /// <summary>
+    /// 使用双短横线（--）作为长选项前缀，使用单个短横线（-）作为短选项前缀。
+    /// </summary>
+    DoubleDash,
 
     /// <summary>
-    /// PowerShell风格，使用 - 开头，但参数名称通常是完整单词或驼峰形式：<br/>
-    /// 1. 长参数形式为 -参数名 值<br/>
-    /// 2. 支持不带值的开关参数（开关参数）<br/>
-    /// 3. 支持参数名称缩写
+    /// 使用单个短横线（-）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
     /// </summary>
-    /// <remarks>
-    /// PowerShell命令行风格在微软的PowerShell脚本语言和相关工具中使用，具有独特的参数处理方式。<br/>
-    /// <br/>
-    /// 详细规则：<br/>
-    /// 1. 参数名称前使用单个破折线(-)，后跟完整的参数名（通常是Pascal或Camel大小写）<br/>
-    /// 2. 参数名称与值之间用空格分隔<br/>
-    /// 3. 支持参数名称的部分匹配和自动补全（只要能唯一标识参数）<br/>
-    /// 4. 支持位置参数（根据位置而非参数名赋值）<br/>
-    /// 5. 布尔开关参数不需要显式值（存在即为true）<br/>
-    /// 6. 可以使用冒号语法传递数组或哈希表值<br/>
-    /// 7. 不支持GNU/POSIX风格的短选项合并<br/>
-    /// 8. 支持使用双引号或单引号包围包含空格的参数值<br/>
-    /// 9. 支持参数别名（一个参数可以有多个名称）<br/>
-    ///
-    /// <code>
-    /// # 基本参数用法
-    /// Get-Process -Name chrome           # 带值的标准参数
-    /// New-Item -Path "C:\temp" -ItemType Directory  # 多个参数
-    ///
-    /// # 开关参数（布尔参数）
-    /// Remove-Item -Recurse -Force        # 两个开关参数（无需值）
-    /// Copy-Item file.txt backup/ -Verbose  # 启用详细输出
-    ///
-    /// # 参数名称缩写
-    /// Get-Process -n chrome              # -n 是 -Name 的缩写
-    /// Get-ChildItem -Recurse -Fo *.txt   # -Fo 是 -Force 的缩写（只要能唯一识别）
-    ///
-    /// # 位置参数（无需指定参数名）
-    /// Get-Process chrome                 # 位置参数，等同于 -Name chrome
-    ///
-    /// # 数组参数
-    /// Get-Process -Name chrome,firefox,edge  # 逗号分隔的数组
-    /// Get-Process -ComputerName "srv1","srv2"  # 引号包围的数组元素
-    ///
-    /// # 复杂值和高级用法
-    /// New-Object -TypeName PSObject -Property @{Name="Value"; Count=1}  # 哈希表参数
-    /// Invoke-Command -ScriptBlock { Get-Process } -ComputerName Server01  # 脚本块参数
-    /// </code>
-    /// </remarks>
-    PowerShell,
+    SingleDash,
+
+    /// <summary>
+    /// 使用斜杠（/）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
+    /// </summary>
+    Slash,
+
+    /// <summary>
+    /// 使用斜杠（/）或单个短横线（-）作为长选项和短选项前缀。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
+    /// </summary>
+    SlashOrDash,
+
+    /// <summary>
+    /// 允许使用任意一种前缀风格（-、--、/）。<br/>
+    /// 注意：如果启用此选项，将不支持短选项组合和短选项直接跟值；仍支持多字符短选项，但解析会造成轻微的性能下降（因为会两次尝试匹配选项名）。
+    /// </summary>
+    Any,
+}
+
+/// <summary>
+/// 指定遇到未知选项时，命令行解析器应如何处理后续的非选项参数。
+/// </summary>
+public enum UnknownOptionBehavior : byte
+{
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，则视为位置参数。
+    /// </summary>
+    TakesNoValue,
+
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，最多取走一个作为选项值，其他视为位置参数。
+    /// </summary>
+    TakesOptionalValue,
+
+    /// <summary>
+    /// 遇到未知选项时，后续如果出现了非选项，取走直到下一个选项之前的所有值作为选项值。
+    /// </summary>
+    TakesAllValues,
 }

@@ -1,5 +1,4 @@
-<!-- filepath: d:\Codes\GitHub\dotnetCampus\DotNetCampus.CommandLine\docs\zh-hant\README.md -->
-# 命令行解析
+﻿# 命令列解析
 
 | [English][en] | [简体中文][zh-hans] | [繁體中文][zh-hant] |
 | ------------- | ------------------- | ------------------- |
@@ -8,7 +7,7 @@
 [zh-hans]: /docs/zh-hans/README.md
 [zh-hant]: /docs/zh-hant/README.md
 
-DotNetCampus.CommandLine 提供了簡單而高性能的命令行解析功能，得益於源代碼生成器的加持，它現在提供了更高效的解析能力和更友好的開發體驗。所有功能都位於 DotNetCampus.Cli 命名空間下。
+DotNetCampus.CommandLine 提供簡單且高效能的命令列解析功能。得益於原始碼產生器（以及攔截器），它現在提供更高效率的解析能力與更友善的開發體驗。所有功能均位於 `DotNetCampus.Cli` 命名空間下。
 
 ## 快速使用
 
@@ -17,258 +16,261 @@ class Program
 {
     static void Main(string[] args)
     {
-        // 從命令行參數創建一個 CommandLine 類型的新實例
+        // 從命令列參數建立一個新的 CommandLine 執行個體
         var commandLine = CommandLine.Parse(args);
 
-        // 將命令行解析為 Options 類型的實例
-        // 源生成器會自動為你處理解析過程，無需手動創建解析器
+        // 將命令列解析為 Options 型別的執行個體
+        // 原始碼產生器會自動處理解析過程，無需手動建立解析器
         var options = commandLine.As<Options>();
 
-        // 接下來，使用你的 options 對象編寫其他的功能
+        // 接下來，使用 options 物件撰寫其他功能
     }
 }
 ```
 
-你需要定義一個包含命令行參數映射的類型：
+你需要定義一個包含命令列參數對應的型別：
 
 ```csharp
-class Options
+public class Options
 {
-    [Value(0)]
-    public required string FilePath { get; init; }
+    [Option("debug")]
+    public required bool IsDebugMode { get; init; }
 
-    [Option('s', "silence")]
-    public bool IsSilence { get; init; }
+    [Option('c', "count")]
+    public required int TestCount { get; init; }
 
-    [Option('m', "mode")]
-    public string? StartMode { get; init; }
+    [Option('n', "test-name")]
+    public string? TestName { get; set; }
 
-    [Option("startup-sessions")]
-    public IReadOnlyList<string> StartupSessions { get; init; } = [];
+    [Option("test-category")]
+    public string? TestCategory { get; set; }
+
+    [Option('d', "detail-level")]
+    public DetailLevel DetailLevel { get; set; } = DetailLevel.Medium;
+
+    [Value(0, int.MaxValue)]
+    public IReadOnlyList<string> TestItems { get; init; } = null!;
+}
+
+public enum DetailLevel
+{
+    Low,
+    Medium,
+    High,
 }
 ```
 
-然後在命令行中使用不同風格的命令填充這個類型的實例。庫支持多種命令行風格：
+然後在命令列中使用不同風格的命令填充這個型別的執行個體。程式庫支援多種命令列風格：
 
-### Windows PowerShell 風格
+| 風格            | 範例                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| DotNet          | `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`         |
+| Windows 经典    | `demo.exe 1.txt 2.txt 3.txt -c 20 -TestName BenchmarkTest -DetailLevel High -Debug`        |
+| CMD             | `demo.exe 1.txt 2.txt 3.txt /c 20 /TestName BenchmarkTest /DetailLevel High /Debug`        |
+| Gnu             | `demo.exe 1.txt 2.txt 3.txt -c 20 --test-name BenchmarkTest --detail-level High --debug`   |
+| 彈性 (Flexible) | `demo.exe 1.txt 2.txt 3.txt --count:20 /TestName BenchmarkTest --detail-level=High -Debug` |
 
-```powershell
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s -Mode Edit -StartupSessions A B C
-```
+## 命令列風格
 
-### Windows CMD 風格
-
-```cmd
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" /s /Mode Edit /StartupSessions A B C
-```
-
-### Linux/GNU 風格
-
-```bash
-$ demo.exe "C:/Users/lvyi/Desktop/demo.txt" -s --mode Edit --startup-sessions A --startup-sessions B --startup-sessions C
-```
-
-### .NET CLI 風格
-```
-> demo.exe "C:\Users\lvyi\Desktop\demo.txt" -s:true --mode:Edit --startup-sessions:A;B;C
-```
-
-## 命令行風格
-
-DotNetCampus.CommandLine 支持多種命令行風格，你可以在解析時指定使用哪種風格：
+DotNetCampus.CommandLine 支援多種命令列風格，你可以在解析時指定使用哪種風格：
 
 ```csharp
-// 使用 .NET CLI 風格解析命令行參數
+// 使用 .NET CLI 風格解析命令列參數
 var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet);
 ```
 
-支持的風格包括：
+支援的風格包含：
 
-- `CommandLineStyle.Flexible`（默認）：智能識別多種風格，默認大小寫不敏感，是 DotNet/GNU/PowerShell 風格的有效組合
-  - 支持前面示例中所有風格的命令行參數，可正確解析
-  - 完整支持 DotNet 風格的所有命令行功能（包括列表和字典）
-  - 支持 GNU 風格中除短名稱接參數（如 `-o1.txt`）和短名稱縮寫（如 `-abc` 表示 `-a -b -c`）外的所有功能
-  - 由於 Posix 規則限制嚴格，Flexible 風格自然兼容 Posix 風格
-  - DotNet 風格本身兼容 PowerShell 命令行風格，因此 Flexible 風格也支持 PowerShell 風格
-- `CommandLineStyle.Gnu`：符合 GNU 規範的風格，默認大小寫敏感
-- `CommandLineStyle.Posix`：符合 POSIX 規範的風格，默認大小寫敏感
-- `CommandLineStyle.DotNet`：.NET CLI 風格，默認大小寫不敏感
-- `CommandLineStyle.PowerShell`：PowerShell 風格，默認大小寫不敏感
+- `CommandLineStyle.Flexible`（預設）：彈性風格，於各種風格間提供最大相容性，大小寫不敏感
+- `CommandLineStyle.DotNet`：.NET CLI 風格，大小寫敏感
+- `CommandLineStyle.Gnu`：符合 GNU 規範，大小寫敏感
+- `CommandLineStyle.Posix`：符合 POSIX 規範，大小寫敏感
+- `CommandLineStyle.Windows`：Windows 風格，大小寫不敏感，混用 `-` 和 `/` 作为选项前缀
 
-## 數據類型支持
+預設情況下，這些風格的詳細差異如下：
 
-庫支持多種數據類型的解析：
+| 風格              | Flexible       | DotNet         | Gnu               | Posix      | Windows      | URL               |
+| ----------------- | -------------- | -------------- | ----------------- | ---------- | ------------ | ----------------- |
+| 位置參數          | 支援           | 支援           | 支援              | 支援       | 支援         | 支援              |
+| 後置位置參數 `--` | 支援           | 支援           | 支援              | 支援       | 不支援       | 不支援            |
+| 大小寫            | 不敏感         | 敏感           | 敏感              | 敏感       | 不敏感       | 不敏感            |
+| 長選項            | 支援           | 支援           | 支援              | 不支援     | 支援         | 支援              |
+| 短選項            | 支援           | 支援           | 支援              | 支援       | 支援         | 不支援            |
+| 長選項前綴        | `--` `-` `/`   | `--`           | `--`              | (無)       | `-` `/`      |                   |
+| 短選項前綴        | `-` `/`        | `-`            | `-`               | `-`        | `-` `/`      |                   |
+| 長選項 ` `        | --option value | --option value | --option value    | -o value   | -o value     |                   |
+| 長選項 `=`        | --option=value | --option=value | --option=value    |            | -o=value     | option=value      |
+| 長選項 `:`        | --option:value | --option:value |                   |            | -o:value     |                   |
+| 短選項 ` `        | -o value       | -o value       | -o value          | -o value   | -o value     |                   |
+| 短選項 `=`        | -o=value       | -o=value       |                   |            | -o=value     | option=value      |
+| 短選項 `:`        | -o:value       | -o:value       |                   |            | -o:value     |                   |
+| 短選項 `null`     |                |                | -ovalue           |            |              |                   |
+| 多字元短選項      | -abc value     | -abc value     |                   |            | -abc value   |                   |
+| 長布林選項        | --option       | --option       | --option          |            | -Option      | option            |
+| 長布林選項 ` `    | --option true  | --option true  |                   |            | -Option true |                   |
+| 長布林選項 `=`    | --option=true  | --option=true  | --option=true[^1] |            | -Option=true |                   |
+| 長布林選項 `:`    | --option:true  | --option:true  |                   |            | -Option:true |                   |
+| 短布林選項        | -o             | -o             | -o                | -o         | -o           |                   |
+| 短布林選項 ` `    | -o true        | -o true        |                   |            | -o true      |                   |
+| 短布林選項 `=`    | -o=true        | -o=true        |                   |            | -o=true      | option=true       |
+| 短布林選項 `:`    | -o:true        | -o:true        |                   |            | -o:true      |                   |
+| 短布林選項 `null` |                |                | -o1               |            |              |                   |
+| 布林/開關值       | true/false     | true/false     | true/false        | true/false | true/false   | true/false        |
+| 布林/開關值       | yes/no         | yes/no         | yes/no            | yes/no     | yes/no       | yes/no            |
+| 布林/開關值       | on/off         | on/off         | on/off            | on/off     | on/off       | on/off            |
+| 布林/開關值       | 1/0            | 1/0            | 1/0               | 1/0        | 1/0          | 1/0               |
+| 多短布林合併      |                |                | -abc              | -abc       |              |                   |
+| 集合選項          | -o A -o B      | -o A -o B      | -o A -o B         | -o A -o B  | -o A -o B    | option=A&option=B |
+| 集合選項 ` `[^2]  |                |                |                   |            |              |                   |
+| 集合選項 `,`      | -o A,B,C       | -o A,B,C       | -o A,B,C          | -o A,B,C   | -o A,B,C     |                   |
+| 集合選項 `;`      | -o A;B;C       | -o A;B;C       | -o A;B;C          | -o A;B;C   | -o A;B;C     |                   |
+| 字典選項          | -o:A=X;B=Y     | -o:A=X;B=Y     |                   |            | -o:A=X;B=Y   |                   |
+| 命名法            | --kebab-case   | --kebab-case   | --kebab-case      |            |              | kebab-case        |
+| 命名法            | -PascalCase    |                |                   |            | -PascalCase  |                   |
+| 命名法            | -camelCase     |                |                   |            | -camelCase   |                   |
+| 命名法            | /PascalCase    |                |                   |            | /PascalCase  |                   |
+| 命名法            | /camelCase     |                |                   |            | /camelCase   |                   |
 
-1. **基本類型**: 字符串、整數、布爾值、枚舉等
-2. **集合類型**: 數組、列表、只讀集合、不可變集合
-3. **字典類型**: IDictionary、IReadOnlyDictionary、ImmutableDictionary等
+[^1]: GNU 風格並不支援布林選項顯式帶值，但因為這種情況沒有歧義，所以我們額外支援它。
+[^2]: 所有風格預設都不支援空格分隔集合，以儘可能避免與位置參數的歧義。但如果你需要，可以透過 `CommandLineParsingOptions.Style.SupportsSpaceSeparatedCollectionValues` 啟用它。
 
-### 布爾類型選項
+說明：
 
-對於布爾類型的選項，在命令行中有多種指定方式：
+1. 除 Windows 風格外，其他風格都支援使用 `--` 作為後置位置參數標記，其後所有參數皆視為位置參數；另外，URL 風格無法表達後置位置參數。
+2. 在 `--` 之前，選項與位置參數可以交錯出現，規則如下。
 
-- 僅指定選項名稱，表示 `true`：`-s` 或 `--silence`
-- 顯式指定值：`-s:true`、`-s=false`、`--silence:on`、`--silence=off`
+選項會優先取得緊跟的值；凡是能放進該選項的值都會被取走。一旦放不下，後面若還有值，就視為位置參數。
 
-### 集合類型選項
+例如，`--option` 是布林選項時，`--option true text` 或 `--option 1 text` 中的 `true` 與 `1` 會被 `--option` 取走，之後的 `text` 為位置參數。
+再例如，`--option` 是布林選項時，`--option text` 因為 `text` 不是布林值，所以 `text` 直接視為位置參數。
+再例如，若風格支援空白分隔集合（見上表），則當 `--option a b c` 是集合選項時，`a` `b` `c` 都會被取走，直到遇到下一個選項或 `--`。GNU 不支援空白分隔集合。
 
-對於集合類型的選項，可以通過多次指定同一選項，或使用分號分隔多個值：
+## 命名法
 
-```
-demo.exe --files file1.txt --files file2.txt
-demo.exe --files:file1.txt;file2.txt;file3.txt
-```
+1. 在程式碼中定義選項時，應使用 kebab-case 命名法
+   - [為什麼要這麼做？](https://github.com/dotnet-campus/DotNetCampus.CommandLine/blob/main/docs/analyzers/DCL101.md)
+   - 若推測你寫的不是 kebab-case，會提供警告 DCL101
+   - 你可以忽略該警告；無論實際字串為何，都當作 kebab-case（提供無歧義的單詞邊界資訊，見下例）
+2. 當你定義了被視為 kebab-case 的字串後
+   - 依據設定的解析風格，可使用 kebab-case / PascalCase / camelCase 三種風格
 
-### 字典類型選項
-
-對於字典類型的選項，支持多種傳入方式：
-
-```
-demo.exe --properties key1=value1 --properties key2=value2
-demo.exe --properties:key1=value1;key2=value2
-```
-
-## 位置參數
-
-除了命名選項外，你還可以使用位置參數，通過 `ValueAttribute` 指定參數的位置：
+範例：
 
 ```csharp
-class FileOptions
+[Command("open command-line")]
+public class Options
 {
-    [Value(0)]
-    public string InputFile { get; init; }
-    
-    [Value(1)]
-    public string OutputFile { get; init; }
-    
-    [Option('v', "verbose")]
-    public bool Verbose { get; init; }
+    [Option('o', "option-name")]
+    public required string OptionName { get; init; }
 }
 ```
 
-使用方式：
+此處有兩個 kebab-case：`Command` 特性與 `Option` 特性。可接受：
 
-```
-demo.exe input.txt output.txt --verbose
-```
+- DotNet/Gnu：`demo.exe open command-line --option-name value`
+- Windows：`demo.exe Open CommandLine -OptionName value`
+- CMD：`demo.exe Open CommandLine /optionName value`
 
-你也可以捕獲多個位置參數到一個數組或集合中：
+若改寫為其他風格，可能出現與預期不同（或是刻意的）結果：
 
 ```csharp
-class MultiFileOptions
+#pragma warning disable DCL101
+[Command("Open CommandLine")]
+public class Options
 {
-    [Value(0, Length = int.MaxValue)]
-    public string[] Files { get; init; } = [];
+    // 分析器警告：OptionName 不是 kebab-case，可視需要抑制 DCL101。
+    [Option('o', "OptionName")]
+    public required string OptionName { get; init; }
 }
+#pragma warning restore DCL101
 ```
 
-## 組合使用選項和位置參數
+因為仍視為 kebab-case，於是可接受：
 
-`ValueAttribute` 和 `OptionAttribute` 可以同時應用於同一個屬性：
+- DotNet/Gnu：`demo.exe Open CommandLine --OptionName value`
+- Windows：`demo.exe Open CommandLine -OptionName value`
+- CMD：`demo.exe Open CommandLine /optionName value`
+
+## 資料型別
+
+程式庫支援多種資料型別：
+
+1. **基本型別**：字串、整數、布林、列舉等
+2. **集合型別**：陣列、List、唯讀集合、不可變集合
+3. **字典型別**：`IDictionary`、`IReadOnlyDictionary`、`ImmutableDictionary` 等
+
+如何透過命令列傳入，詳見前面的大型表格。
+
+## 必需選項與預設值
+
+定義屬性時，可用下列標記：
+
+1. 使用 `required` 標記選項為必需
+2. 使用 `init` 標記選項為唯讀（初始化後不可改）
+3. 使用 `?` 標記選項可為 null
+
+實際指派的值依下表行為：
+
+| required | init | nullable | 集合屬性 | 行為         | 說明                             |
+| -------- | ---- | -------- | -------- | ------------ | -------------------------------- |
+| 1        | _    | _        | _        | 擲出例外     | 必須傳入，缺少則擲出例外         |
+| 0        | 1    | 1        | _        | null         | 可為 null，缺少則給 null         |
+| 0        | 1    | 0        | 1        | 空集合       | 集合永不為 null，缺少則給空集合  |
+| 0        | 1    | 0        | 0        | 預設值／空值 | 不可為 null，缺少則給預設值[^2]  |
+| 0        | 0    | _        | _        | 保留初始值   | 非必需或非立即，保留定義時初始值 |
+
+[^2]: 如果是值型別，則會賦值其預設值；如果是參考型別，目前只有一種情況，就是字串，會賦值為空字串 `""`。
+
+- 1 = 標記過
+- 0 = 未標記
+- _ = 不論是否標記
+
+1. 可空行為對參考與值型別一致（差別只是預設值對參考型別為 null）
+2. 缺少必需選項會擲出 `RequiredPropertyNotAssignedException`
+3. 「保留初始值」表示可直接在屬性定義時給初值：
 
 ```csharp
-class Options
+// 注意：只有未使用 required 與 init 時，初值才會生效。
+[Option('o', "option-name")]
+public string OptionName { get; set; } = "Default Value";
+```
+
+## 異常
+
+命令列程式庫的異常分為以下幾種：
+
+1. 命令列解析異常 `CommandLineParseException`
+    - 選項或位置參數未匹配異常
+    - 命令列參數格式異常
+    - 命令列值轉換異常
+2. 命令列物件建立異常
+    - 僅此一個 `RequiredPropertyNotAssignedException`，當屬性標記了 `required` 而未在命令列中傳入時發生異常
+3. 命令與子命令匹配異常
+    - 多次匹配異常 `CommandNameAmbiguityException`
+    - 未匹配異常 `CommandNameNotFoundException`
+
+一個很常見的情況是多個協同工作的應用程式未同步升級時，可能某程式使用了新的命令列選項呼叫了本程式，本程式當前版本不可能認識這種「下個版本」才會出現的選項。此時有可能需要忽略這種相容性錯誤（選項或位置參數未匹配異常）。如果你預感到這種情況會經常發生，你可以忽略這種錯誤：
+
+```csharp
+var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
 {
-    [Value(0), Option('f', "file")]
-    public string FilePath { get; init; }
-}
+    // 可以只忽略選項，也可以只忽略位置參數；也可以像這樣都忽略。
+    UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreAllUnknownArguments,
+});
 ```
 
-這樣，以下命令行都會將文件路徑賦值給 `FilePath` 屬性：
+## 命令與子命令
 
-```
-demo.exe file.txt
-demo.exe -f file.txt
-demo.exe --file file.txt
-```
+可使用命令處理器模式處理不同命令，類似 `git commit`、`git remote add`。提供多種方式：
 
-## 必需選項與可選選項
-
-在C# 11及以上版本中，可以使用`required`修飾符標記必需的選項：
+### 1. 使用委派處理
 
 ```csharp
-class Options
-{
-    [Option('i', "input")]
-    public required string InputFile { get; init; }  // 必需選項
-    
-    [Option('o', "output")]
-    public string? OutputFile { get; init; }         // 可選選項
-}
-```
-
-如果未提供必需選項，解析時會拋出`RequiredPropertyNotAssignedException`異常。
-
-## 屬性初始值與訪問器修飾符
-
-在定義選項類型時，需要注意屬性初始值與訪問器修飾符（`init`、`required`）之間的關係：
-
-```csharp
-class Options
-{
-    // 錯誤示例：當使用 init 或 required 時，默認值將被忽略
-    [Option('f', "format")]
-    public string Format { get; init; } = "json";  // 默認值不會生效！
-    
-    // 正確示例：使用 set 以保留默認值
-    [Option('f', "format")]
-    public string Format { get; set; } = "json";  // 默認值會正確保留
-}
-```
-
-### 關於屬性初始值的重要說明
-
-1. **使用 `init` 或 `required` 時的行為**：
-   - 當屬性包含 `required` 或 `init` 修飾符時，屬性的初始值會被忽略
-   - 如果命令行參數中未提供該選項的值，屬性將被設置為 `default(T)`（對於引用類型為 `null`）
-   - 這是由 C# 語言特性決定的，命令行庫如果希望突破此限制需要針對所有屬性排列組合進行處理，顯然是非常浪費的
-
-2. **保留默認值的方式**：
-   - 如果需要為屬性提供默認值，應使用 `{ get; set; }` 而非 `{ get; init; }`
-
-3. **可空類型與警告處理**：
-   - 對於非必需的引用類型屬性，應將其標記為可空（如 `string?`）以避免可空警告
-   - 對於值類型（如 `int`、`bool`），如果想保留默認值而非 `null`，不應將其標記為可空
-
-示例：
-
-```csharp
-class OptionsBestPractice
-{
-    // 必需選項：使用 required，無需擔心默認值
-    [Option("input")]
-    public required string InputFile { get; init; }
-    
-    // 可選選項：標記為可空類型以避免警告
-    [Option("output")]
-    public string? OutputFile { get; init; }
-    
-    // 需要默認值的選項：使用 set 而非 init
-    [Option("format")]
-    public string Format { get; set; } = "json";
-    
-    // 值類型選項：不需要標記為可空
-    [Option("count")]
-    public int Count { get; set; } = 1;
-}
-```
-
-## 命令處理與謂詞
-
-你可以使用命令處理器模式處理不同的命令（謂詞），類似於`git commit`、`git push`等。DotNetCampus.CommandLine 提供了多種添加命令處理器的方式：
-
-### 1. 使用委託處理命令
-
-最簡單的方式是通過委託處理命令，將命令選項類型和處理邏輯分離：
-
-```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.AddHandler<AddOptions>(options => { /* 處理add命令 */ })
-    .AddHandler<RemoveOptions>(options => { /* 處理remove命令 */ })
+var commandLine = CommandLine.Parse(args)
+    .AddHandler<AddOptions>(options => { /* 處理 add */ })
+    .AddHandler<RemoveOptions>(options => { /* 處理 remove */ })
     .Run();
 ```
-
-定義命令選項類時使用`Command`特性標記命令：
 
 ```csharp
 [Command("add")]
@@ -286,9 +288,7 @@ public class RemoveOptions
 }
 ```
 
-### 2. 使用 ICommandHandler 接口
-
-對於更複雜的命令處理邏輯，你可以創建實現 `ICommandHandler` 接口的類，將命令選項和處理邏輯封裝在一起：
+### 2. `ICommandHandler` 介面
 
 ```csharp
 [Command("convert")]
@@ -296,259 +296,462 @@ internal class ConvertCommandHandler : ICommandHandler
 {
     [Option('i', "input")]
     public required string InputFile { get; init; }
-    
+
     [Option('o', "output")]
     public string? OutputFile { get; init; }
-    
+
     [Option('f', "format")]
     public string Format { get; set; } = "json";
-    
+
     public Task<int> RunAsync()
     {
-        // 實現命令處理邏輯
+        // 命令處理邏輯
         Console.WriteLine($"Converting {InputFile} to {Format} format");
         // ...
-        return Task.FromResult(0); // 返回退出碼
+        return Task.FromResult(0); // 結束代碼
     }
 }
 ```
 
-然後直接添加到命令行解析器中：
-
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.AddHandler<ConvertCommandHandler>()
-    .Run();
+var commandLine = CommandLine.Parse(args)
+    .AddHandler<ConvertCommandHandler>()
+    .AddHandler<FooHandler>()
+    .AddHandler<BarHandler>(options => { /* 處理 remove */ })
+    .RunAsync();
 ```
 
-### 3. 使用程序集自動發現命令處理器
+### 3. 使用 ICommandHandler<TState> 介面
 
-為了更方便地管理大量命令且無需手動逐個添加，可以使用程序集自動發現功能，自動添加程序集中所有實現了 `ICommandHandler` 接口的類：
+有時候，程式的狀態不完全由命令列決定，程式內部也會有一些狀態會影響到命令列處理器的執行。由於我們前面使用 `AddHandler<T>` 沒有辦法傳入任何參數，所以我們還有其他方法傳入狀態進去：
 
 ```csharp
-// 定義一個部分類用於標記自動發現命令處理器
-[CollectCommandHandlersFromThisAssembly]
-internal partial class AssemblyCommandHandler;
-
-// 在程序入口添加所有命令處理器
-var commandLine = CommandLine.Parse(args);
-commandLine.AddHandlers<AssemblyCommandHandler>()
-    .Run();
+using var scope = serviceProvider.BeginScope();
+var state = scope.ServiceProvider.GetRequiredService<MyState>();
+var commandLine = CommandLine.Parse(args)
+    .ForState(state).AddHandler<CommandHandlerWithState>()
+    .RunAsync();
 ```
 
-通常，處理器類需要添加 `[Command]` 特性並實現 `ICommandHandler` 接口，它就會被自動發現和添加：
-
 ```csharp
-[Command("sample")]
-internal class SampleCommandHandler : ICommandHandler
+internal class CommandHandlerWithState : ICommandHandler
 {
-    [Option("SampleProperty")]
+    [Option('o', "option")]
     public required string Option { get; init; }
 
-    [Value(Length = int.MaxValue)]
-    public string? Argument { get; init; }
-
-    public Task<int> RunAsync()
+    public Task<int> RunAsync(MyState state)
     {
-        // 實現命令處理邏輯
-        return Task.FromResult(0);
+        // 這時，你可以額外使用這個傳入的 state。
     }
 }
 ```
 
-此外，你也可以創建一個沒有 `[Command]` 特性的命令處理器作為默認處理器。在程序集中最多只能有一個沒有 `[Command]` 特性的命令處理器，它將在沒有其他命令匹配時被使用：
+如果對同一個狀態可以執行多個處理器，可以一直鏈式呼叫 `AddHandler`；而如果不同的命令處理器要處理不同的狀態，可以再次使用 `ForState`；如果後面不再需要狀態，則 `ForState` 中不要傳入參數。一個更複雜的例子如下：
 
 ```csharp
-// 沒有 [Command] 特性的默認處理器
-internal class DefaultCommandHandler : ICommandHandler
-{
-    [Option('h', "help")]
-    public bool ShowHelp { get; init; }
+commandLine
+    .AddHandler<Handler0>()
+    .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
+    .ForState(state2).AddHandler<Handler3>()
+    .ForState().AddHandler<Handler4>()
+    .RunAsync();
+```
 
-    public Task<int> RunAsync()
-    {
-        // 處理默認命令，如顯示幫助信息等
-        if (ShowHelp)
-        {
-            Console.WriteLine("顯示幫助信息...");
-        }
-        return Task.FromResult(0);
-    }
+### 說明
+
+1. `[Command]` 支援多個單字，表示子命令（例：`[Command("remote add")]`）。
+2. 未標記 `[Command]`，或標記為 null / 空字串，表示預設命令（`[Command("")]`）。
+3. 多個處理器匹配同一命令會擲出 `CommandNameAmbiguityException`。
+4. 若有任何處理器為非同步，必須使用 `RunAsync`（否則編譯失敗）。
+
+## URL 協議支援
+
+可解析 URL 協議字串：
+
+```ini
+// scheme://command/subcommand/positional-argument1/positional-argument2?option1=value1&option2=value2
+```
+
+開頭示例命令列可寫成：
+
+```ini
+# `demo.exe 1.txt 2.txt -c:20 --test-name:BenchmarkTest --detail-level=High --debug`
+dotnet-campus://1.txt/2.txt?count=20&test-name=BenchmarkTest&detail-level=High&debug
+```
+
+特別說明：
+
+1. 集合型別可重複參數名：`tags=csharp&tags=dotnet`
+2. URL 中特殊與非 ASCII 字元會自動進行解碼
+
+## 原始碼產生器、攔截器與效能
+
+使用原始碼產生器與攔截器大幅提升效能。
+
+### 使用者程式碼範例
+
+```csharp
+public class BenchmarkOptions41
+{
+    [Option("debug")]
+    public required bool IsDebugMode { get; init; }
+
+    [Option('c', "count")]
+    public required int TestCount { get; init; }
+
+    [Option('n', "test-name")]
+    public string? TestName { get; set; }
+
+    [Option("test-category")]
+    public string? TestCategory { get; set; }
+
+    [Option('d', "detail-level")]
+    public DetailLevel DetailLevel { get; set; } = DetailLevel.Medium;
+
+    [Value(0, int.MaxValue)]
+    public IReadOnlyList<string> TestItems { get; init; } = null!;
 }
 ```
 
-這種方式特別適合大型應用或擴展性強的命令行工具，可以在不修改入口代碼的情況下添加新命令。
-
-### 異步命令處理
-
-對於需要異步執行的命令處理，可以使用`RunAsync`方法：
-
-```csharp
-await commandLine.AddHandler<ImportOptions>(async options => 
-{
-    await ImportDataAsync(options);
-    return 0;
-})
-.RunAsync();
-```
-
-## URL協議支持
-
-DotNetCampus.CommandLine 支持解析 URL 協議字符串：
-
-```
-dotnet-campus://open/document.txt?readOnly=true&mode=Display&silence=true&startup-sessions=89EA9D26-6464-4E71-BD04-AA6516063D83
-```
-
-URL協議解析的特點和用法：
-
-1. URL路徑部分（如示例中的 `open/document.txt`）會被解析為位置參數或謂詞加位置參數
-   - 路徑的第一部分可作為謂詞（需標記 `[Command]` 特性）
-   - 隨後的路徑部分會被解析為位置參數
-2. 查詢參數（`?` 後的部分）會被解析為命名選項
-3. 集合類型選項可通過重複參數名傳入多個值，如：`tags=csharp&tags=dotnet`
-4. URL中的特殊字符和非ASCII字符會自動進行URL解碼
-
-## 命名約定與最佳實踐
-
-為確保更好的兼容性和用戶體驗，我們建議使用 kebab-case 風格命名長選項：
-
-```csharp
-// 推薦
-[Option('o', "output-file")]
-public string OutputFile { get; init; }
-
-// 不推薦
-[Option('o', "OutputFile")]
-public string OutputFile { get; init; }
-```
-
-使用kebab-case命名的好處：
-
-1. 提供更清晰的單詞分割信息（如能猜出"DotNet-Campus"而不是"Dot-Net-Campus"）
-2. 解決數字從屬問題（如"Version2Info"是"Version2-Info"還是"Version-2-Info"）
-3. 與多種命令行風格更好地兼容
-
-## 源生成器、攔截器與性能優化
-
-DotNetCampus.CommandLine 使用源代碼生成器技術大幅提升了命令行解析的性能。其中的攔截器（[Interceptor](https://github.com/dotnet/roslyn/blob/main/docs/features/interceptors.md)）讓性能提升發揮得更淋漓盡致。
-
-### 攔截器的工作原理
-
-當你調用 `CommandLine.As<T>()` 或 `CommandLine.AddHandler<T>()` 等方法時，源生成器會自動生成攔截代碼，將調用重定向到編譯時生成的高性能代碼路徑。這使得命令行參數解析和對象創建的性能得到了大幅提升。
-
-例如，當你編寫以下代碼時：
-
-```csharp
-var options = CommandLine.Parse(args).As<Options>();
-```
-
-源生成器會攔截這個調用，自動生成類似以下的代碼來替代默認通過字典查找創建器的方式實現（舊版本曾使用過反射）：
-
-```csharp
-/// <summary>
-/// <see cref="global::DotNetCampus.Cli.CommandLine.As{Options}()"/> 方法的攔截器。攔截以提高性能。
-/// </summary>
-[global::System.Runtime.CompilerServices.InterceptsLocation(1, /* Program.Run4xInterceptor @Program.cs */ "G4GJAK7udHFnPkRUqV6VzzgRAABQcm9ncmFtLmNz")]
-public static T CommandLine_As_DotNetCampusCliTestsFakesOptions<T>(this global::DotNetCampus.Cli.CommandLine commandLine)
-    where T : global::DotNetCampus.Cli.Tests.Fakes.Options
-{
-    return (T)global::DotNetCampus.Cli.Tests.Fakes.OptionsBuilder.CreateInstance(commandLine);
-}
-```
-
-### 源生成器生成的代碼示例
-
-下面是一個簡單的命令行選項類型及其對應生成的源代碼示例：
-
-```csharp
-// 用戶代碼中的類型
-internal record DotNet03_MixedOptions
-{
-    [Option]
-    public int Number { get; init; }
-
-    [Option]
-    public required string Text { get; init; }
-
-    [Option]
-    public bool Flag { get; init; }
-}
-```
-
-對應生成的源：
+<details>
+  <summary>對應產生的原始碼</summary>
 
 ```csharp
 #nullable enable
-namespace DotNetCampus.Cli.Tests;
+using global::System;
+using global::DotNetCampus.Cli.Compiler;
+
+namespace DotNetCampus.Cli.Performance.Fakes;
 
 /// <summary>
-/// 輔助 <see cref="global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions"/> 生成命令行選項、謂詞或處理函數的創建。
+/// 辅助 <see cref="global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41"/> 生成命令行选项、子命令或处理函数的创建。
 /// </summary>
-internal sealed class DotNet03_MixedOptionsBuilder
+public sealed class BenchmarkOptions41Builder(global::DotNetCampus.Cli.CommandLine commandLine)
 {
-    public static object CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
+    public static readonly global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup CommandNameGroup = default;
+
+    public static global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 CreateInstance(global::DotNetCampus.Cli.CommandLine commandLine)
     {
-        var caseSensitive = commandLine.DefaultCaseSensitive;
-        var result = new global::DotNetCampus.Cli.Tests.DotNet03_MixedOptions
+        return new DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41Builder(commandLine).Build();
+    }
+
+    private global::DotNetCampus.Cli.Compiler.BooleanArgument IsDebugMode = new();
+
+    private global::DotNetCampus.Cli.Compiler.NumberArgument TestCount = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringArgument TestName = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringArgument TestCategory = new();
+
+    private __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__ DetailLevel = new();
+
+    private global::DotNetCampus.Cli.Compiler.StringListArgument TestItems = new();
+
+    public global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 Build()
+    {
+        if (commandLine.RawArguments.Count is 0)
         {
-            Number = commandLine.GetOption("number") ?? default,
-            Text = commandLine.GetOption("text") ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option '--text'. Command line: {commandLine}", "Text"),
-            Flag = commandLine.GetOption("flag") ?? default,
-            // There is no positional argument to be initialized.
+            return BuildDefault();
+        }
+
+        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(commandLine, "BenchmarkOptions41", 0)
+        {
+            MatchLongOption = MatchLongOption,
+            MatchShortOption = MatchShortOption,
+            MatchPositionalArguments = MatchPositionalArguments,
+            AssignPropertyValue = AssignPropertyValue,
         };
-        // There is no option to be assigned.
-        // There is no positional argument to be assigned.
+        parser.Parse().WithFallback(commandLine);
+        return BuildCore(commandLine);
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)
+    {
+        // 1. 先匹配 kebab-case 命名法（原样字符串）
+        if (namingPolicy.SupportsOrdinal())
+        {
+            // 1.1 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。
+            switch (longOption)
+            {
+                case "debug":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+                case "count":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "test-name":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "test-category":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+                case "detail-level":
+                    return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+
+            // 1.2 再按指定大小写匹配一遍（能应对不规范命令行大小写）。
+            var defaultComparison = defaultCaseSensitive
+                ? global::System.StringComparison.Ordinal
+                : global::System.StringComparison.OrdinalIgnoreCase;
+            if (longOption.Equals("debug".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+            }
+            if (longOption.Equals("count".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("test-name".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("test-category".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("detail-level".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+        }
+
+        // 2. 再匹配其他命名法（能应对所有不规范命令行大小写，并支持所有风格）。
+        if (namingPolicy.SupportsPascalCase())
+        {
+            var defaultComparison = defaultCaseSensitive
+                ? global::System.StringComparison.Ordinal
+                : global::System.StringComparison.OrdinalIgnoreCase;
+            if (longOption.Equals("Debug".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(IsDebugMode), 0, global::DotNetCampus.Cli.Compiler.OptionValueType.Boolean);
+            }
+            if (longOption.Equals("Count".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("TestName".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("TestCategory".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCategory), 3, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+            if (longOption.Equals("DetailLevel".AsSpan(), defaultComparison))
+            {
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            }
+        }
+
+        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)
+    {
+        // 1. 先快速原字符匹配一遍（能应对规范命令行大小写，并优化 DotNet / GNU 风格的性能）。
+        switch (shortOption)
+        {
+            // 属性 IsDebugMode 没有短名称，无需匹配。
+            case "c":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            case "n":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+            // 属性 TestCategory 没有短名称，无需匹配。
+            case "d":
+                return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+
+        var defaultComparison = defaultCaseSensitive
+            ? global::System.StringComparison.Ordinal
+            : global::System.StringComparison.OrdinalIgnoreCase;
+
+        // 2. 再按指定大小写指定命名法匹配一遍（能应对不规范命令行大小写）。
+        // 属性 IsDebugMode 没有短名称，无需匹配。
+        if (shortOption.Equals("c".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestCount), 1, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+        if (shortOption.Equals("n".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(TestName), 2, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+        // 属性 TestCategory 没有短名称，无需匹配。
+        if (shortOption.Equals("d".AsSpan(), defaultComparison))
+        {
+            return new global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch(nameof(DetailLevel), 4, global::DotNetCampus.Cli.Compiler.OptionValueType.Normal);
+        }
+
+        return global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch.NotMatch;
+    }
+
+    private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)
+    {
+        // 属性 TestItems 覆盖了所有位置参数，直接匹配。
+        return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("TestItems", 5, global::DotNetCampus.Cli.Compiler.PositionalArgumentValueType.Normal);
+    }
+
+    private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)
+    {
+        switch (propertyIndex)
+        {
+            case 0:
+                IsDebugMode = IsDebugMode.Assign(value);
+                break;
+            case 1:
+                TestCount = TestCount.Assign(value);
+                break;
+            case 2:
+                TestName = TestName.Assign(value);
+                break;
+            case 3:
+                TestCategory = TestCategory.Assign(value);
+                break;
+            case 4:
+                DetailLevel = DetailLevel.Assign(value);
+                break;
+            case 5:
+                TestItems = TestItems.Append(value);
+                break;
+        }
+    }
+
+    private global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 BuildCore(global::DotNetCampus.Cli.CommandLine commandLine)
+    {
+        var result = new global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41
+        {
+            // 1. There is no [RawArguments] property to be initialized.
+
+            // 2. [Option]
+            IsDebugMode = IsDebugMode.ToBoolean() ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option 'debug'. Command line: {commandLine}", "IsDebugMode"),
+            TestCount = TestCount.ToInt32() ?? throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain a required option 'count'. Command line: {commandLine}", "TestCount"),
+
+            // 3. [Value]
+            TestItems = TestItems.ToList() ?? [],
+        };
+
+        // 1. There is no [RawArguments] property to be assigned.
+
+        // 2. [Option]
+        if (TestName.ToString() is { } o0)
+        {
+            result.TestName = o0;
+        }
+        if (TestCategory.ToString() is { } o1)
+        {
+            result.TestCategory = o1;
+        }
+        if (DetailLevel.ToEnum() is { } o2)
+        {
+            result.DetailLevel = o2;
+        }
+
+        // 3. There is no [Value] property to be assigned.
+
         return result;
+    }
+
+    private global::DotNetCampus.Cli.Performance.Fakes.BenchmarkOptions41 BuildDefault()
+    {
+        throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
+    }
+
+    /// <summary>
+    /// Provides parsing and assignment for the enum type <see cref="global::DotNetCampus.Cli.Performance.Fakes.DetailLevel"/>.
+    /// </summary>
+    private readonly record struct __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__
+    {
+        /// <summary>
+        /// Indicates whether to ignore exceptions when parsing fails.
+        /// </summary>
+        public bool IgnoreExceptions { get; init; }
+
+        /// <summary>
+        /// Stores the parsed enum value.
+        /// </summary>
+        private global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? Value { get; init; }
+
+        /// <summary>
+        /// Assigns a value when a command line input is parsed.
+        /// </summary>
+        /// <param name="value">The parsed string value.</param>
+        public __GeneratedEnumArgument__DotNetCampus_Cli_Performance_Fakes_DetailLevel__ Assign(ReadOnlySpan<char> value)
+        {
+            Span<char> lowerValue = stackalloc char[value.Length];
+            for (var i = 0; i < value.Length; i++)
+            {
+                lowerValue[i] = char.ToLowerInvariant(value[i]);
+            }
+            global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? newValue = lowerValue switch
+            {
+                "low" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.Low,
+                "medium" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.Medium,
+                "high" => global::DotNetCampus.Cli.Performance.Fakes.DetailLevel.High,
+                _ when IgnoreExceptions => null,
+                _ => throw new global::DotNetCampus.Cli.Exceptions.CommandLineParseValueException($"Cannot convert '{value.ToString()}' to enum type 'DotNetCampus.Cli.Performance.Fakes.DetailLevel'."),
+            };
+            return this with { Value = newValue };
+        }
+
+        /// <summary>
+        /// Converts the parsed value to the enum type.
+        /// </summary>
+        public global::DotNetCampus.Cli.Performance.Fakes.DetailLevel? ToEnum() => Value;
     }
 }
 ```
 
-## 性能數據
+</details>
 
-源代碼生成器實現提供了極高的命令行解析性能：
+## 效能數據
 
-| Method                                  | Mean            | Error         | StdDev        | Median          | Gen0   | Gen1   | Allocated |
-|---------------------------------------- |----------------:|--------------:|--------------:|----------------:|-------:|-------:|----------:|
-| 'parse  [] --flexible'                  |        39.16 ns |      0.402 ns |      0.357 ns |        39.15 ns | 0.0124 |      - |     208 B |
-| 'parse  [] --gnu'                       |        38.22 ns |      0.518 ns |      0.459 ns |        38.30 ns | 0.0124 |      - |     208 B |
-| 'parse  [] --posix'                     |        38.45 ns |      0.792 ns |      0.741 ns |        38.45 ns | 0.0124 |      - |     208 B |
-| 'parse  [] --dotnet'                    |        42.14 ns |      0.878 ns |      2.588 ns |        42.06 ns | 0.0124 |      - |     208 B |
-| 'parse  [] --powershell'                |        38.67 ns |      0.772 ns |      1.451 ns |        38.42 ns | 0.0124 |      - |     208 B |
-| 'parse  [] -v=3.x -p=parser'            |        44.07 ns |      0.665 ns |      0.841 ns |        44.08 ns | 0.0220 |      - |     368 B |
-| 'parse  [] -v=3.x -p=runtime'           |       365.36 ns |      7.186 ns |     13.319 ns |       361.47 ns | 0.0367 |      - |     616 B |
-| 'parse  [PS1] --flexible'               |       907.15 ns |     17.887 ns |     38.504 ns |       899.46 ns | 0.1612 |      - |    2704 B |
-| 'parse  [PS1] --dotnet'                 |       969.51 ns |     18.977 ns |     31.179 ns |       964.56 ns | 0.1612 |      - |    2704 B |
-| 'parse  [PS1] -v=3.x -p=parser'         |       448.38 ns |      8.883 ns |     13.830 ns |       445.91 ns | 0.0715 |      - |    1200 B |
-| 'parse  [PS1] -v=3.x -p=runtime'        |       835.83 ns |     16.055 ns |     38.774 ns |       830.59 ns | 0.0858 |      - |    1448 B |
-| 'parse  [CMD] --flexible'               |       932.31 ns |     18.636 ns |     40.907 ns |       936.14 ns | 0.1612 |      - |    2704 B |
-| 'parse  [CMD] --dotnet'                 |       877.96 ns |      8.846 ns |      9.832 ns |       877.67 ns | 0.1612 |      - |    2704 B |
-| 'parse  [CMD] -v=3.x -p=parser'         |       438.09 ns |      8.591 ns |     11.469 ns |       433.77 ns | 0.0715 |      - |    1200 B |
-| 'parse  [CMD] -v=3.x -p=runtime'        |       822.05 ns |     16.417 ns |     25.560 ns |       811.08 ns | 0.0858 |      - |    1448 B |
-| 'parse  [GNU] --flexible'               |       880.14 ns |     17.627 ns |     36.794 ns |       878.35 ns | 0.1574 |      - |    2648 B |
-| 'parse  [GNU] --gnu'                    |       811.59 ns |     13.691 ns |     20.492 ns |       805.61 ns | 0.1554 |      - |    2608 B |
-| 'parse  [GNU] -v=3.x -p=parser'         |       492.48 ns |      9.757 ns |     11.615 ns |       491.95 ns | 0.0896 |      - |    1512 B |
-| 'parse  [GNU] -v=3.x -p=runtime'        |       873.40 ns |     15.873 ns |     24.713 ns |       865.86 ns | 0.1049 |      - |    1760 B |
-| 'handle [Edit,Print] --flexible'        |       693.30 ns |     13.894 ns |     28.066 ns |       681.77 ns | 0.2375 | 0.0019 |    3984 B |
-| 'handle [Edit,Print] -v=3.x -p=parser'  |       949.15 ns |     18.959 ns |     25.952 ns |       939.97 ns | 0.2775 | 0.0038 |    4648 B |
-| 'handle [Edit,Print] -v=3.x -p=runtime' |     6,232.90 ns |    122.601 ns |    217.924 ns |     6,190.80 ns | 0.2594 |      - |    4592 B |
-| 'parse  [URL]'                          |     2,942.05 ns |     54.322 ns |     76.152 ns |     2,926.04 ns | 0.4578 |      - |    7704 B |
-| 'parse  [URL] -v=3.x -p=parser'         |       121.43 ns |      2.457 ns |      5.496 ns |       121.10 ns | 0.0440 |      - |     736 B |
-| 'parse  [URL] -v=3.x -p=runtime'        |       462.92 ns |      9.017 ns |     10.023 ns |       464.26 ns | 0.0587 |      - |     984 B |
-| 'NuGet: CommandLineParser'              |   212,745.53 ns |  4,237.822 ns | 11,384.635 ns |   211,418.82 ns | 5.3711 |      - |   90696 B |
-| 'NuGet: System.CommandLine'             | 1,751,023.59 ns | 34,134.634 ns | 50,034.108 ns | 1,727,339.45 ns | 3.9063 |      - |   84138 B |
+解析空白命令列參數：
+
+| Method                        |         Mean |      Error |     StdDev |   Gen0 | Allocated |
+| ----------------------------- | -----------: | ---------: | ---------: | -----: | --------: |
+| 'parse [] -v=4.1 -p=flexible' |     27.25 ns |   0.485 ns |   0.454 ns | 0.0143 |     240 B |
+| 'parse [] -v=4.1 -p=dotnet'   |     27.35 ns |   0.471 ns |   0.440 ns | 0.0143 |     240 B |
+| 'parse [] -v=4.0 -p=flexible' |     97.16 ns |   0.708 ns |   0.628 ns | 0.0134 |     224 B |
+| 'parse [] -v=4.0 -p=dotnet'   |     95.90 ns |   0.889 ns |   0.742 ns | 0.0134 |     224 B |
+| 'parse [] -v=3.x -p=parser'   |     49.73 ns |   0.931 ns |   0.870 ns | 0.0239 |     400 B |
+| 'parse [] -v=3.x -p=runtime'  | 19,304.17 ns | 194.337 ns | 162.280 ns | 0.4272 |    7265 B |
+
+解析 GNU 風格命令列參數：
+
+```bash
+test DotNetCampus.CommandLine.Performance.dll DotNetCampus.CommandLine.Sample.dll DotNetCampus.CommandLine.Test.dll -c 20 --test-name BenchmarkTest --detail-level High --debug
+```
+
+| Method                           | Runtime       |         Mean |       Error |      StdDev |   Gen0 | Allocated |
+| -------------------------------- | ------------- | -----------: | ----------: | ----------: | -----: | --------: |
+| 'parse [GNU] -v=4.1 -p=flexible' | .NET 10.0     |     355.9 ns |     4.89 ns |     4.58 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | .NET 10.0     |     339.7 ns |     6.81 ns |     7.57 ns | 0.0548 |     920 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | .NET 10.0     |     945.9 ns |    14.87 ns |    13.19 ns | 0.1583 |    2656 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | .NET 10.0     |     882.1 ns |    11.30 ns |    10.57 ns | 0.1631 |    2736 B |
+| 'parse [GNU] -v=3.x -p=parser'   | .NET 10.0     |     495.7 ns |     9.26 ns |     9.09 ns | 0.1040 |    1752 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | .NET 10.0     |  18,025.5 ns |   194.73 ns |   162.61 ns | 0.4883 |    8730 B |
+| 'NuGet: ConsoleAppFramework'     | .NET 10.0     |     134.1 ns |     2.70 ns |     2.65 ns | 0.0215 |     360 B |
+| 'NuGet: CommandLineParser'       | .NET 10.0     | 177,520.8 ns | 2,225.66 ns | 1,737.65 ns | 3.9063 |   68895 B |
+| 'NuGet: System.CommandLine'      | .NET 10.0     |  66,581.6 ns | 1,323.17 ns | 3,245.76 ns | 1.0986 |   18505 B |
+| 'parse [GNU] -v=4.1 -p=flexible' | NativeAOT 9.0 |     624.3 ns |     7.06 ns |     6.60 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.1 -p=gnu'      | NativeAOT 9.0 |     600.3 ns |     6.72 ns |     6.28 ns | 0.0505 |     856 B |
+| 'parse [GNU] -v=4.0 -p=flexible' | NativeAOT 9.0 |   1,395.6 ns |    20.43 ns |    19.11 ns | 0.1507 |    2529 B |
+| 'parse [GNU] -v=4.0 -p=gnu'      | NativeAOT 9.0 |   1,438.1 ns |    19.84 ns |    18.55 ns | 0.1545 |    2609 B |
+| 'parse [GNU] -v=3.x -p=parser'   | NativeAOT 9.0 |     720.8 ns |     7.47 ns |     6.99 ns | 0.1030 |    1737 B |
+| 'parse [GNU] -v=3.x -p=runtime'  | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: ConsoleAppFramework'     | NativeAOT 9.0 |     195.3 ns |     3.76 ns |     3.69 ns | 0.0234 |     392 B |
+| 'NuGet: CommandLineParser'       | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
+| 'NuGet: System.CommandLine'      | NativeAOT 9.0 |           NA |          NA |          NA |     NA |        NA |
 
 其中：
-1. `parse` 表示調用的是 `CommandLine.Parse` 方法
-2. `handle` 表示調用的是 `CommandLine.AddHandler` 方法
-3. 中括號 `[Xxx]` 表示傳入的命令行參數的風格
-4. `--flexible` `--gnu` 等表示解析傳入命令行時所使用的解析器風格（相匹配時效率最高）
-5. `-v=3.x -p=parser` 表示舊版本手工編寫解析器並傳入時的性能（性能最好，不過舊版本支持的命令行規範較少，很多合法的命令寫法並不支持）
-6. `-v=3.x -p=runtime` 表示舊版本使用默認的反射解析器時的性能
-7. `NuGet: CommandLineParser` 和 `NuGet: System.CommandLine` 表示使用對應名稱的 NuGet 包解析命令行參數時的性能
-8. `parse [URL]` 表示解析 URL 協議字符串時的性能
 
-新版本得益於源生成器和攔截器：
-1. 完成一次解析大約在 0.8μs（微秒）左右（Benchmark）
-2. 在應用程序啟動期間，完成一次解析只需要大約 34μs
-3. 在應用程序啟動期間，包含dll加載、類型初始化在內的解析一次大約8ms（使用 AOT 編譯能重新降至 34μs）。
+1. `parse` 表示呼叫 `CommandLine.Parse`
+2. `handle` 表示呼叫 `CommandLine.AddHandler`
+3. 中括號 `[Xxx]` 表示傳入參數風格
+4. `--flexible`、`--gnu` 等表示解析使用的風格（匹配效率最高）
+5. `-v=3.x -p=parser` 為舊版手寫解析器效能（最佳但語法支援少）
+6. `-v=3.x -p=runtime` 為舊版反射解析器效能
+7. `-v=4.0` 與 `-v=4.1` 顯示版本效能演進
+8. `NuGet: ...` 為其他程式庫效能
+9. `parse [URL]`（本文省略部分）為解析 URL 協議效能
+
+作者觀察（@walterlv）：
+
+1. 最快的是 [ConsoleAppFramework](https://github.com/Cysharp/ConsoleAppFramework)；本庫性能非常接近，同量級。
+2. 感謝其對零依賴、零配置、零反射、零分配的極致追求，激勵我們完成目前版本（`-v4.1`）。
+3. 它主打極致性能，犧牲部分語法支援；我們主打「全功能 + 高性能」，因此位於同級別，很難超越它。依你的受眾與需求選擇適用方案。

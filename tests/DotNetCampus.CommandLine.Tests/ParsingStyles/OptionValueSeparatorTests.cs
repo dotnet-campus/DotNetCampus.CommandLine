@@ -1,0 +1,219 @@
+using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Utils.Parsers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace DotNetCampus.Cli.Tests.ParsingStyles;
+
+[TestClass]
+public class OptionValueSeparatorTests
+{
+    [TestMethod]
+    // option value
+    [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option value")]
+    [DataRow(new[] { "-Option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option value")]
+    [DataRow(new[] { "-option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option value")]
+    [DataRow(new[] { "/Option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option value")]
+    [DataRow(new[] { "/option", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option value")]
+    [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option value")]
+    [DataRow(new[] { "--option", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option value")]
+    [DataRow(new[] { "-Option", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option value")]
+    [DataRow(new[] { "-option", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option value")]
+    [DataRow(new[] { "/Option", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option value")]
+    [DataRow(new[] { "/option", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option value")]
+    // o value
+    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o value")]
+    [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o value")]
+    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o value")]
+    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o value")]
+    [DataRow(new[] { "-o", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o value")]
+    [DataRow(new[] { "/o", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o value")]
+    // option=value
+    [DataRow(new[] { "--option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option=value")]
+    [DataRow(new[] { "-Option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option=value")]
+    [DataRow(new[] { "-option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option=value")]
+    [DataRow(new[] { "/Option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option=value")]
+    [DataRow(new[] { "/option=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option=value")]
+    [DataRow(new[] { "--option=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option=value")]
+    [DataRow(new[] { "--option=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option=value")]
+    [DataRow(new[] { "-Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option=value")]
+    [DataRow(new[] { "-option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option=value")]
+    [DataRow(new[] { "/Option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option=value")]
+    [DataRow(new[] { "/option=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option=value")]
+    [DataRow(new[] { "test://?option=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] option=value")]
+    // o=value
+    [DataRow(new[] { "-o=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o=value")]
+    [DataRow(new[] { "/o=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o=value")]
+    [DataRow(new[] { "-o=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o=value")]
+    [DataRow(new[] { "-o=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o=value")]
+    [DataRow(new[] { "/o=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o=value")]
+    // option:value
+    [DataRow(new[] { "--option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] --option:value")]
+    [DataRow(new[] { "-Option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -Option:value")]
+    [DataRow(new[] { "-option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -option:value")]
+    [DataRow(new[] { "/Option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /Option:value")]
+    [DataRow(new[] { "/option:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /option:value")]
+    [DataRow(new[] { "--option:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] --option:value")]
+    [DataRow(new[] { "-Option:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -Option:value")]
+    [DataRow(new[] { "-option:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -option:value")]
+    [DataRow(new[] { "/Option:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /Option:value")]
+    [DataRow(new[] { "/option:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /option:value")]
+    // o:value
+    [DataRow(new[] { "-o:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -o:value")]
+    [DataRow(new[] { "/o:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /o:value")]
+    [DataRow(new[] { "-o:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -o:value")]
+    [DataRow(new[] { "-o:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -o:value")]
+    [DataRow(new[] { "/o:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /o:value")]
+    // ovalue
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -ovalue")]
+    public void Supported(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.AreEqual("value", options.Option);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "--option:value" }, TestCommandLineStyle.Gnu, DisplayName = "[Gnu] --option:value")]
+    [DataRow(new[] { "test://?option:value" }, TestCommandLineStyle.Url, DisplayName = "[Url] option:value")]
+    [DataRow(new[] { "test://?o:value" }, TestCommandLineStyle.Url, DisplayName = "[Url] o:value")]
+    [DataRow(new[] { "test://?option%20value" }, TestCommandLineStyle.Url, DisplayName = "[Url] option value")]
+    [DataRow(new[] { "test://?o%20value" }, TestCommandLineStyle.Url, DisplayName = "[Url] o value")]
+    public void NotSupported(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentSeparatorNotSupported, exception.Reason);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-o=value" }, "=value", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o=value (预期值为 '=value')")]
+    [DataRow(new[] { "-o:value" }, ":value", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] -o:value (预期值为 ':value')")]
+    public void GnuDoesNotSupportShortOptionSeparator(string[] args, string expectedValue, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<TestOptions>();
+
+        // Assert
+        Assert.AreEqual(expectedValue, options.Option);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ovalue")]
+    [DataRow(new[] { "/ovalue" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ovalue")]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ovalue")]
+    [DataRow(new[] { "-ovalue" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ovalue")]
+    [DataRow(new[] { "/ovalue" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ovalue")]
+    public void DoesNotSupportShortOptionWithoutSeparator(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "test://?o=value" }, TestCommandLineStyle.Url, DisplayName = "[Url] o=value")]
+    public void UrlStyleDoesNotSupportShortOption(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<TestOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
+        Assert.Contains("URL", exception.Message);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab value")]
+    [DataRow(new[] { "/ab", "value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab value")]
+    [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab=value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
+    [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
+    [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab value")]
+    [DataRow(new[] { "/ab=value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab value")]
+    [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "/ab:value" }, TestCommandLineStyle.Flexible, DisplayName = "[Flexible] /ab value")]
+    [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.DotNet, DisplayName = "[DotNet] -ab value")]
+    [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] -ab value")]
+    [DataRow(new[] { "/ab:value" }, TestCommandLineStyle.Windows, DisplayName = "[Windows] /ab value")]
+    public void SupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var options = commandLine.As<MultiCharShortOptions>();
+
+        // Assert
+        Assert.AreEqual("value", options.OptionA);
+        Assert.IsNull(options.OptionB);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ab", "value" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ab value")]
+    public void DoesNotSupportMultiCharShortOptions(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.OptionalArgumentNotFound, exception.Reason);
+    }
+
+    [TestMethod]
+    [DataRow(new[] { "-ab=value" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ab value")]
+    [DataRow(new[] { "-ab:value" }, TestCommandLineStyle.Gnu, DisplayName = "[Flexible] -ab value")]
+    public void DoesNotSupportMultiCharShortOptionsWithValue(string[] args, TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var exception = Assert.ThrowsExactly<CommandLineParseException>(() => commandLine.As<MultiCharShortOptions>());
+
+        // Assert
+        Assert.AreEqual(CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported, exception.Reason);
+    }
+
+    public record TestOptions
+    {
+        [Option('o', "option")]
+        public string? Option { get; set; }
+    }
+
+    public record MultiCharShortOptions
+    {
+        [Option("ab", "option-ab")]
+        public string? OptionA { get; set; }
+
+        [Option('b', "option-b")]
+        public string? OptionB { get; set; }
+    }
+}

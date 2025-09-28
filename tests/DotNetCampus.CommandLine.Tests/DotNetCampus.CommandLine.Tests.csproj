@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <RootNamespace>DotNetCampus.Cli.Tests</RootNamespace>
   </PropertyGroup>
 
@@ -18,20 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine.Analyzer\DotNetCampus.CommandLine.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\DotNetCampus.CommandLine\DotNetCampus.CommandLine.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Analyzers\**" />
-    <Compile Remove="Fakes\**\*Parser.cs" />
-    <Compile Remove="Fakes\**\Runtime*.cs" />
-    <Compile Remove="CommandLineTests.bak.cs" />
-    <Compile Remove="CommandLineTests.ValueRange.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="dotnetCampus.CommandLine.Legacy">
-      <HintPath>..\dotnetCampus.CommandLine.Performance\dotnetCampus.CommandLine.Legacy.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\DotNetCampus.CommandLine.FakeObjects\DotNetCampus.CommandLine.FakeObjects.csproj" />
   </ItemGroup>
 
 </Project>

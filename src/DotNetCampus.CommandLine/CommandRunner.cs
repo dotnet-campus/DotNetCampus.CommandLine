@@ -1,212 +1,399 @@
-﻿using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Runtime.ExceptionServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Utils.Handlers;
+using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
+
+using FactoryAndRunner = (CommandObjectFactory Factory, CommandHandlerRunner? Runner);
 
 /// <summary>
 /// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
-    private static ConcurrentDictionary<Type, CommandObjectCreationInfo> CommandObjectCreationInfos { get; } = new(
-#if NET5_0_OR_GREATER
-        ReferenceEqualityComparer.Instance
-#endif
-    );
-
     private readonly CommandLine _commandLine;
-    private readonly DictionaryCommandHandlerCollection _dictionaryCommandHandlers = new();
-    private readonly ConcurrentDictionary<ICommandHandlerCollection, ICommandHandlerCollection> _assemblyCommandHandlers = [];
+    private readonly SortedList<string, FactoryAndRunner> _factories;
+    private readonly StringComparison _stringComparison;
+    private readonly bool _supportsOrdinal;
+    private readonly bool _supportsPascalCase;
+    private FactoryAndRunner? _defaultFactory;
+    private CommandObjectFactory? _fallbackFactory;
+    private int _maxCommandLength;
 
     internal CommandRunner(CommandLine commandLine)
     {
         _commandLine = commandLine;
-    }
-
-    internal CommandRunner(CommandRunner commandRunner)
-    {
-        _commandLine = commandRunner._commandLine;
-    }
-
-    /// <summary>
-    /// 供源生成器调用，注册一个专门用来处理主命令（Main Command）或子命令/多级子命令（Sub Command）的命令处理器。
-    /// </summary>
-    /// <param name="commandNames">关联的命令。</param>
-    /// <param name="creator">命令处理器的创建方法。</param>
-    /// <typeparam name="T">选项类型，或命令处理器类型，或任意类型。</typeparam>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public static void Register<T>(string? commandNames, CommandObjectCreator creator)
-        where T : class
-    {
-        CommandObjectCreationInfos[typeof(T)] = new CommandObjectCreationInfo(commandNames, creator);
-    }
-
-    /// <summary>
-    /// 创建一个命令处理器实例。
-    /// </summary>
-    /// <param name="commandLine">已解析的命令行参数。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>命令处理器实例。</returns>
-    internal static T CreateInstance<T>(CommandLine commandLine)
-    {
-        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
-        {
-            throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
-        }
-
-        return (T)info.Creator(commandLine);
-    }
-
-    /// <summary>
-    /// 创建一个命令处理器实例。
-    /// </summary>
-    /// <param name="commandLine">已解析的命令行参数。</param>
-    /// <param name="creator">命令处理器的创建方法。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>命令处理器实例。</returns>
-    internal static T CreateInstance<T>(CommandLine commandLine, CommandObjectCreator creator)
-    {
-        return (T)creator(commandLine);
-    }
-
-    CommandRunner ICoreCommandRunnerBuilder.GetOrCreateRunner() => this;
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    internal CommandRunner AddHandler<T>()
-        where T : class, ICommandHandler
-    {
-        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
-        {
-            throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
-        }
-
-        _dictionaryCommandHandlers.AddHandler(info.CommandNames, cl => (T)info.Creator(cl));
-        return this;
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="command">由拦截器传入的的命令处理器的命令。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator)
-        where T : class, ICommandHandler
-    {
-        _dictionaryCommandHandlers.AddHandler(command, creator);
-        return this;
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    internal CommandRunner AddHandler<T>(Func<T, Task<int>> handler)
-        where T : class
-    {
-        if (!CommandObjectCreationInfos.TryGetValue(typeof(T), out var info))
-        {
-            throw new InvalidOperationException($"Handler '{typeof(T)}' is not registered. This may be a bug of the source generator.");
-        }
-
-        _dictionaryCommandHandlers.AddHandler(info.CommandNames, cl => new TaskCommandHandler<T>(
-            () => (T)info.Creator(cl),
-            handler));
-        return this;
-    }
-
-    /// <summary>
-    /// 添加一个命令处理器。
-    /// </summary>
-    /// <param name="command">由拦截器传入的的命令处理器的命令。</param>
-    /// <param name="creator">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
-    /// <typeparam name="T">命令处理器的类型。</typeparam>
-    /// <returns>返回一个命令处理器构建器。</returns>
-    internal CommandRunner AddHandler<T>(string? command, CommandObjectCreator creator, Func<T, Task<int>> handler)
-        where T : class
-    {
-        _dictionaryCommandHandlers.AddHandler(command, cl => new TaskCommandHandler<T>(
-            () => (T)creator(cl),
-            handler));
-        return this;
-    }
-
-    internal CommandRunner AddHandlers<T>()
-        where T : ICommandHandlerCollection, new()
-    {
-        var c = new T();
-        _assemblyCommandHandlers.TryAdd(c, c);
-        return this;
-    }
-
-    private ICommandHandler? MatchHandler()
-    {
-        var possibleCommandNames = _commandLine.PossibleCommandNames;
-
-        // 优先寻找单独添加的处理器。
-        if (_dictionaryCommandHandlers.TryMatch(possibleCommandNames, _commandLine) is { } h1)
-        {
-            return h1;
-        }
-
-        // 其次寻找程序集中自动搜集到的处理器。
-        foreach (var handler in _assemblyCommandHandlers)
-        {
-            if (handler.Value.TryMatch(possibleCommandNames, _commandLine) is { } h2)
-            {
-                return h2;
-            }
-        }
-
-        // 如果没有找到，那么很可能此命令没有命令名称，需要使用默认的处理器。
-        if (_dictionaryCommandHandlers.TryMatch("", _commandLine) is { } h3)
-        {
-            return h3;
-        }
-        foreach (var handler in _assemblyCommandHandlers)
-        {
-            if (handler.Value.TryMatch("", _commandLine) is { } h4)
-            {
-                return h4;
-            }
-        }
-
-        // 如果连默认的处理器都没有找到，说明根本没有能处理此命令的处理器。
-        return null;
+        var caseSensitive = commandLine.ParsingOptions.Style.CaseSensitive;
+        _factories = caseSensitive
+            ? new SortedList<string, FactoryAndRunner>(StringLengthDescendingComparer.CaseSensitive)
+            : new SortedList<string, FactoryAndRunner>(StringLengthDescendingComparer.CaseInsensitive);
+        _stringComparison = caseSensitive
+            ? StringComparison.Ordinal
+            : StringComparison.OrdinalIgnoreCase;
+        _supportsOrdinal = commandLine.ParsingOptions.Style.NamingPolicy.SupportsOrdinal();
+        _supportsPascalCase = commandLine.ParsingOptions.Style.NamingPolicy.SupportsPascalCase();
     }
 
     /// <inheritdoc />
-    public int Run()
+    public CommandRunningResult Run()
     {
-        return RunAsync().Result;
+        try
+        {
+            return RunAsync().Result;
+        }
+        catch (AggregateException ex) when (ex.InnerExceptions.Count == 1)
+        {
+            // 当内部只有一个异常时，直接抛出这个异常，而不是 AggregateException。
+            // 以便让同步方法的调用者看起来更像在用一个同步方法。
+            ExceptionDispatchInfo.Capture(ex.InnerExceptions[0]).Throw();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 处理命令解析过程中发生的错误。
+    /// </summary>
+    /// <param name="result"></param>
+    /// <returns></returns>
+    internal bool RunFallback(CommandLineParsingResult result)
+    {
+        var context = new CommandRunningContext
+        {
+            CommandLine = _commandLine,
+            CommandRunner = this,
+        };
+        if (_fallbackFactory?.Invoke(context) is not ICommandHandler fallback)
+        {
+            return false;
+        }
+
+        if (fallback is CommandLineExceptionHandler exceptionHandler)
+        {
+            exceptionHandler.ErrorResult = result;
+        }
+
+        fallback.RunAsync().Wait();
+        return true;
     }
 
     /// <inheritdoc />
-    public Task<int> RunAsync()
-    {
-        var handler = MatchHandler();
+    CommandRunner ICoreCommandRunnerBuilder.AsRunner() => this;
 
-        if (handler is null)
+    /// <inheritdoc />
+    public Task<CommandRunningResult> RunAsync()
+    {
+        var (possibleCommandNames, nullableFactoryAndRunner) = MatchCreator();
+
+        if (nullableFactoryAndRunner is not { } factoryAndRunner)
         {
             throw new CommandNameNotFoundException(
-                $"No command handler found for command '{_commandLine.PossibleCommandNames}'. Please ensure that the command handler is registered correctly.",
-                _commandLine.PossibleCommandNames);
+                string.IsNullOrEmpty(possibleCommandNames)
+                    ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler()."
+                    : $"No command handler found for command '{possibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
+                possibleCommandNames);
         }
 
-        return handler.RunAsync();
+        var (factory, runner) = factoryAndRunner;
+        var context = new CommandRunningContext
+        {
+            CommandLine = _commandLine,
+            CommandRunner = this,
+        };
+        var handler = factory(context);
+        var exitCode = runner switch
+        {
+            null => ((ICommandHandler)handler).RunAsync(),
+            _ => runner(handler),
+        };
+        return CommandRunningResult.FromTask(exitCode, _commandLine, handler);
     }
 
-    private readonly record struct CommandObjectCreationInfo(string? CommandNames, CommandObjectCreator Creator);
+    private (string PossibleCommandNames, FactoryAndRunner? FactoryAndRunner) MatchCreator()
+    {
+        if (_factories.Count > 0)
+        {
+            var maxLength = _maxCommandLength;
+            var header = _commandLine.GetHeader(maxLength);
+
+            foreach (var (command, factory) in _factories)
+            {
+                if (header.StartsWith(command, _stringComparison))
+                {
+                    // 前缀已匹配成功，接下来判断这是否是命令单词边界。
+                    if (header.Length == command.Length || char.IsWhiteSpace(header[command.Length]))
+                    {
+                        return (command, factory);
+                    }
+                }
+            }
+        }
+
+        if (_defaultFactory is { } defaultFactory)
+        {
+            return ("", defaultFactory);
+        }
+
+        return (_commandLine.GetHeader(1), null);
+    }
+
+    /// <summary>
+    /// 添加一个命令处理器。
+    /// </summary>
+    /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="default"/> 表示此处理器没有命令名称。</param>
+    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="runner">由拦截器传入的命令处理器运行方法。</param>
+    /// <returns>返回一个命令处理器构建器。</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    internal CommandRunner AddHandlerCore(NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner)
+    {
+        if (_supportsOrdinal)
+        {
+            if (command.Ordinal is { } ordinal && !string.IsNullOrEmpty(ordinal))
+            {
+                // 包含命令名称。
+                var isAdded = _factories.TryAdd(ordinal, (factory, runner));
+                if (!isAdded)
+                {
+                    throw new CommandNameAmbiguityException($"The command '{ordinal}' is already registered.", ordinal);
+                }
+                _maxCommandLength = Math.Max(_maxCommandLength, ordinal.Length);
+            }
+            else
+            {
+                // 不包含命令名称，表示这是默认命令。
+                if (_defaultFactory is not null)
+                {
+                    throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
+                }
+                _defaultFactory = (factory, runner);
+            }
+        }
+        if (_supportsPascalCase)
+        {
+            if (command.PascalCase is { } pascal && !string.IsNullOrEmpty(pascal))
+            {
+                // 包含命令名称。
+                var isAdded = _factories.TryAdd(pascal, (factory, runner));
+                if (!isAdded && !_supportsOrdinal)
+                {
+                    // 转换的名称，之后在仅用转换名称时才需要抛出异常；否则很可能前面已经添加了一个相同的名称。
+                    throw new CommandNameAmbiguityException($"The command '{pascal}' is already registered.", pascal);
+                }
+                _maxCommandLength = Math.Max(_maxCommandLength, pascal.Length);
+            }
+            else
+            {
+                // 不包含命令名称，表示这是默认命令。
+                if (_defaultFactory is not null && !_supportsOrdinal)
+                {
+                    // 如果支持双命名法，则允许前面已经注册了一个默认命令。
+                    throw new CommandNameAmbiguityException("The default command handler is already registered.", null);
+                }
+                _defaultFactory = (factory, runner);
+            }
+        }
+        return this;
+    }
+
+    /// <summary>
+    /// 添加一个回退的命令处理器。当其他命令出现了错误时，会执行此命令处理器。
+    /// </summary>
+    /// <param name="factory">回退命令处理器的创建方法。</param>
+    /// <returns>返回一个命令处理器构建器。</returns>
+    internal CommandRunner AddFallbackHandler(CommandObjectFactory factory)
+    {
+        _fallbackFactory = factory;
+        return this;
+    }
+}
+
+/// <summary>
+/// 表示命令行处理器的运行结果。
+/// </summary>
+public readonly record struct CommandRunningResult
+{
+    /// <summary>
+    /// 命令行处理器的退出代码。
+    /// </summary>
+    public required int ExitCode { get; init; }
+
+    /// <summary>
+    /// 被执行的命令行。
+    /// </summary>
+    public required CommandLine CommandLine { get; init; }
+
+    /// <summary>
+    /// 处理此命令行的命令处理器实例。
+    /// </summary>
+    public required object? HandledBy { get; init; }
+
+    /// <summary>
+    /// 隐式转换为退出代码。
+    /// </summary>
+    /// <param name="result">命令行处理结果。</param>
+    /// <returns>退出代码。</returns>
+    public static implicit operator int(CommandRunningResult result) => result.ExitCode;
+
+    /// <summary>
+    /// 从一个异步的命令行处理任务创建一个命令行处理结果。
+    /// </summary>
+    /// <param name="exitCodeTask">异步的命令行处理任务。</param>
+    /// <param name="commandLine">被执行的命令行。</param>
+    /// <param name="handler">处理此命令行的命令处理器实例。</param>
+    /// <returns>命令行处理结果。</returns>
+    public static async Task<CommandRunningResult> FromTask(Task<int> exitCodeTask, CommandLine commandLine, object handler)
+    {
+        return new CommandRunningResult
+        {
+            ExitCode = await exitCodeTask,
+            CommandLine = commandLine,
+            HandledBy = handler switch
+            {
+                IAnonymousCommandHandler anonymousHandler => anonymousHandler.CreatedCommandOptions,
+                _ => handler,
+            },
+        };
+    }
+}
+
+/// <summary>
+/// 命令行处理结果的扩展方法。
+/// </summary>
+public static class CommandRunningResultExtensions
+{
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async Task<int> AsExitCodeTask(this Task<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+#if NETCOREAPP3_1_OR_GREATER
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async Task<int> AsExitCodeTask(this ValueTask<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async ValueTask<int> AsExitCodeValueTask(this Task<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+    /// <summary>
+    /// 将一个异步的命令行处理结果任务转换为一个异步的退出代码任务。
+    /// </summary>
+    /// <param name="task">异步的命令行处理结果任务。</param>
+    /// <returns>异步的退出代码任务。</returns>
+    public static async ValueTask<int> AsExitCodeValueTask(this ValueTask<CommandRunningResult> task)
+    {
+        var result = await task.ConfigureAwait(false);
+        return result.ExitCode;
+    }
+
+#endif
+}
+
+file static class CommandRunnerExtensions
+{
+    /// <summary>
+    /// 获取命令行前几个字符组成的字符串（空格分隔），长度等于或轻微超过指定的最大长度，除非命令行本身没有那么长。
+    /// </summary>
+    /// <param name="commandLine">要获取前缀的命令行。</param>
+    /// <param name="compareToLength">要比较的长度。</param>
+    /// <returns>命令行前几个字符组成的字符串（空格分隔）。</returns>
+    public static string GetHeader(this CommandLine commandLine, int compareToLength)
+    {
+        var args = commandLine.CommandLineArguments;
+        if (args.Count is 0 || compareToLength <= 0)
+        {
+            return "";
+        }
+
+        int index;
+        var currentLength = 0;
+        for (index = 0; index < args.Count; index++)
+        {
+            if (index > 0)
+            {
+                // 加上空格的长度。
+                currentLength++;
+            }
+
+            var arg = args[index];
+            var length = currentLength + arg.Length;
+            if (length > compareToLength)
+            {
+                break;
+            }
+
+            currentLength = length;
+        }
+
+        return string.Join(" ", args.Take(index + 1));
+    }
+}
+
+/// <summary>
+/// 按长度比较字符串的比较器。更长的字符串在排序中更靠前。
+/// </summary>
+/// <param name="caseSensitive"></param>
+file class StringLengthDescendingComparer(bool caseSensitive) : IComparer<string>
+{
+    /// <summary>
+    /// 区分大小写的字符串长度降序比较器。
+    /// </summary>
+    public static StringLengthDescendingComparer CaseSensitive { get; } = new StringLengthDescendingComparer(true);
+
+    /// <summary>
+    /// 不区分大小写的字符串长度降序比较器。
+    /// </summary>
+    public static StringLengthDescendingComparer CaseInsensitive { get; } = new StringLengthDescendingComparer(false);
+
+    public int Compare(string? x, string? y)
+    {
+        if (x == null && y == null)
+        {
+            return 0;
+        }
+        if (x == null)
+        {
+            return 1;
+        }
+        if (y == null)
+        {
+            return -1;
+        }
+
+        // 先按长度比较，长度更长的排在前面。
+        var lengthComparison = y.Length.CompareTo(x.Length);
+        if (lengthComparison != 0)
+        {
+            return lengthComparison;
+        }
+
+        // 当长度相同时，按字典序比较。
+        return caseSensitive
+            ? string.Compare(x, y, StringComparison.Ordinal)
+            : string.Compare(x, y, StringComparison.OrdinalIgnoreCase);
+    }
 }

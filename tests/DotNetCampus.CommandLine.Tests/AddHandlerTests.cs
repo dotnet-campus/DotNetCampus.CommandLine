@@ -230,8 +230,8 @@ public class AddHandlerTests
         var commandLine = CommandLine.Parse(args, Flexible);
 
         // Act
-        var syncBuilder = commandLine.AddHandler<SimpleOptions>(_ => { });
-        var asyncBuilder = commandLine.AddHandler<SimpleOptions>(async _ => {
+        var syncBuilder = commandLine.ToRunner().AddHandler<SimpleOptions>(_ => { });
+        var asyncBuilder = commandLine.ToRunner().AddHandler<SimpleOptions>(async _ => {
             await Task.Delay(1);
             return 0;
         });
