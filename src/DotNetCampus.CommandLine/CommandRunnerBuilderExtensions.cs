@@ -247,7 +247,7 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <typeparam name="T">命令处理器集合的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    [Obsolete("我们正在考虑更好的实现方式。此前这个依赖于模块初始化器，但我们正在用拦截器替换它。")]
+    [Obsolete("我们正在考虑更好的实现方式。此前这个依赖于模块初始化器，但我们正在用拦截器替换它。", true)]
     public static IAsyncCommandRunnerBuilder AddHandlers<T>(this ICommandRunnerBuilder builder)
         // where T : class, ICommandHandlerCollection, new()
     {

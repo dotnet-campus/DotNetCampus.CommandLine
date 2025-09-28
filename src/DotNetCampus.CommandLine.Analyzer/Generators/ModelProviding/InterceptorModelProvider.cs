@@ -40,7 +40,7 @@ internal static class InterceptorModelProvider
     }
 
     public static IncrementalValuesProvider<InterceptorGeneratingModel> SelectMethodInvocationProvider(this IncrementalGeneratorInitializationContext context,
-        string typeFullName, string methodName, params string[] parameterTypeFullNameRegexes)
+        string thisTypeFullName, string methodName, params string[] parameterTypeFullNameRegexes)
     {
         return context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
@@ -76,8 +76,8 @@ internal static class InterceptorModelProvider
                     // 没有方法。
                     return null;
                 }
-                if (methodSymbol.ContainingType.ToDisplayString(NoGenericTypeNameFormat) != typeFullName
-                    && methodSymbol.ReceiverType?.ToDisplayString(NoGenericTypeNameFormat) != typeFullName)
+                if (methodSymbol.ContainingType.ToDisplayString(NoGenericTypeNameFormat) != thisTypeFullName
+                    && methodSymbol.ReceiverType?.ToDisplayString(NoGenericTypeNameFormat) != thisTypeFullName)
                 {
                     // 方法所在的类型不匹配，且扩展方法的 this 参数类型不匹配。
                     return null;

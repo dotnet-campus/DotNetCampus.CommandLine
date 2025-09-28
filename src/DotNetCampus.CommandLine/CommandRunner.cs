@@ -57,7 +57,6 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// </summary>
     /// <param name="result"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     internal bool RunFallback(CommandLineParsingResult result)
     {
         var context = new CommandRunningContext
