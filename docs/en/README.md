@@ -267,7 +267,7 @@ You can use the command handler pattern to process different commands, like `git
 
 ```csharp
 var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+commandLine
     .AddHandler<AddOptions>(options => { /* handle add */ })
     .AddHandler<RemoveOptions>(options => { /* handle remove */ })
     .Run();
@@ -315,8 +315,7 @@ internal class ConvertCommandHandler : ICommandHandler
 ```
 
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* handle remove */ })
@@ -330,8 +329,7 @@ Sometimes, the program's state is not entirely determined by command line argume
 ```csharp
 using var scope = serviceProvider.BeginScope();
 var state = scope.ServiceProvider.GetRequiredService<MyState>();
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .ForState(state).AddHandler<CommandHandlerWithState>()
     .RunAsync();
 ```
@@ -352,7 +350,7 @@ internal class CommandHandlerWithState : ICommandHandler
 If multiple handlers can be executed for the same state, you can keep chaining `AddHandler` calls; if different command handlers need to handle different states, you can use `ForState` again; if no state is needed afterwards, don't pass parameters to `ForState`. Here's a more complex example:
 
 ```csharp
-commandLine.ToRunner()
+commandLine
     .AddHandler<Handler0>()
     .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
     .ForState(state2).AddHandler<Handler3>()

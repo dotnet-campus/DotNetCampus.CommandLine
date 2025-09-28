@@ -18,7 +18,7 @@ public class AddHandlerWithStateTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = await commandLine.ToRunner()
+        var result = await commandLine
             .ForState(123).AddHandler<Test1Handler>()
             .ForState("test2").AddHandler<Test2Handler>()
             .ForState().AddHandler<Test0Handler>()
@@ -40,7 +40,7 @@ public class AddHandlerWithStateTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = await commandLine.ToRunner()
+        var result = await commandLine
             .ForState(123).AddHandler<Test1Handler>()
             .ForState("test2").AddHandler<Test2Handler>()
             .ForState().AddHandler<Test0Handler>()
@@ -62,7 +62,7 @@ public class AddHandlerWithStateTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = await commandLine.ToRunner()
+        var result = await commandLine
             .ForState(123).AddHandler<Test1Handler>().AddHandler<Test11Handler>()
             .ForState("test2").AddHandler<Test2Handler>()
             .ForState().AddHandler<Test0Handler>()
@@ -84,7 +84,7 @@ public class AddHandlerWithStateTests
         var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
 
         // Act
-        var result = await commandLine.ToRunner()
+        var result = await commandLine
             .AddHandler<Test0Handler>()
             .ForState(123).AddHandler<Test1Handler>().AddHandler<Test11Handler>()
             .ForState("test2").AddHandler<Test2Handler>()

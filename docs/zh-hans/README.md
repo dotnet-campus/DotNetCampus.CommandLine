@@ -269,8 +269,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
 最简单的方式是通过委托处理命令，将命令选项类型和处理逻辑分离：
 
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .AddHandler<AddOptions>(options => { /* 处理add命令 */ })
     .AddHandler<RemoveOptions>(options => { /* 处理remove命令 */ })
     .Run();
@@ -324,8 +323,7 @@ internal class ConvertCommandHandler : ICommandHandler
 然后直接添加到命令行解析器中：
 
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* 处理remove命令 */ })
@@ -339,8 +337,7 @@ commandLine.ToRunner()
 ```csharp
 using var scope = serviceProvider.BeginScope();
 var state = scope.ServiceProvider.GetRequiredService<MyState>();
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .ForState(state).AddHandler<CommandHandlerWithState>()
     .RunAsync();
 ```
@@ -361,7 +358,7 @@ internal class CommandHandlerWithState : ICommandHandler
 如果对同一个状态可以执行多个处理器，可以一直链式调用 `AddHandler`；而如果不同的命令处理器要处理不同的状态，可以再次使用 `ForState`；如果后面不再需要状态，则 `ForState` 中不要传入参数。一个更复杂的例子如下：
 
 ```csharp
-commandLine.ToRunner()
+commandLine
     .AddHandler<Handler0>()
     .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
     .ForState(state2).AddHandler<Handler3>()

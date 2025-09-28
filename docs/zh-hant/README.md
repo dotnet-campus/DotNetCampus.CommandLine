@@ -266,8 +266,7 @@ var commandLine = CommandLine.Parse(args, CommandLineParsingOptions.DotNet with
 ### 1. 使用委派處理
 
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .AddHandler<AddOptions>(options => { /* 處理 add */ })
     .AddHandler<RemoveOptions>(options => { /* 處理 remove */ })
     .Run();
@@ -315,8 +314,7 @@ internal class ConvertCommandHandler : ICommandHandler
 ```
 
 ```csharp
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .AddHandler<ConvertCommandHandler>()
     .AddHandler<FooHandler>()
     .AddHandler<BarHandler>(options => { /* 處理 remove */ })
@@ -330,8 +328,7 @@ commandLine.ToRunner()
 ```csharp
 using var scope = serviceProvider.BeginScope();
 var state = scope.ServiceProvider.GetRequiredService<MyState>();
-var commandLine = CommandLine.Parse(args);
-commandLine.ToRunner()
+var commandLine = CommandLine.Parse(args)
     .ForState(state).AddHandler<CommandHandlerWithState>()
     .RunAsync();
 ```
@@ -352,7 +349,7 @@ internal class CommandHandlerWithState : ICommandHandler
 如果對同一個狀態可以執行多個處理器，可以一直鏈式呼叫 `AddHandler`；而如果不同的命令處理器要處理不同的狀態，可以再次使用 `ForState`；如果後面不再需要狀態，則 `ForState` 中不要傳入參數。一個更複雜的例子如下：
 
 ```csharp
-commandLine.ToRunner()
+commandLine
     .AddHandler<Handler0>()
     .ForState(state1).AddHandler<Handler1>().AddHandler<Handler2>()
     .ForState(state2).AddHandler<Handler3>()
