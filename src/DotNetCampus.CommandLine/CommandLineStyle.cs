@@ -49,7 +49,7 @@ public readonly partial record struct CommandLineStyle()
     /// </summary>
     public CommandOptionPrefix OptionPrefix
     {
-        get => _booleans[2, 3, 4]switch
+        get => _booleans[2, 3, 4] switch
         {
             (false, false, false) => CommandOptionPrefix.DoubleDash,
             (false, false, true) => CommandOptionPrefix.SingleDash,

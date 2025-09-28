@@ -10,7 +10,7 @@ namespace DotNetCampus.Cli;
 using FactoryAndRunner = (CommandObjectFactory Factory, CommandHandlerRunner? Runner);
 
 /// <summary>
-/// 辅助 <see cref="Cli.CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
+/// 辅助 <see cref="CommandLine"/> 根据已解析的命令行参数执行对应的命令处理器。
 /// </summary>
 public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 {
