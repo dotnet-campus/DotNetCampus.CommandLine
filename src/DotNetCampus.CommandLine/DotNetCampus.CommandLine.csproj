@@ -22,7 +22,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- nullable annotations is not fully supported in netstandard2.0 -->
     <NoWarn>$(NoWarn);CS8767</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <!-- https://github.com/dotnet/runtime/issues/96313 -->
+    <NoWarn>$(NoWarn);CS8785</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
