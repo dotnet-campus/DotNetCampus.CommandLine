@@ -15,11 +15,6 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    /// <remarks>
-    /// 请注意，<see cref="CommandLine"/> 对象是不可变的，所以你需要使用这个方法的返回值，否则当你再次调用 AddHandler 时，之前添加的处理器将会丢失。<br/>
-    /// 如果你需要分多次添加处理器，请先调用 <see cref="CommandLine.ToRunner"/> 方法获得 <see cref="ICommandRunnerBuilder"/> 对象；
-    /// 在这个对象上多次调用 AddHandler 方法是安全的。
-    /// </remarks>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder)
     {
         throw CommandLine.MethodShouldBeInspected();
@@ -34,7 +29,7 @@ public static class CommandRunnerBuilderExtensions
     /// <returns>命令行执行器构造的链式调用。</returns>
     public static StatedCommandRunnerBuilder<TState> ForState<TState>(this CommandLine builder, TState state)
     {
-        return new StatedCommandRunnerBuilder<TState>(builder.ToRunner().AsRunner(), state);
+        return new StatedCommandRunnerBuilder<TState>(((ICommandRunnerBuilder)builder).AsRunner(), state);
     }
 
     /// <inheritdoc cref="AddHandler{T}(CommandLine,Func{T, Task{int}})" />
@@ -62,11 +57,6 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
-    /// <remarks>
-    /// 请注意，<see cref="CommandLine"/> 对象是不可变的，所以你需要使用这个方法的返回值，否则当你再次调用 AddHandler 时，之前添加的处理器将会丢失。<br/>
-    /// 如果你需要分多次添加处理器，请先调用 <see cref="CommandLine.ToRunner"/> 方法获得 <see cref="ICommandRunnerBuilder"/> 对象；
-    /// 在这个对象上多次调用 AddHandler 方法是安全的。
-    /// </remarks>
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this CommandLine builder, Func<T, Task<int>> handler)
     {
         throw CommandLine.MethodShouldBeInspected();

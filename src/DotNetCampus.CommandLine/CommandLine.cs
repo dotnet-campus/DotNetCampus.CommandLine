@@ -9,8 +9,13 @@ namespace DotNetCampus.Cli;
 /// <summary>
 /// 为应用程序提供统一的命令行参数解析功能。
 /// </summary>
-public class CommandLine
+public class CommandLine : ICommandRunnerBuilder
 {
+    /// <summary>
+    /// 存储与此命令行解析类型关联的命令行执行器。
+    /// </summary>
+    private CommandRunner? _runner;
+
     /// <summary>
     /// 存储特殊处理过 URL 的命令行参数。
     /// </summary>
@@ -130,12 +135,32 @@ public class CommandLine
     }
 
     /// <summary>
+    /// 将当前命令行对象视作一个命令行执行器，以支持根据命令自动选择命令处理器运行。<br/>
+    /// 随后后，可通过 AddHandler 方法添加多个命令处理器。
+    /// </summary>
+    /// <returns>命令行执行器。</returns>
+    /// <remarks>
+    /// 与 <see cref="ToRunner"/> 方法不同，本方法每次都会返回同一个命令行执行器实例。<br/>
+    /// 如果多次调用本方法，后续对命令行执行器的修改会影响之前获得的命令行执行器。
+    /// </remarks>
+    public ICommandRunnerBuilder AsRunner() => _runner ??= new CommandRunner(this);
+
+    /// <summary>
     /// 创建一个命令行执行器，以支持根据命令自动选择命令处理器运行。<br/>
     /// 创建后，可通过 AddHandler 方法添加多个命令处理器。
     /// </summary>
     /// <returns>命令行执行器。</returns>
-    [Pure]
+    /// <remarks>
+    /// 与 <see cref="AsRunner"/> 方法不同，本方法每次都会返回一个新的命令行执行器实例。<br/>
+    /// 如果多次调用本方法，后续对命令行执行器的修改不会影响之前获得的命令行执行器。
+    /// </remarks>
     public ICommandRunnerBuilder ToRunner() => new CommandRunner(this);
+
+    /// <inheritdoc />
+    CommandRunner ICoreCommandRunnerBuilder.AsRunner() => _runner ??= new CommandRunner(this);
+
+    /// <inheritdoc />
+    CommandRunningResult ICommandRunnerBuilder.Run() => AsRunner().Run();
 
     /// <summary>
     /// 当某个方法本应该被源生成器拦截时，却仍然被调用了，就调用此方法抛出异常。

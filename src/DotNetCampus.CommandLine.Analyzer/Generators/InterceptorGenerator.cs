@@ -151,7 +151,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.ToRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return commandLine.AsRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
 
@@ -166,7 +166,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.ToRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return commandLine.AsRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
                 """));
     }
 
