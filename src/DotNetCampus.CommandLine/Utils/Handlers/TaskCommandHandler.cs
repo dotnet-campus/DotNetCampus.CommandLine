@@ -1,4 +1,3 @@
-using System.Runtime.ExceptionServices;
 using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Utils.Handlers;
@@ -69,15 +68,12 @@ internal sealed class AnonymousFuncTaskCommandHandler<T>(
     {
         var instance = (T)createdCommandObject;
         var task = handler(instance);
-        return task.ContinueWith(ThrowIfFaulted);
+        return Await(task);
     }
 
-    private static int ThrowIfFaulted(Task task)
+    private static async Task<int> Await(Task task)
     {
-        if (task.IsFaulted)
-        {
-            ExceptionDispatchInfo.Capture(task.Exception!).Throw();
-        }
+        await task.ConfigureAwait(false);
         return 0;
     }
 }
