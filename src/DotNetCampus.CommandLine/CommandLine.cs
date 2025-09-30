@@ -103,18 +103,6 @@ public class CommandLine : ICommandRunnerBuilder
 #pragma warning restore CA1822
 
     /// <summary>
-    /// 尝试将命令行参数转换为指定类型的实例。
-    /// </summary>
-    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
-    /// <typeparam name="T">要转换的类型。</typeparam>
-    /// <returns>转换后的实例。</returns>
-    [Pure, EditorBrowsable(EditorBrowsableState.Never)]
-    public T As<T>(CommandObjectFactory factory) where T : notnull
-    {
-        return (T)factory(new CommandRunningContext { CommandLine = this });
-    }
-
-    /// <summary>
     /// 输出传入的命令行参数字符串。如果命令行参数中传入的是 URL，此方法会将 URL 转换为普通的命令行参数再输出。
     /// </summary>
     /// <returns>传入的命令行参数字符串。</returns>

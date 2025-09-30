@@ -173,62 +173,56 @@ public static class CommandRunnerBuilderExtensions
     /// </summary>
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
-    /// <param name="runner">如果有需要，拦截器可以传入一个已有的命令行执行器实例。</param>
+    /// <param name="metadata">由拦截器传入的包含命令对象如何创建和运行的元数据。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder,
-        NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner = null
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class, ICommandHandler
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, factory, runner);
+            .AddHandlerCore(command, metadata);
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,NamingPolicyNameGroup,CommandObjectFactory,CommandHandlerRunner)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder,
-        NamingPolicyNameGroup command, CommandObjectFactory factory, CommandHandlerRunner? runner = null
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class, ICommandHandler
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, factory, runner);
+            .AddHandlerCore(command, metadata);
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Action<T> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousCommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousActionCommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static ICommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, int> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousInt32CommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncInt32CommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousTaskCommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncTaskCommandHandler<T>(metadata, handler));
     }
 
     /// <summary>
@@ -237,61 +231,56 @@ public static class CommandRunnerBuilderExtensions
     /// <param name="builder">命令行执行器构造的链式调用。</param>
     /// <param name="handler">用于处理已解析的命令行参数的委托。</param>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="metadata">由拦截器传入的包含命令对象如何创建和运行的元数据。</param>
     /// <typeparam name="T">命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this ICommandRunnerBuilder builder, Func<T, Task<int>> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousTaskInt32CommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncTaskInt32CommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Action<T> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousCommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousActionCommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, int> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousInt32CommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncInt32CommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousTaskCommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncTaskCommandHandler<T>(metadata, handler));
     }
 
-    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,CommandObjectFactory)" />
+    /// <inheritdoc cref="AddHandler{T}(ICommandRunnerBuilder,Func{T, Task{int}},NamingPolicyNameGroup,ICommandObjectMetadata)" />
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static IAsyncCommandRunnerBuilder AddHandler<T>(this IAsyncCommandRunnerBuilder builder, Func<T, Task<int>> handler,
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class
     {
         return builder.AsRunner()
-            .AddHandlerCore(command, c => new AnonymousTaskInt32CommandHandler<T>(c, factory, handler), null);
+            .AddHandlerCore(command, new AnonymousFuncTaskInt32CommandHandler<T>(metadata, handler));
     }
 
     /// <summary>

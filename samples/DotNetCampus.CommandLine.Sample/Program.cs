@@ -77,7 +77,8 @@ class Program
             stopwatch.Restart();
             for (var i = 0; i < testCount; i++)
             {
-                _ = newCommandLine.As<Options>(OptionsBuilder.CreateInstance);
+                var context = new CommandRunningContext { CommandLine = newCommandLine };
+                _ = new OptionsBuilder().Build(context);
             }
             stopwatch.Stop();
             Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");

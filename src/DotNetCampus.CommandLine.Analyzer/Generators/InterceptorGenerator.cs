@@ -151,7 +151,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.AsRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return commandLine.AsRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -166,7 +166,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.AsRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return commandLine.AsRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -293,7 +293,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -310,7 +310,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler<TState>")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return builder.AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return builder.AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -327,7 +327,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CreateInstance);
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
                 """));
     }
 
