@@ -1,3 +1,4 @@
+using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
@@ -20,6 +21,19 @@ internal class CommandLineExceptionHandler(CommandLine commandLine, bool ignoreA
     }
 }
 
+internal sealed class CommandLineExceptionHandlerMetadata(bool ignoreAllExceptions) : ICommandObjectMetadata
+{
+    public object Build(CommandRunningContext context)
+    {
+        return new CommandLineExceptionHandler(context.CommandLine, ignoreAllExceptions);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        return ((CommandLineExceptionHandler)createdCommandObject).RunAsync();
+    }
+}
+
 /// <summary>
 /// 辅助创建命令行异常处理器。
 /// </summary>
@@ -34,6 +48,6 @@ public static class CommandLineExceptionHandlerExtensions
     [Obsolete("此方法的实现正在讨论中，API 可能不稳定，请谨慎使用。")]
     public static IAsyncCommandRunnerBuilder HandleException(this ICoreCommandRunnerBuilder builder, bool ignoreAllExceptions)
     {
-        return builder.AsRunner().AddFallbackHandler(c => new CommandLineExceptionHandler(c.CommandLine, ignoreAllExceptions));
+        return builder.AsRunner().AddFallbackHandler(new CommandLineExceptionHandlerMetadata(ignoreAllExceptions));
     }
 }

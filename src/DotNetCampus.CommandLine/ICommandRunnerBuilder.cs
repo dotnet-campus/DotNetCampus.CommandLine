@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using DotNetCampus.Cli.Compiler;
+using DotNetCampus.Cli.Utils.Handlers;
 
 namespace DotNetCampus.Cli;
 
@@ -74,18 +75,17 @@ public readonly ref struct StatedCommandRunnerBuilder<TState>
     /// 由拦截器调用，用于添加一个带有状态的命令处理器。
     /// </summary>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="metadata">由拦截器传入的包含命令对象如何创建和运行的元数据。</param>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>(
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class, ICommandHandler<TState>
     {
         var state = _state;
         _builder.AsRunner()
-            .AddHandlerCore(command, factory, o => ((T)o).RunAsync(state));
+            .AddHandlerCore(command, new AnonymousStatedCommandHandler<TState>(metadata, state));
         return new StatedCommandRunnerLinkedBuilder<TState>(_builder, _state);
     }
 }
@@ -145,18 +145,17 @@ public readonly ref struct StatedCommandRunnerLinkedBuilder<TState>
     /// 由拦截器调用，用于添加一个带有状态的命令处理器。
     /// </summary>
     /// <param name="command">由拦截器传入的的命令处理器的命令，<see langword="null"/> 或空字符串表示此处理器没有命令名称。</param>
-    /// <param name="factory">由拦截器传入的命令处理器创建方法。</param>
+    /// <param name="metadata">由拦截器传入的包含命令对象如何创建和运行的元数据。</param>
     /// <typeparam name="T">带有状态的命令处理器的类型。</typeparam>
     /// <returns>命令行执行器构造的链式调用。</returns>
     [EditorBrowsable(EditorBrowsableState.Never)]
     public StatedCommandRunnerLinkedBuilder<TState> AddHandler<T>(
-        NamingPolicyNameGroup command, CommandObjectFactory factory
-    )
+        NamingPolicyNameGroup command, ICommandObjectMetadata metadata)
         where T : class, ICommandHandler<TState>
     {
         var state = _state;
         _builder.AsRunner()
-            .AddHandlerCore(command, factory, o => ((T)o).RunAsync(state));
+            .AddHandlerCore(command, new AnonymousStatedCommandHandler<TState>(metadata, state));
         return this;
     }
 

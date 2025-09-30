@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
 using Cat = DotNetCampus.Cli.Utils.Parsers.CommandArgumentType;
@@ -10,6 +11,7 @@ namespace DotNetCampus.Cli.Utils.Parsers;
 public readonly ref struct CommandLineParser
 {
     private readonly CommandLine _commandLine;
+    private readonly ICommandObjectBuilder _builder;
     private readonly string _commandObjectName;
     private readonly int _commandCount;
     private readonly bool _caseSensitive;
@@ -19,11 +21,13 @@ public readonly ref struct CommandLineParser
     /// 通用的命令行参数解析器。（此解析器不可解析 URL 类型的参数。）
     /// </summary>
     /// <param name="commandLine">要解析的命令行参数。</param>
+    /// <param name="builder">配合此解析器使用，用于将解析结果赋值给命令对象。</param>
     /// <param name="commandObjectName">正在解析此参数的命令对象的名称。</param>
     /// <param name="commandCount">主命令/子命令/多级子命令的数量。在解析时，要跳过这些命令。</param>
-    public CommandLineParser(CommandLine commandLine, string commandObjectName, int commandCount)
+    public CommandLineParser(CommandLine commandLine, ICommandObjectBuilder builder, string commandObjectName, int commandCount)
     {
         _commandLine = commandLine;
+        _builder = builder;
         _commandObjectName = commandObjectName;
         _commandCount = commandCount;
         var isUrl = commandLine.MatchedUrlScheme is not null;
@@ -82,26 +86,6 @@ public readonly ref struct CommandLineParser
 
     /// <inheritdoc cref="CommandLineParsingOptions.UnknownArgumentsHandling"/>
     public UnknownCommandArgumentHandling UnknownArgumentsHandling { get; }
-
-    /// <summary>
-    /// 要求源生成器匹配长名称，返回此长选项的值类型。
-    /// </summary>
-    public required LongOptionMatchingCallback MatchLongOption { get; init; }
-
-    /// <summary>
-    /// 要求源生成器匹配短名称，返回此短选项的值类型。
-    /// </summary>
-    public required ShortOptionMatchingCallback MatchShortOption { get; init; }
-
-    /// <summary>
-    /// 要求源生成器匹配位置参数，返回位置参数的范围。
-    /// </summary>
-    public required PositionalArgumentMatchingCallback MatchPositionalArguments { get; init; }
-
-    /// <summary>
-    /// 要求源生成器将解析到的值赋值给指定索引处的属性。
-    /// </summary>
-    public required AssignPropertyValueCallback AssignPropertyValue { get; init; }
 
     /// <summary>
     /// 获取默认的选项值处理器（默认的选项处理器仅为了避免代码错误产生误用，实际永远不会被使用）。
@@ -443,6 +427,30 @@ public readonly ref struct CommandLineParser
             return false;
         }
         return null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private OptionValueMatch MatchLongOption(ReadOnlySpan<char> optionName, bool caseSensitive, CommandNamingPolicy namingPolicy)
+    {
+        return _builder.MatchLongOption(optionName, caseSensitive, namingPolicy);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private OptionValueMatch MatchShortOption(ReadOnlySpan<char> optionName, bool caseSensitive)
+    {
+        return _builder.MatchShortOption(optionName, caseSensitive);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int positionIndex)
+    {
+        return _builder.MatchPositionalArguments(value, positionIndex);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)
+    {
+        _builder.AssignPropertyValue(propertyName, propertyIndex, key, value);
     }
 }
 

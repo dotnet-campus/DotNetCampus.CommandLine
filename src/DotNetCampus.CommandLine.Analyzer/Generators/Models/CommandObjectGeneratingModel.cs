@@ -28,7 +28,10 @@ internal record CommandObjectGeneratingModel
 
     public required IReadOnlyList<PositionalArgumentPropertyGeneratingModel> PositionalArgumentProperties { get; init; }
 
-    public string GetBuilderTypeName() => GetBuilderTypeName(CommandObjectType);
+    public string GetBuilderTypeName()
+    {
+        return GetBuilderTypeName(CommandObjectType);
+    }
 
     public static string GetBuilderTypeName(INamedTypeSymbol commandObjectType)
     {

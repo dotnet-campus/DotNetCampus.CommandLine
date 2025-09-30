@@ -2,93 +2,95 @@ using DotNetCampus.Cli.Compiler;
 
 namespace DotNetCampus.Cli.Utils.Handlers;
 
-internal interface IAnonymousCommandHandler : ICommandHandler
+internal sealed class AnonymousStatedCommandHandler<TState>(
+    ICommandObjectMetadata factory,
+    TState state) : ICommandHandlerMetadata
 {
-    object? CreatedCommandOptions { get; }
+    public object Build(CommandRunningContext context)
+    {
+        return factory.Build(context);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        var instance = (ICommandHandler<TState>)createdCommandObject;
+        return instance.RunAsync(state);
+    }
 }
 
-internal sealed class AnonymousCommandHandler<T>(
-    CommandRunningContext context,
-    CommandObjectFactory factory,
-    Action<T> handler) : IAnonymousCommandHandler
+internal sealed class AnonymousActionCommandHandler<T>(
+    ICommandObjectMetadata factory,
+    Action<T> handler) : ICommandHandlerMetadata
     where T : notnull
 {
-    private T? _options;
-
-    public object? CreatedCommandOptions => _options;
-
-    public Task<int> RunAsync()
+    public object Build(CommandRunningContext context)
     {
-        _options ??= (T)factory(context);
-        if (_options is null)
-        {
-            throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
-        }
-        handler(_options);
+        return factory.Build(context);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        var instance = (T)createdCommandObject;
+        handler(instance);
         return Task.FromResult(0);
     }
 }
 
-internal sealed class AnonymousInt32CommandHandler<T>(
-    CommandRunningContext context,
-    CommandObjectFactory factory,
-    Func<T, int> handler) : IAnonymousCommandHandler
+internal sealed class AnonymousFuncInt32CommandHandler<T>(
+    ICommandObjectMetadata factory,
+    Func<T, int> handler) : ICommandHandlerMetadata
     where T : notnull
 {
-    private T? _options;
-
-    public object? CreatedCommandOptions => _options;
-
-    public Task<int> RunAsync()
+    public object Build(CommandRunningContext context)
     {
-        _options ??= (T)factory(context);
-        if (_options is null)
-        {
-            throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
-        }
-        return Task.FromResult(handler(_options));
+        return factory.Build(context);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        var instance = (T)createdCommandObject;
+        var exitCode = handler(instance);
+        return Task.FromResult(exitCode);
     }
 }
 
-internal sealed class AnonymousTaskCommandHandler<T>(
-    CommandRunningContext context,
-    CommandObjectFactory factory,
-    Func<T, Task> handler) : IAnonymousCommandHandler
+internal sealed class AnonymousFuncTaskCommandHandler<T>(
+    ICommandObjectMetadata factory,
+    Func<T, Task> handler) : ICommandHandlerMetadata
     where T : notnull
 {
-    private T? _options;
-
-    public object? CreatedCommandOptions => _options;
-
-    public async Task<int> RunAsync()
+    public object Build(CommandRunningContext context)
     {
-        _options ??= (T)factory(context);
-        if (_options is null)
-        {
-            throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
-        }
-        await handler(_options);
+        return factory.Build(context);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        var instance = (T)createdCommandObject;
+        var task = handler(instance);
+        return Await(task);
+    }
+
+    private static async Task<int> Await(Task task)
+    {
+        await task.ConfigureAwait(false);
         return 0;
     }
 }
 
-internal sealed class AnonymousTaskInt32CommandHandler<T>(
-    CommandRunningContext context,
-    CommandObjectFactory factory,
-    Func<T, Task<int>> handler) : IAnonymousCommandHandler
+internal sealed class AnonymousFuncTaskInt32CommandHandler<T>(
+    ICommandObjectMetadata factory,
+    Func<T, Task<int>> handler) : ICommandHandlerMetadata
     where T : notnull
 {
-    private T? _options;
-
-    public object? CreatedCommandOptions => _options;
-
-    public Task<int> RunAsync()
+    public object Build(CommandRunningContext context)
     {
-        _options ??= (T)factory(context);
-        if (_options is null)
-        {
-            throw new InvalidOperationException($"No options of type {typeof(T)} were created.");
-        }
-        return handler(_options);
+        return factory.Build(context);
+    }
+
+    public Task<int> RunAsync(object createdCommandObject)
+    {
+        var instance = (T)createdCommandObject;
+        return handler(instance);
     }
 }

@@ -4,6 +4,8 @@ internal static class CommandLineArguments
 {
     public static readonly string[] NoArgs = [];
 
+    public static readonly string[] CommandArgs = ["foo"];
+
     public static readonly string[] DotNetArgs =
     [
         "DotNetCampus.CommandLine.Performance.dll",

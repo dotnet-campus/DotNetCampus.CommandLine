@@ -1,4 +1,3 @@
-using System.Text;
 using DotNetCampus.CommandLine.CodeAnalysis;
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
@@ -29,15 +28,6 @@ public class ModelBuilderGenerator : IIncrementalGenerator
 
         var code = GenerateCommandObjectCreatorCode(model);
         context.AddSource($"CommandLine.Models/{model.CommandObjectType.ToDisplayString()}.cs", code);
-
-        // if (model.UseFullStackParser)
-        // {
-        //     var originalCode = EmbeddedSourceFiles.Enumerate(null)
-        //         .First(x => x.FileName == "CommandLineParser.cs")
-        //         .Content;
-        //     var parserCode = GenerateParserCode(originalCode, model);
-        //     context.AddSource($"CommandLine.Models/{model.Namespace}.{model.CommandObjectType.Name}.parser.cs", parserCode);
-        // }
     }
 
     private static bool ReportDiagnostics(SourceProductionContext context, CommandObjectGeneratingModel model)
@@ -74,24 +64,21 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             .AddTypeDeclaration(GenerateBuilderTypeDeclarationLine(model), t => t
                 .WithSummaryComment($"""辅助 <see cref="{model.CommandObjectType.ToUsingString()}"/> 生成命令行选项、子命令或处理函数的创建。""")
                 .AddRawMembers(GenerateCommandNames(model))
-                .AddMethodDeclaration(
-                    $"public static {model.CommandObjectType.ToUsingString()} CreateInstance(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)",
-                    m => m
-                        .AddRawStatements($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"))
+                .AddTypeDeclaration(GenerateMetadataTypeDeclarationLine(model), nt => GenerateCommandObjectMetadata(nt, model))
                 .AddRawMembers(model.OptionProperties.Select(GenerateArgumentPropertyCode))
                 .AddRawMembers(model.EnumeratePositionalArgumentExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
                     m => GenerateMatchLongOptionCode(m, model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
                     m => GenerateMatchShortOptionCode(m, model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
                     m => GenerateMatchPositionalArgumentsCode(m, model))
                 .AddMethodDeclaration(
-                    "private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
+                    "public void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
                     m => m
                         .Condition(model.OptionProperties.Count > 0 || model.PositionalArgumentProperties.Count > 0, b => b
                             .AddBracketScope("switch (propertyIndex)", l => l
@@ -114,8 +101,14 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         var modifier = model.IsPublic ? "public" : "internal";
         return model.UseFullStackParser
-            ? $"{modifier} partial struct {model.GetBuilderTypeName()}()"
-            : $"{modifier} sealed class {model.GetBuilderTypeName()}";
+            ? $"{modifier} partial struct {model.GetBuilderTypeName()}() : global::DotNetCampus.Cli.Compiler.ICommandObjectBuilder // 临时继承，后面要去掉"
+            : $"{modifier} sealed class {model.GetBuilderTypeName()} : global::DotNetCampus.Cli.Compiler.ICommandObjectBuilder";
+    }
+
+    private static string GenerateMetadataTypeDeclarationLine(CommandObjectGeneratingModel model)
+    {
+        var modifier = model.IsPublic ? "public" : "internal";
+        return $"{modifier} sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectMetadata";
     }
 
     private static string GenerateCommandNames(CommandObjectGeneratingModel model)
@@ -128,6 +121,13 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         return $"""
             public static readonly global::DotNetCampus.Cli.Compiler.NamingPolicyNameGroup CommandNameGroup = {value};
             """;
+    }
+
+    private void GenerateCommandObjectMetadata(TypeDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
+    {
+        builder
+            .AddMethodDeclaration("public object Build(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)", m => m
+                .AddRawStatement($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"));
     }
 
     private string GenerateArgumentPropertyCode(PropertyGeneratingModel model) =>
@@ -152,22 +152,16 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return BuildDefault(context.CommandLine);
         }
     
-        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(context.CommandLine, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}})
-        {
-            MatchLongOption = MatchLongOption,
-            MatchShortOption = MatchShortOption,
-            MatchPositionalArguments = MatchPositionalArguments,
-            AssignPropertyValue = AssignPropertyValue,
-        };
+        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(context.CommandLine, this, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}});
         parser.Parse().WithFallback(context);
         return BuildCore(context.CommandLine);
     }
     """;
 
-    private MethodDeclarationSourceTextBuilder GenerateMatchLongOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
+    private void GenerateMatchLongOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
-        return builder
+        builder
             .Condition(optionProperties.Count is 0, b => b
                 .AddRawStatement("// 没有长名称选项，无需匹配。"))
             .Otherwise(b => b
@@ -208,11 +202,11 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         }
     }
 
-    private MethodDeclarationSourceTextBuilder GenerateMatchShortOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
+    private void GenerateMatchShortOptionCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var optionProperties = model.OptionProperties;
         var hasShortName = optionProperties.SelectMany(x => x.GetShortNames()).Any();
-        return builder
+        builder
             .Condition(!hasShortName, b => b
                 .AddRawStatement("// 没有短名称选项，无需匹配。"))
             .Otherwise(b => b
@@ -259,12 +253,12 @@ public class ModelBuilderGenerator : IIncrementalGenerator
         }
     }
 
-    private MethodDeclarationSourceTextBuilder GenerateMatchPositionalArgumentsCode(MethodDeclarationSourceTextBuilder builder,
+    private void GenerateMatchPositionalArgumentsCode(MethodDeclarationSourceTextBuilder builder,
         CommandObjectGeneratingModel model)
     {
         var positionalArgumentProperties = model.PositionalArgumentProperties;
         var matchAllProperty = positionalArgumentProperties.FirstOrDefault(x => x.Index is 0 && x.Length is int.MaxValue);
-        return builder
+        builder
             .Condition(positionalArgumentProperties.Count is 0, b => b
                 .AddRawStatement("// 没有位置参数，无需匹配。")
                 .AddRawStatement("return global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch.NotMatch;"))
@@ -328,7 +322,7 @@ return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("
             """;
     }
 
-    private MethodDeclarationSourceTextBuilder GenerateBuildCoreCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
+    private void GenerateBuildCoreCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequiredOrInit).ToList();
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequiredOrInit).ToList();
@@ -337,7 +331,7 @@ return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("
         var setOptionProperties = model.OptionProperties.Where(x => !x.IsRequiredOrInit).ToList();
         var setPositionalArgumentProperties = model.PositionalArgumentProperties.Where(x => !x.IsRequiredOrInit).ToList();
 
-        return builder
+        builder
             .AddBracketScope($"var result = new {model.CommandObjectType.ToUsingString()}", "{", "};", c => c
 
                 // 1. [RawArguments]
@@ -398,7 +392,7 @@ return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("
             .AddRawStatement("return result;");
     }
 
-    private MethodDeclarationSourceTextBuilder GenerateBuildDefaultCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
+    private void GenerateBuildDefaultCode(MethodDeclarationSourceTextBuilder builder, CommandObjectGeneratingModel model)
     {
         var initRawArgumentsProperties = model.RawArgumentsProperties.Where(x => x.IsRequiredOrInit).ToList();
         var initOptionProperties = model.OptionProperties.Where(x => x.IsRequiredOrInit).ToList();
@@ -411,10 +405,10 @@ return new global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch("
             builder.AddRawStatement("""
 throw new global::DotNetCampus.Cli.Exceptions.RequiredPropertyNotAssignedException($"The command line arguments doesn't contain any required option or positional argument. Command line: {commandLine}", null!);
 """);
-            return builder;
+            return;
         }
 
-        return builder
+        builder
             .AddBracketScope($"var result = new {model.CommandObjectType.ToUsingString()}", "{", "};", c => c
 
                 // 1. [RawArguments]
@@ -570,14 +564,6 @@ private readonly record struct {{enumType.GetGeneratedEnumArgumentTypeName()}}
 }
 """;
     }
-
-    private string GenerateParserCode(string originalCode, CommandObjectGeneratingModel model) => new StringBuilder()
-        .AppendLine("#nullable enable")
-        .AppendLine("using DotNetCampus.Cli;")
-        .Append(originalCode)
-        .Replace("namespace DotNetCampus.Cli.Utils.Parsers;", $"namespace {model.Namespace};")
-        .Replace("public readonly ref struct CommandLineParser", $"partial struct {model.GetBuilderTypeName()}")
-        .ToString();
 }
 
 file static class Extensions
