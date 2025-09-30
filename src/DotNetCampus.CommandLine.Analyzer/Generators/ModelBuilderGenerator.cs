@@ -69,16 +69,16 @@ public class ModelBuilderGenerator : IIncrementalGenerator
                 .AddRawMembers(model.EnumeratePositionalArgumentExcludingSameNameOptions().Select(GenerateArgumentPropertyCode))
                 .AddRawText(GenerateBuildCode(model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchLongOption(ReadOnlySpan<char> longOption, bool defaultCaseSensitive, global::DotNetCampus.Cli.CommandNamingPolicy namingPolicy)",
                     m => GenerateMatchLongOptionCode(m, model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.OptionValueMatch MatchShortOption(ReadOnlySpan<char> shortOption, bool defaultCaseSensitive)",
                     m => GenerateMatchShortOptionCode(m, model))
                 .AddMethodDeclaration(
-                    "private global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
+                    "public global::DotNetCampus.Cli.Utils.Parsers.PositionalArgumentValueMatch MatchPositionalArguments(ReadOnlySpan<char> value, int argumentIndex)",
                     m => GenerateMatchPositionalArgumentsCode(m, model))
                 .AddMethodDeclaration(
-                    "private void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
+                    "public void AssignPropertyValue(string propertyName, int propertyIndex, ReadOnlySpan<char> key, ReadOnlySpan<char> value)",
                     m => m
                         .Condition(model.OptionProperties.Count > 0 || model.PositionalArgumentProperties.Count > 0, b => b
                             .AddBracketScope("switch (propertyIndex)", l => l
@@ -101,8 +101,8 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         var modifier = model.IsPublic ? "public" : "internal";
         return model.UseFullStackParser
-            ? $"{modifier} partial struct {model.GetBuilderTypeName()}()"
-            : $"{modifier} sealed class {model.GetBuilderTypeName()}";
+            ? $"{modifier} partial struct {model.GetBuilderTypeName()}() : global::DotNetCampus.Cli.Compiler.ICommandObjectBuilder // 临时继承，后面要去掉"
+            : $"{modifier} sealed class {model.GetBuilderTypeName()} : global::DotNetCampus.Cli.Compiler.ICommandObjectBuilder";
     }
 
     private static string GenerateMetadataTypeDeclarationLine(CommandObjectGeneratingModel model)
@@ -152,13 +152,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
             return BuildDefault(context.CommandLine);
         }
     
-        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(context.CommandLine, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}})
-        {
-            MatchLongOption = MatchLongOption,
-            MatchShortOption = MatchShortOption,
-            MatchPositionalArguments = MatchPositionalArguments,
-            AssignPropertyValue = AssignPropertyValue,
-        };
+        var parser = new global::DotNetCampus.Cli.Utils.Parsers.CommandLineParser(context.CommandLine, this, "{{model.CommandObjectType.Name}}", {{model.GetCommandLevel()}});
         parser.Parse().WithFallback(context);
         return BuildCore(context.CommandLine);
     }
