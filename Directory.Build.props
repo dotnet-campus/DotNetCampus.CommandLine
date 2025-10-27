@@ -20,9 +20,9 @@
     -->
     <NoWarn>$(NoWarn);DCL101;NU1507</NoWarn>
     <!--
-      CA1416: 平台兼容性警告
+      CA1416: Platform compatibility warning
     -->
-    <WarningsAsErrors>$(WarningAsErrors);CA1416</WarningsAsErrors>
+    <WarningsAsErrors>$(WarningsAsErrors);CA1416</WarningsAsErrors>
   </PropertyGroup>
 
   <!-- 库和项目信息 -->
