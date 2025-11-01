@@ -1,6 +1,14 @@
 <Project>
 
   <PropertyGroup>
+
+    <!--
+      The analyzers in this package is very important, so we treat related warnings as errors.
+      - CS8785: Analyzer does not generate sources
+      - CS9057: Analyzer version is greater than the compiler version
+    -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS8785;CS9057</WarningsAsErrors>
+
     <DotNetCampusCommandLineUseInterceptor Condition="'$(DotNetCampusCommandLineUseInterceptor)' == ''">true</DotNetCampusCommandLineUseInterceptor>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);DotNetCampus.Cli.Compiler</InterceptorsNamespaces>
 
