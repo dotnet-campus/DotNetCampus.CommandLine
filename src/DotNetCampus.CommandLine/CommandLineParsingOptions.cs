@@ -6,19 +6,39 @@ namespace DotNetCampus.Cli;
 public readonly record struct CommandLineParsingOptions
 {
     /// <inheritdoc cref="CommandLineStyle.Flexible" />
-    public static CommandLineParsingOptions Flexible => new() { Style = CommandLineStyle.Flexible };
+    public static CommandLineParsingOptions Flexible => new()
+    {
+        Style = CommandLineStyle.Flexible,
+        UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments,
+    };
 
     /// <inheritdoc cref="CommandLineStyle.DotNet" />
-    public static CommandLineParsingOptions DotNet => new() { Style = CommandLineStyle.DotNet };
+    public static CommandLineParsingOptions DotNet => new()
+    {
+        Style = CommandLineStyle.DotNet,
+        UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments,
+    };
 
     /// <inheritdoc cref="CommandLineStyle.Gnu" />
-    public static CommandLineParsingOptions Gnu => new() { Style = CommandLineStyle.Gnu };
+    public static CommandLineParsingOptions Gnu => new()
+    {
+        Style = CommandLineStyle.Gnu,
+        UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments,
+    };
 
     /// <inheritdoc cref="CommandLineStyle.Posix" />
-    public static CommandLineParsingOptions Posix => new() { Style = CommandLineStyle.Posix };
+    public static CommandLineParsingOptions Posix => new()
+    {
+        Style = CommandLineStyle.Posix,
+        UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments,
+    };
 
     /// <inheritdoc cref="CommandLineStyle.Windows" />
-    public static CommandLineParsingOptions Windows => new() { Style = CommandLineStyle.Windows };
+    public static CommandLineParsingOptions Windows => new()
+    {
+        Style = CommandLineStyle.Windows,
+        UnknownArgumentsHandling = UnknownCommandArgumentHandling.IgnoreUnknownOptionalArguments,
+    };
 
     /// <inheritdoc cref="CommandLineStyle.Windows" />
     [Obsolete("为避免理解歧义，已弃用此名称，请使用 Windows 代替。")]
