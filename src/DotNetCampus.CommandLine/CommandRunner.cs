@@ -89,7 +89,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         {
             throw new CommandNameNotFoundException(
                 string.IsNullOrEmpty(possibleCommandNames)
-                    ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler()."
+                    ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler(), especially a default command handler."
                     : $"No command handler found for command '{possibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
                 possibleCommandNames);
         }
