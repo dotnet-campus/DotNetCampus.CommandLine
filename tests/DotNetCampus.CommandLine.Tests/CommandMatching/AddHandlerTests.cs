@@ -224,12 +224,33 @@ public class AddHandlerTests
                 await Task.Yield();
                 matched = o.Value;
             })
+            .AddHandler<DefaultOptions>(_ => { })
             .RunAsync();
         var matchedTypeName = result.HandledBy!.GetType().Name;
 
         // Assert
         Assert.AreEqual(expectedCommand, matchedTypeName);
         Assert.AreEqual(expectedValue, matched);
+    }
+
+    [TestMethod]
+    [DataRow(TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
+    [DataRow(TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
+    [DataRow(TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
+    [DataRow(TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
+    public void AddHandler_Discard /* 弃元 */(TestCommandLineStyle style)
+    {
+        // Arrange
+        var commandLine = CommandLine.Parse([], style.ToParsingOptions());
+
+        // Act
+        var result = commandLine
+            .AddHandler<DefaultOptions>(_ => { })
+            .Run();
+        var matchedTypeName = result.HandledBy!.GetType().Name;
+
+        // Assert
+        Assert.AreEqual(nameof(DefaultOptions), matchedTypeName);
     }
 
     // ReSharper disable once RedundantAssignment
