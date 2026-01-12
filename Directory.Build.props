@@ -36,6 +36,6 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)src\DotNetCampus.CommandLine\Package\build\Package.props" />
+  <Import Project="$(MSBuildThisFileDirectory)src\DotNetCampus.CommandLine\Package\buildTransitive\Package.props" />
 
 </Project>

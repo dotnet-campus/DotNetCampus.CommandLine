@@ -206,6 +206,32 @@ public class AddHandlerTests
         Assert.AreEqual(1, exitCode);
     }
 
+    [TestMethod]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Flexible, DisplayName = "[Flexible] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.DotNet, DisplayName = "[DotNet] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Gnu, DisplayName = "[Gnu] foo")]
+    [DataRow(new[] { "foo" }, nameof(FooOptions), "Foo", TestCommandLineStyle.Windows, DisplayName = "[Windows] foo")]
+    public async Task AddHandler_TypedDelegate(string[] args, string expectedCommand, string expectedValue, TestCommandLineStyle style)
+    {
+        // Arrange
+        string? matched = null;
+        var commandLine = CommandLine.Parse(args, style.ToParsingOptions());
+
+        // Act
+        var result = await commandLine
+            .AddHandler(async (FooOptions o) =>
+            {
+                await Task.Yield();
+                matched = o.Value;
+            })
+            .RunAsync();
+        var matchedTypeName = result.HandledBy!.GetType().Name;
+
+        // Assert
+        Assert.AreEqual(expectedCommand, matchedTypeName);
+        Assert.AreEqual(expectedValue, matched);
+    }
+
     // ReSharper disable once RedundantAssignment
     private int RunWithExitCode<T>(ref T field, T value)
     {
