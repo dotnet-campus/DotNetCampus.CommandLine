@@ -44,18 +44,31 @@ internal static class InterceptorModelProvider
     {
         return context.SyntaxProvider.CreateSyntaxProvider((node, ct) =>
             {
-                // 检查 commandLine.As<T>() 方法调用。
+                // 检查 commandLine.Xxx<T>() 或 commandLine.Xxx((T o) => { }) 方法调用。
                 if (node is InvocationExpressionSyntax
                     {
                         Expression: MemberAccessExpressionSyntax
                         {
-                            Name: GenericNameSyntax
-                            {
-                                TypeArgumentList.Arguments.Count: 1,
-                            } syntax,
+                            Name: var nameSyntax,
                         },
-                    } invocationExpressionNode && syntax.Identifier.Text == methodName)
+                    } invocationExpressionNode)
                 {
+                    // 支持显式泛型参数（GenericNameSyntax）和隐式推断（SimpleNameSyntax/IdentifierNameSyntax）。
+                    var isMatch = nameSyntax switch
+                    {
+                        GenericNameSyntax
+                        {
+                            TypeArgumentList.Arguments.Count: 1,
+                        } genericName => genericName.Identifier.Text == methodName,
+                        not null => nameSyntax.Identifier.Text == methodName,
+                        _ => false,
+                    };
+
+                    if (!isMatch)
+                    {
+                        return false;
+                    }
+
                     // 再检查方法的参数列表是否是指定类型。
                     var expectedParameterCount = parameterTypeFullNameRegexes.Length;
                     var argumentList = invocationExpressionNode.ArgumentList.Arguments;
@@ -97,14 +110,25 @@ internal static class InterceptorModelProvider
                     }
                 }
 
-                // 获取 commandLine.As<T>() 中的 T。
-                var genericTypeNode = ((GenericNameSyntax)((MemberAccessExpressionSyntax)node.Expression).Name).TypeArgumentList.Arguments[0];
-                var symbol = ModelExtensions.GetSymbolInfo(c.SemanticModel, genericTypeNode, ct).Symbol as INamedTypeSymbol;
+                // 获取 commandLine.Xxx<T>() 中的 T。
+                // 支持从语法节点获取（显式泛型参数）或从方法符号获取（隐式推断）。
+                var nameSyntax = ((MemberAccessExpressionSyntax)node.Expression).Name;
+                var symbol = nameSyntax switch
+                {
+                    // commandLine.Xxx<T>() 显式获取类型符号。
+                    GenericNameSyntax genericNameSyntax => ModelExtensions.GetSymbolInfo(c.SemanticModel, genericNameSyntax.TypeArgumentList.Arguments[0], ct)
+                        .Symbol as INamedTypeSymbol,
+                    // commandLine.Xxx((T o) => { }) 隐式获取类型符号。
+                    not null when methodSymbol.TypeArguments.Length == 1 => methodSymbol.TypeArguments[0] as INamedTypeSymbol,
+                    _ => null,
+                };
+
                 var interceptableLocation = c.SemanticModel.GetInterceptableLocation(node, ct);
                 if (interceptableLocation is null || symbol is null)
                 {
                     return null;
                 }
+
                 // 获取 [Command("xxx")] 或 [Verb("xxx")] 特性中的 xxx。
                 var commandAttribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass!.IsAttributeOf<CommandAttribute>())
 #pragma warning disable CS0618 // 类型或成员已过时
