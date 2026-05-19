@@ -284,37 +284,55 @@ public interface ICommandObjectMetadata
 }
 ```
 
-### 扩展 Metadata 以携带帮助信息
+本设计将在此接口上新增 `GetHelp()` 方法（详见下文）。
 
-为了支持帮助输出，需要在生成的 `Metadata` 上增加一个帮助元数据接口。新增的接口不同于 `ICommandObjectMetadata`，它将被专门的帮助提供者使用，而不是被命令执行流程使用。
+### 扩展 ICommandObjectMetadata 以携带帮助信息
 
-新的接口定义（位于 `DotNetCampus.Cli.Compiler` 命名空间）：
+为了支持帮助输出，在 `ICommandObjectMetadata` 接口上直接新增一个 `GetHelp()` 方法。所有由源生成器生成的 `Metadata` 类型天然具备帮助信息，因此不需要引入额外的接口——帮助元数据是 `Metadata` 的固有能力，而非一个可选的附加契约。
+
+对于框架内部提供的少量特殊 `ICommandObjectMetadata` 实现（如委托包装器），其 `GetHelp()` 应委托给内部持有的原始 metadata，或在无法提供时返回 `null`。
+
+扩展后的接口定义：
+
+```csharp
+public interface ICommandObjectMetadata
+{
+    object Build(CommandRunningContext context);
+
+    /// <summary>
+    /// 获取此命令的帮助元数据。如果无法提供帮助信息，则返回 <see langword="null"/>。
+    /// </summary>
+    CommandHelpMetadata? GetHelp();
+}
+```
+
+`CommandHelpMetadata` 是一个纯数据类型，所有属性均为 `required init`，由源生成器在 `GetHelp()` 方法体中通过 `new CommandHelpMetadata { ... }` 一次性构造。这保证了 `Metadata` 类型本身不持有任何字段（符合现有的无字段约束），同时调用方拿到的是一个完整的、不可变的数据对象：
 
 ```csharp
 /// <summary>
-/// 提供命令的帮助信息，由源生成器生成。
+/// 命令的帮助元数据。
 /// </summary>
-public interface IHelpProvider
+public sealed class CommandHelpMetadata
 {
     /// <summary>
-    /// 命令的名称（如 "add" 或 "remote add"）。
+    /// 命令的名称（如 "add" 或 "remote add"）。没有命令名称时为 <see langword="null"/>。
     /// </summary>
-    string? CommandName { get; }
+    public required string? CommandName { get; init; }
 
     /// <summary>
     /// 命令的描述。
     /// </summary>
-    string? Description { get; }
+    public required string? Description { get; init; }
 
     /// <summary>
-    /// 获取此命令的选项帮助信息列表。
+    /// 此命令的选项帮助信息列表。没有选项时为空集合。
     /// </summary>
-    IReadOnlyList<OptionHelpInfo> Options { get; }
+    public required IReadOnlyList<OptionHelpInfo> Options { get; init; }
 
     /// <summary>
-    /// 获取此命令的位置参数帮助信息列表。
+    /// 此命令的位置参数帮助信息列表。没有位置参数时为空集合。
     /// </summary>
-    IReadOnlyList<ValueHelpInfo> PositionalArguments { get; }
+    public required IReadOnlyList<ValueHelpInfo> PositionalArguments { get; init; }
 }
 
 /// <summary>
@@ -322,11 +340,11 @@ public interface IHelpProvider
 /// </summary>
 public readonly record struct OptionHelpInfo
 {
-    public IReadOnlyList<string> ShortNames { get; init; }
-    public IReadOnlyList<string> LongNames { get; init; }
-    public string? Description { get; init; }
-    public bool IsRequired { get; init; }
-    public OptionValueType ValueType { get; init; }
+    public required IReadOnlyList<string> ShortNames { get; init; }
+    public required IReadOnlyList<string> LongNames { get; init; }
+    public required string? Description { get; init; }
+    public required bool IsRequired { get; init; }
+    public required OptionValueType ValueType { get; init; }
 }
 
 /// <summary>
@@ -334,35 +352,34 @@ public readonly record struct OptionHelpInfo
 /// </summary>
 public readonly record struct ValueHelpInfo
 {
-    public int Index { get; init; }
-    public int? Count { get; init; }
-    public string? Description { get; init; }
-    public bool IsRequired { get; init; }
+    public required int Index { get; init; }
+    public required int? Count { get; init; }
+    public required string? Description { get; init; }
+    public required bool IsRequired { get; init; }
 }
 ```
 
-生成的 `Metadata` 类型将同时实现 `ICommandObjectMetadata` 和 `IHelpProvider`：
+生成的 `Metadata` 类型示例：
 
 ```csharp
 // 生成后的 Metadata 类型
-public sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectMetadata,
-    global::DotNetCampus.Cli.Compiler.IHelpProvider
+public sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectMetadata
 {
-    // 原有的 Build 方法
     public object Build(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)
     {
         return new global::MyNamespace.MyCommandBuilder().Build(context);
     }
 
-    // 新增的帮助接口实现
-    public string? CommandName => "add";
-    public string? Description => "添加一个新项目";
-
-    public global::System.Collections.Generic.IReadOnlyList<global::DotNetCampus.Cli.Compiler.OptionHelpInfo> Options
-        => [new() { ShortNames = ["n"], LongNames = ["name"], Description = "项目名称", IsRequired = true, ValueType = global::DotNetCampus.Cli.Compiler.OptionValueType.Normal }];
-
-    public global::System.Collections.Generic.IReadOnlyList<global::DotNetCampus.Cli.Compiler.ValueHelpInfo> PositionalArguments
-        => [new() { Index = 0, Description = "要添加的文件路径", IsRequired = true }];
+    public global::DotNetCampus.Cli.Compiler.CommandHelpMetadata? GetHelp()
+    {
+        return new global::DotNetCampus.Cli.Compiler.CommandHelpMetadata
+        {
+            CommandName = "add",
+            Description = "添加一个新项目",
+            Options = [new() { ShortNames = ["n"], LongNames = ["name"], Description = "项目名称", IsRequired = true, ValueType = global::DotNetCampus.Cli.Compiler.OptionValueType.Normal }],
+            PositionalArguments = [new() { Index = 0, Count = 1, Description = "要添加的文件路径", IsRequired = true }],
+        };
+    }
 }
 ```
 
@@ -375,8 +392,9 @@ public sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectM
 3. 读取每个 `[Value]` 特性上的 `Description` 值：从 `ValueAttribute.Description` 获取位置参数描述。
 4. 根据命令名称的 kebab-case 形式和 PascalCase 形式，确定 `CommandName` 的返回值（取 Ordinal 形式）。
 5. 判断选项是否为 `required`，以及值的类型。
+6. 收集每个 `[Option]` 的完整短名称列表和长名称列表（而非仅取第一个）。
 
-对于命令名称、属性类型、`required` 等信息，现有的 `CommandObjectGeneratingModel` 和 `PropertyGeneratingModel` 已经提供了基础元数据；但 `Description` 目前尚未进入生成模型，因此需要先扩展这些模型，再在生成代码时将其烘焙到 `IHelpProvider` 的实现中。
+对于命令名称、属性类型、`required` 等信息，现有的 `CommandObjectGeneratingModel` 和 `PropertyGeneratingModel` 已经提供了基础元数据；但 `Description` 目前尚未进入生成模型，因此需要先扩展这些模型，再在生成代码时将其烘焙到 `GetHelp()` 的返回值中。
 
 关键修改点：
 
@@ -384,11 +402,11 @@ public sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectM
 ModelBuilderGenerator.Execute 中
   └── GenerateCommandObjectCreatorCode 中
        └── 在生成 Metadata 类型时
-            ├── 添加 IHelpProvider 接口声明
-            ├── 生成 CommandName 属性（从 CommandNames 获取）
-            ├── 生成 Description 属性（从模型中的 Description 获取）
-            ├── 生成 Options 属性（遍历 OptionProperties）
-            └── 生成 PositionalArguments 属性（遍历 PositionalArgumentProperties）
+            └── 生成 GetHelp() 方法，返回 new CommandHelpMetadata
+                 ├── CommandName（从 CommandNames 获取）
+                 ├── Description（从模型中的 Description 获取）
+                 ├── Options（遍历 OptionProperties，收集所有 ShortNames 和 LongNames）
+                 └── PositionalArguments（遍历 PositionalArgumentProperties）
 ```
 
 ### 运行时注册
@@ -402,7 +420,7 @@ ModelBuilderGenerator.Execute 中
 private bool _helpEnabled;
 ```
 
-帮助元数据的收集发生在 `RunAsync()` 内部：当帮助功能已启用且检测到帮助请求后，运行器才遍历所有已注册的 `ICommandObjectMetadata`，将其中实现了 `IHelpProvider` 的实例收集起来用于输出。这意味着无论 `AddHelpHandler()` 出现在调用链的什么位置——在所有 `AddHandler` 之前、之间或之后——行为都是一致的。
+帮助元数据的收集发生在 `RunAsync()` 内部：当帮助功能已启用且检测到帮助请求后，运行器遍历所有已注册的 `ICommandObjectMetadata`，调用其 `GetHelp()` 方法收集非 `null` 的帮助元数据用于输出。这意味着无论 `AddHelpHandler()` 出现在调用链的什么位置——在所有 `AddHandler` 之前、之间或之后——行为都是一致的。
 
 ## 运行时执行流程
 
@@ -514,32 +532,34 @@ private bool _helpEnabled;
 ### 兼容性
 
 - `AddHelpHandler()` 是完全新增的 API，不与现有的任何 API 冲突。
-- 所有新增的接口（`IHelpProvider`、`OptionHelpInfo`、`ValueHelpInfo`）位于 `DotNetCampus.Cli.Compiler` 命名空间，与 `ICommandObjectMetadata` 同级。
-- 现有的 `Metadata` 类型可以直接扩展为同时实现 `IHelpProvider`。即使用户没有调用 `AddHelpHandler()`，这些帮助元数据也只是保持未使用状态，不会改变正常的命令执行路径。
+- `GetHelp()` 方法直接新增到 `ICommandObjectMetadata` 接口上。由于当前含有此接口的版本尚在预览阶段，不存在兼容负担。
+- 新增的数据类型（`CommandHelpMetadata`、`OptionHelpInfo`、`ValueHelpInfo`）位于 `DotNetCampus.Cli.Compiler` 命名空间，与 `ICommandObjectMetadata` 同级。
+- 即使用户没有调用 `AddHelpHandler()`，`GetHelp()` 方法也只是不会被调用，不会改变正常的命令执行路径。
 - `AddStandardHandlers()` 已被移除，不存在新旧 API 冲突问题。
 
 ### 性能
 
 - 帮助检测仅在注册了 `AddHelpHandler()` 时才会执行额外的扫描。未注册时路径与现有代码一致，无性能损失。
 - 帮助检测的扫描是 O(n) 的，其中 n 是参数个数，通常很小（个位数到十位数）。
-- `IHelpProvider` 的实现由源生成器生成，不涉及反射。`Options` 和 `PositionalArguments` 属性返回的集合是编译期确定的 `new[]` 数组，分配很小。
+- `GetHelp()` 由源生成器生成，不涉及反射。其内部构造的集合是编译期确定的字面量，分配很小；且仅在检测到帮助请求后才会被调用。
 - 帮助文本的格式化仅在检测到帮助请求时发生，不影响正常执行路径的性能。
 
 ### 红线
 
 - **无反射**：所有帮助元数据通过源生成器在编译期确定，运行时不使用 `Type.GetProperties()`、`Attribute.GetCustomAttributes()` 等反射 API。
-- **AOT 安全**：源生成器生成所有需要的代码，不存在动态代码生成或 JIT 依赖。`IHelpProvider` 的实现是具体的已编译类型，适合 NativeAOT 部署。
+- **AOT 安全**：源生成器生成所有需要的代码，不存在动态代码生成或 JIT 依赖。`GetHelp()` 的实现是具体的已编译方法，适合 NativeAOT 部署。
 - **无隐式输出**：`CommandRunner` 不会自动输出帮助信息。只有在用户显式调用 `AddHelpHandler()` 后，框架才有权限向 `Console.Out` 写入内容。
 - **无 fallback 依赖**：帮助检测是独立的先行步骤，不依赖 `_fallback` 机制或异常处理的回退。
 - **无 `-help` 支持**：无论何种风格，`-help` 都不是内置帮助的合法写法，不提供例外处理。
+- **Metadata 无字段约束**：`GetHelp()` 方法体中直接 `new CommandHelpMetadata { ... }` 返回，不在 `Metadata` 上引入任何实例字段。
 
 ### 生成策略
 
-为了确保设计简单、稳定，并与现有的按类型生成 `Metadata` 的架构保持一致，推荐采用“总是生成，按需使用”的策略：
+为了确保设计简单、稳定，并与现有的按类型生成 `Metadata` 的架构保持一致，推荐采用”总是生成，按需使用”的策略：
 
-- 源生成器始终为所有 `Metadata` 生成 `IHelpProvider` 实现。
-- 运行时仅当用户调用了 `AddHelpHandler()` 时，`CommandRunner` 才会读取这些帮助元数据。
-- 如果用户没有调用 `AddHelpHandler()`，这些元数据保持未使用状态，但不会改变任何已有行为。
+- 源生成器始终为所有 `Metadata` 生成 `GetHelp()` 方法实现。
+- 运行时仅当用户调用了 `AddHelpHandler()` 时，`CommandRunner` 才会调用 `GetHelp()` 读取帮助元数据。
+- 如果用户没有调用 `AddHelpHandler()`，`GetHelp()` 不会被调用，不会改变任何已有行为。
 
 这样做的好处是：
 
@@ -556,7 +576,7 @@ private bool _helpEnabled;
 3. **拒绝 `-help`**：该写法与短选项组合及多字符短选项规则冲突，不被支持。
 4. **无 help 子命令**：子命令形式的帮助留待独立设计。
 5. **先行检测**：帮助检测在 `CommandRunner.RunAsync()` 的开头执行，不影响正常命令匹配流程。
-6. **源生成器驱动**：利用现有 `ModelBuilderGenerator` 的管道，扩展 `Metadata` 类型以同时实现 `IHelpProvider` 接口，携带描述信息。
+6. **源生成器驱动**：利用现有 `ModelBuilderGenerator` 的管道，在 `Metadata` 类型上生成 `GetHelp()` 方法，携带描述信息。
 7. **Description 作为唯一源**：使用 `CommandLineAttribute.Description` 属性，不涉及 XML 文档注释。
 8. **无反射、AOT 安全**：所有帮助元数据在编译期确定。
 9. **本地化与 XML 文档注释**：明确排除在本文档范围之外，留待后续设计。
