@@ -28,6 +28,7 @@ DotNetCampus.CommandLine 提供了丰富的命令行解析能力，支持多风�
 - **不包含 help 子命令**。本文档仅讨论内置的 `--help` 风格支持，不涉及 `myapp help` 这种子命令形式。子命令形式的帮助可留作后续独立设计。
 - **不支持 XML 文档注释作为帮助信息来源**。`Description` 是当前唯一的信息源，XML 文档注释不在本设计范围内。
 - **不支持本地化**。本设计不涉及多语言的描述文本切换。如后续需要本地化支持，应另案处理。
+- **不展示选项的默认值**。框架在属性未赋值时的回退行为（如空字符串、空集合、`default(T)` 等）是内部的兜底逻辑，并非用户在业务上有意义的默认值声明。在没有提供显式声明默认值的机制之前，帮助信息不展示默认值，以免对 CLI 使用者造成误导。
 - **不修改现有的选项匹配或命令匹配逻辑**。帮助检测是一个独立的先行检查步骤，不干扰常规解析路径。
 - **不产生隐式的控制台输出**。所有帮助文本的输出都要求用户显式调用 `AddHelpHandler()` 后才生效。
 
@@ -246,11 +247,13 @@ else
 
 选项列表的每条记录包含：
 
-- 短名称（如果有）：如 `-h`
-- 长名称：如 `--help`
+- 短名称（如果有多个则全部列出）：如 `-h`、`-n`
+- 长名称（如果有多个则全部列出）：如 `--help`、`--name`
 - 是否必需：`required` 标记的属性
 - 类型提示：布尔型、数值型、字符串型等
 - 描述：`[Option]` 特性上的 `Description` 属性
+
+注意：由于 `OptionAttribute` 支持为一个选项声明多个短名称和多个长名称（如 `[Option(new[] { "n", "N" }, new[] { "name", "file-name" })]`），帮助信息必须完整呈现所有别名，而不是仅取第一个。
 
 示例输出：
 
@@ -319,8 +322,8 @@ public interface IHelpProvider
 /// </summary>
 public readonly record struct OptionHelpInfo
 {
-    public string? ShortName { get; init; }
-    public string? LongName { get; init; }
+    public IReadOnlyList<string> ShortNames { get; init; }
+    public IReadOnlyList<string> LongNames { get; init; }
     public string? Description { get; init; }
     public bool IsRequired { get; init; }
     public OptionValueType ValueType { get; init; }
@@ -356,7 +359,7 @@ public sealed class Metadata : global::DotNetCampus.Cli.Compiler.ICommandObjectM
     public string? Description => "添加一个新项目";
 
     public global::System.Collections.Generic.IReadOnlyList<global::DotNetCampus.Cli.Compiler.OptionHelpInfo> Options
-        => [new() { ShortName = "n", LongName = "name", Description = "项目名称", IsRequired = true, ValueType = global::DotNetCampus.Cli.Compiler.OptionValueType.Normal }];
+        => [new() { ShortNames = ["n"], LongNames = ["name"], Description = "项目名称", IsRequired = true, ValueType = global::DotNetCampus.Cli.Compiler.OptionValueType.Normal }];
 
     public global::System.Collections.Generic.IReadOnlyList<global::DotNetCampus.Cli.Compiler.ValueHelpInfo> PositionalArguments
         => [new() { Index = 0, Description = "要添加的文件路径", IsRequired = true }];
@@ -390,16 +393,16 @@ ModelBuilderGenerator.Execute 中
 
 ### 运行时注册
 
-`AddHelpHandler()` 的调用通过拦截器机制实现，与现有的 `AddHandler<T>()` 模式相同。`AddHelpHandler()` 扩展方法触发拦截器，拦截器生成一段代码，该代码在 `CommandRunner` 上注册帮助元数据收集器。
+`AddHelpHandler()` 不需要通过拦截器实现——它不涉及泛型类型参数的编译期解析，可以作为普通扩展方法直接在运行时工作。调用 `AddHelpHandler()` 只是在 `CommandRunner` 上设置一个标记，表示帮助功能已启用。
 
-`CommandRunner` 内部新增一个字段来持有帮助元数据：
+`CommandRunner` 内部新增一个字段来持有帮助状态：
 
 ```csharp
 // CommandRunner 新增的字段
-private HelpHandler? _helpHandler;
+private bool _helpEnabled;
 ```
 
-帮助处理器内部持有所有已注册命令的 `IHelpProvider` 引用列表。当 `AddHandler<T>()` 被调用时，如果对应的 `Metadata` 实现了 `IHelpProvider`，帮助处理器会自动收集它。
+帮助元数据的收集发生在 `RunAsync()` 内部：当帮助功能已启用且检测到帮助请求后，运行器才遍历所有已注册的 `ICommandObjectMetadata`，将其中实现了 `IHelpProvider` 的实例收集起来用于输出。这意味着无论 `AddHelpHandler()` 出现在调用链的什么位置——在所有 `AddHandler` 之前、之间或之后——行为都是一致的。
 
 ## 运行时执行流程
 
@@ -410,15 +413,16 @@ private HelpHandler? _helpHandler;
 
 1. CommandLine.Parse(args) → 创建 CommandLine 实例
 2. .AddHandler<AddOptions>(...) → 注册 AddOptions 的命令元数据
-3. .AddHelpHandler() → 注册帮助处理器，收集所有 IHelpProvider
+3. .AddHelpHandler() → 设置帮助启用标记
 4. .Run() / .RunAsync()
    │
    ├── 4.1 CommandRunner.RunAsync()
    │   │
    │   ├── 4.2 帮助检测阶段
-   │   │   ├── 检查是否注册了帮助处理器 → 是
+   │   │   ├── 检查帮助是否已启用 → 是
    │   │   ├── 遍历原始参数，匹配帮助写法
    │   │   ├── 匹配到 "--help"
+   │   │   ├── 收集所有已注册 metadata 中的 IHelpProvider
    │   │   ├── 过滤掉 "--help"，剩余参数为 ["add"]
    │   │   └── 调用命令匹配，匹配到 "add" 命令
    │   │
