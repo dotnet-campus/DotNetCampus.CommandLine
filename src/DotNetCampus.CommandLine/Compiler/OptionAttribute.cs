@@ -114,4 +114,13 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性（而 <see cref="CommandLine"/> 默认为大小写不敏感）。
     /// </remarks>
     public bool CaseSensitive { get; init; }
+
+    /// <summary>
+    /// 获取或设置选项值在帮助文本中的占位符名称。
+    /// </summary>
+    /// <remarks>
+    /// 例如设置为 "file_path"，则帮助文本中显示为 --source &lt;file_path&gt;。<br/>
+    /// 如果未设置，则根据属性类型自动推断。
+    /// </remarks>
+    public string? ValueName { get; init; }
 }

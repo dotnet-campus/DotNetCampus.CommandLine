@@ -1,3 +1,4 @@
+using DotNetCampus.Cli.Utils;
 using DotNetCampus.CommandLine.CodeAnalysis;
 using DotNetCampus.CommandLine.Generators.Builders;
 using DotNetCampus.CommandLine.Generators.ModelProviding;
@@ -127,8 +128,78 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         builder
             .AddMethodDeclaration("public object Build(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)", m => m
-                .AddRawStatement($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"));
+                .AddRawStatement($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"))
+            .AddMethodDeclaration("public global::DotNetCampus.Cli.Compiler.CommandHelpMetadata? GetHelp()", m => m
+                .AddRawStatement(GenerateGetHelpReturnStatement(model)));
     }
+
+    private static string GenerateGetHelpReturnStatement(CommandObjectGeneratingModel model)
+    {
+        var commandName = model.CommandNames is not null
+            ? $"\"{EscapeString(model.CommandNames)}\""
+            : "null";
+        var description = model.Description is not null
+            ? $"\"{EscapeString(model.Description)}\""
+            : "null";
+
+        var optionEntries = model.OptionProperties.Select(x =>
+        {
+            var shortNames = string.Join(", ", x.GetShortNames().Select(s => $"\"{EscapeString(s)}\""));
+            var longNames = string.Join(", ", x.GetOrdinalLongNames().Select(s => $"\"{EscapeString(s)}\""));
+            var valueName = x.ValueName is not null ? $"\"{EscapeString(x.ValueName)}\"" : "null";
+            var optionDescription = x.Description is not null ? $"\"{EscapeString(x.Description)}\"" : "null";
+            var optionValueType = x.Type.AsCommandValueKind().ToCommandValueTypeName();
+            return $$"""
+                        new global::DotNetCampus.Cli.Compiler.OptionHelpInfo
+                        {
+                            ShortNames = [{{shortNames}}],
+                            LongNames = [{{longNames}}],
+                            ValueName = {{valueName}},
+                            Description = {{optionDescription}},
+                            IsRequired = {{(x.IsRequired ? "true" : "false")}},
+                            ValueType = {{optionValueType}},
+                        }
+                """;
+        });
+
+        var positionalEntries = model.PositionalArgumentProperties.Select(x =>
+        {
+            var argumentName = NamingHelper.MakeKebabCase(x.PropertyName, true, true).Replace('-', '_');
+            var argumentDescription = x.Description is not null ? $"\"{EscapeString(x.Description)}\"" : "null";
+            var count = x.Length == int.MaxValue ? "null" : x.Length.ToString();
+            return $$"""
+                        new global::DotNetCampus.Cli.Compiler.ValueHelpInfo
+                        {
+                            Index = {{x.Index}},
+                            Count = {{count}},
+                            Name = "{{argumentName}}",
+                            Description = {{argumentDescription}},
+                            IsRequired = {{(x.IsRequired ? "true" : "false")}},
+                        }
+                """;
+        });
+
+        var options = string.Join("\n", optionEntries.Select(x => $"{x},"));
+        var positionals = string.Join("\n", positionalEntries.Select(x => $"{x},"));
+
+        return $$"""
+            return new global::DotNetCampus.Cli.Compiler.CommandHelpMetadata
+            {
+                CommandName = {{commandName}},
+                Description = {{description}},
+                Options =
+                [
+            {{options}}
+                ],
+                PositionalArguments =
+                [
+            {{positionals}}
+                ],
+            };
+            """;
+    }
+
+    private static string EscapeString(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
     private string GenerateArgumentPropertyCode(PropertyGeneratingModel model) =>
         $"private {GetArgumentPropertyTypeName(model)} {model.PropertyName} = new();";

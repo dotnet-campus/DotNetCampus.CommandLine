@@ -28,6 +28,8 @@ internal sealed class CommandLineExceptionHandlerMetadata(bool ignoreAllExceptio
         return new CommandLineExceptionHandler(context.CommandLine, ignoreAllExceptions);
     }
 
+    public CommandHelpMetadata? GetHelp() => null;
+
     public Task<int> RunAsync(object createdCommandObject)
     {
         return ((CommandLineExceptionHandler)createdCommandObject).RunAsync();

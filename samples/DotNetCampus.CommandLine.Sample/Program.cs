@@ -10,6 +10,12 @@ class Program
 {
     static void Main(string[] args)
     {
+        _ = CommandLine.Parse(args)
+            .AddHandler<DefaultOptions>(o => { })
+            .AddHelpHandler()
+            .Run();
+        return;
+
 #if !Benchmark
         // 第一次运行，排除类型初始化的影响，只测试代码执行性能。
         // 注释掉这句话，可以：

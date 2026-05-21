@@ -1,7 +1,9 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.ExceptionServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Help;
 using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
@@ -20,6 +22,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     private readonly SortedList<string, ICommandObjectMetadata> _candidates;
     private ICommandObjectMetadata? _default;
     private ICommandObjectMetadata? _fallback;
+    private HelpConfigurations? _helpConfigurations;
 
     internal CommandRunner(CommandLine commandLine)
     {
@@ -83,15 +86,25 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     /// <inheritdoc />
     public Task<CommandRunningResult> RunAsync()
     {
-        var (possibleCommandNames, nullableMetadata) = MatchCommandObject();
+        // 帮助检测阶段：在正常命令匹配之前检测帮助请求。
+        if (_helpConfigurations is { } help)
+        {
+            var args = _commandLine.CommandLineArguments;
+            var style = _commandLine.ParsingOptions.Style;
+            if (HelpDetector.IsHelpRequested(args, style))
+            {
+                return RunHelpAsync(style);
+            }
+        }
 
-        if (nullableMetadata is not { } metadata)
+        var matched = MatchCommandObject();
+        if (matched.Metadata is not { } metadata)
         {
             throw new CommandNameNotFoundException(
-                string.IsNullOrEmpty(possibleCommandNames)
+                string.IsNullOrEmpty(matched.PossibleCommandNames)
                     ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler(), especially a default command handler."
-                    : $"No command handler found for command '{possibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
-                possibleCommandNames);
+                    : $"No command handler found for command '{matched.PossibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
+                matched.PossibleCommandNames);
         }
 
         var context = new CommandRunningContext
@@ -109,7 +122,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         return CommandRunningResult.FromTask(exitCode, _commandLine, commandObject);
     }
 
-    private (string PossibleCommandNames, ICommandObjectMetadata? Metadata) MatchCommandObject()
+    private MatchedCommand MatchCommandObject()
     {
         if (_candidates.Count > 0)
         {
@@ -123,7 +136,7 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
                     // 前缀已匹配成功，接下来判断这是否是命令单词边界。
                     if (header.Length == command.Length || char.IsWhiteSpace(header[command.Length]))
                     {
-                        return (command, factory);
+                        return new MatchedCommand(command, factory, MatchedCommandType.Command);
                     }
                 }
             }
@@ -131,10 +144,10 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
 
         if (_default is { } defaultFactory)
         {
-            return ("", defaultFactory);
+            return new MatchedCommand("", defaultFactory, MatchedCommandType.Default);
         }
 
-        return (_commandLine.GetHeader(1), null);
+        return new MatchedCommand(_commandLine.GetHeader(1), null, MatchedCommandType.Unknown);
     }
 
     /// <summary>
@@ -204,6 +217,27 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
     {
         _fallback = metadata;
         return this;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。
+    /// </summary>
+    internal CommandRunner EnableHelp(HelpConfigurations helpConfigurations)
+    {
+        _helpConfigurations = helpConfigurations;
+        return this;
+    }
+
+    private Task<CommandRunningResult> RunHelpAsync(CommandLineStyle style)
+    {
+        var matched = MatchCommandObject();
+        var helpBuilder = _helpConfigurations?.HelpHandler ?? new HelpHandler
+        {
+            Style = style,
+            Configurations = _helpConfigurations,
+        };
+        helpBuilder.Handle(matched, _default, new ReadOnlyCollection<ICommandObjectMetadata>(_candidates.Values));
+        return CommandRunningResult.FromTask(Task.FromResult(0), _commandLine, null!);
     }
 }
 
