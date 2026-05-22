@@ -1,30 +1,32 @@
-﻿namespace DotNetCampus.Cli.Tests.Fakes;
+using DotNetCampus.Cli.Compiler;
+
+namespace DotNetCampus.Cli.Legacy;
 
 [dotnetCampus.Cli.Verb("Edit")]
-[DotNetCampus.Cli.Compiler.Command("Edit")]
+[Command("Edit")]
 public class EditOptions
 {
     [dotnetCampus.Cli.Value(0), dotnetCampus.Cli.Option('f', "File")]
-    [DotNetCampus.Cli.Compiler.Value(0), DotNetCampus.Cli.Compiler.Option('f', "File")]
+    [Value(0), Option('f', "File")]
     public string? FilePath { get; set; }
 }
 
 [dotnetCampus.Cli.Verb("Print")]
-[DotNetCampus.Cli.Compiler.Command("Print")]
+[Command("Print")]
 public class PrintOptions
 {
-    [DotNetCampus.Cli.Compiler.Value(0), Compiler.Option('f', "File")]
+    [Value(0), Option('f', "File")]
     public string? FilePath { get; set; }
 
-    [DotNetCampus.Cli.Compiler.Option('p', "Printer")]
+    [Option('p', "Printer")]
     public string? Printer { get; set; }
 }
 
 [dotnetCampus.Cli.Verb("Share")]
-[DotNetCampus.Cli.Compiler.Command("Share")]
+[Command("Share")]
 public class ShareOptions
 {
-    [DotNetCampus.Cli.Compiler.Option('t', "Target")]
+    [Option('t', "Target")]
     public string? Target { get; set; }
 }
 

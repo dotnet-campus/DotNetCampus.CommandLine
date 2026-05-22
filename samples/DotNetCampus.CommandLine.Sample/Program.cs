@@ -1,159 +1,28 @@
-﻿#define Benchmark
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using DotNetCampus.Cli.Compiler;
-using DotNetCampus.Cli.Tests.Fakes;
+using DotNetCampus.Cli.Legacy;
+using DotNetCampus.Cli.Properties;
 
 namespace DotNetCampus.Cli;
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-        _ = CommandLine.Parse(args)
-            .AddHandler<DefaultOptions>(o => { })
-            .AddHelpHandler()
-            .Run();
-        return;
-
-#if !Benchmark
-        // 第一次运行，排除类型初始化的影响，只测试代码执行性能。
-        // 注释掉这句话，可以：
-        // 1. 测试带类型初始化的性能
-        // 2. 测试 AOT 性能 dotnet publish --self-contained -r win-x64 -c release -tl:off .\src\DotNetCampus.CommandLine.Sample\DotNetCampus.CommandLine.Sample.csproj
-        Run(args);
-        var stopwatch = Stopwatch.StartNew();
-        Run(args);
-        stopwatch.Stop();
-        Console.WriteLine($"[# Elapsed: {stopwatch.Elapsed.TotalMicroseconds} us #]");
-#else
-        const int warmupCount = 10000;
-        const int testCount = 10000000;
-        CommandLineParsingOptions parsingOptions = CommandLineParsingOptions.DotNet;
-
-        for (var i = 0; i < warmupCount; i++)
+        var appState = new AppState
         {
-            dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
-            dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
-            _ = CommandLine.Parse(args, parsingOptions).As<Options>();
-        }
+            AppName = "DotNetCampus.CommandLine.Sample",
+        };
 
-        var stopwatch = new Stopwatch();
-
-        Console.WriteLine($"Run {testCount} times for: {string.Join(" ", args)}");
-
-        Console.WriteLine("| Version | Parse   | As(Parser) | As(Runtime) |");
-        Console.WriteLine("| ------- | ------- | ---------- | ----------- |");
-
-        {
-            Console.Write("| 3.x     | ");
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
+        await CommandLine.Parse(args, CommandLineParsingOptions.Flexible)
+            .AddHandler<DefaultOptions>(o => o.Run())
+            .AddHandler<ConvertHandler>()
+            .AddHandler<EditHandler>()
+            .AddHandler<BenchmarkHandler>()
+            .AddHelpHandler(new HelpConfigurations
             {
-                _ = dotnetCampus.Cli.CommandLine.Parse(args);
-            }
-            stopwatch.Stop();
-            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-            var oldCommandLine = dotnetCampus.Cli.CommandLine.Parse(args);
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
-            {
-                _ = oldCommandLine.As(new OptionsParser());
-            }
-            stopwatch.Stop();
-            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
-            {
-                _ = oldCommandLine.As<Options>();
-            }
-            stopwatch.Stop();
-            Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
-        }
-        {
-            Console.Write("| 4.x     | ");
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
-            {
-                _ = CommandLine.Parse(args, parsingOptions);
-            }
-            stopwatch.Stop();
-            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),4} ms | ");
-            var newCommandLine = CommandLine.Parse(args, parsingOptions);
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
-            {
-                var context = new CommandRunningContext { CommandLine = newCommandLine };
-                _ = new OptionsBuilder().Build(context);
-            }
-            stopwatch.Stop();
-            Console.Write($"{stopwatch.ElapsedMilliseconds.ToString(),7} ms | ");
-            stopwatch.Restart();
-            for (var i = 0; i < testCount; i++)
-            {
-                _ = newCommandLine.As<Options>();
-            }
-            stopwatch.Stop();
-            Console.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString(),8} ms |");
-        }
-#endif
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void Run(string[] args)
-    {
-        if (args.Length is 0)
-        {
-        }
-        else if (args[0] == "3.x-parser")
-        {
-            Run3xParser(args);
-        }
-        else if (args[0] == "3.x-runtime")
-        {
-            Run3xRuntime(args);
-        }
-        else if (args[0] == "4.x-interceptor")
-        {
-            Run4xInterceptor(args);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Run3xParser(string[] args)
-    {
-        _ = dotnetCampus.Cli.CommandLine.Parse(args).As(new OptionsParser());
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Run3xRuntime(string[] args)
-    {
-        _ = dotnetCampus.Cli.CommandLine.Parse(args).As<Options>();
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Run4xInterceptor(string[] args)
-    {
-        _ = CommandLine.Parse(args, CommandLineParsingOptions.DotNet).As<Options>();
-    }
-}
-
-// [CollectCommandHandlersFromThisAssembly]
-// internal partial class AssemblyCommandHandler;
-
-[Command("sample")]
-internal class SampleCommandHandler : ICommandHandler
-{
-    [Option("SampleProperty")]
-    public required string Option { get; init; }
-
-    [Value(Length = int.MaxValue)]
-    public string? Argument { get; init; }
-
-    public Task<int> RunAsync()
-    {
-        Console.WriteLine($"Option: {Option}");
-        Console.WriteLine($"Argument: {Argument}");
-        return Task.FromResult(0);
+                HelpTextLocalizer = key => LocalizableStrings.ResourceManager.GetString(key) ?? key,
+            })
+            .ForState(appState).AddHandler<UrlOpenHandler>()
+            .ForState()
+            .RunAsync();
     }
 }

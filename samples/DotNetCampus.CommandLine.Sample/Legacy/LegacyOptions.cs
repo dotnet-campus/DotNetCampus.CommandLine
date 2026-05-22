@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
-namespace DotNetCampus.Cli.Tests.Fakes;
+namespace DotNetCampus.Cli.Legacy;
 
 /// <summary>
 /// 表示此程序在被启动的时候使用的参数信息。此类型是不可变类型，所有实例都是线程安全的。
 /// </summary>
-public class Options
+public class LegacyOptions
 {
     /// <summary>
     /// 表示通过打开的文件路径。此属性可能为 null，但绝不会是空字符串或空白字符串。
@@ -56,17 +56,11 @@ public class Options
     [dotnetCampus.Cli.Option("StartupSession")]
     public string? StartupSession { get; init; }
 
-    /// <summary>
-    /// 创建 <see cref="Options"/> 类的新实例。
-    /// </summary>
-    public Options()
+    public LegacyOptions()
     {
     }
 
-    /// <summary>
-    /// 创建 <see cref="Options"/> 类的新实例。
-    /// </summary>
-    public Options(
+    public LegacyOptions(
         string? filePath,
         bool isFromCloud,
         string? startupMode,
