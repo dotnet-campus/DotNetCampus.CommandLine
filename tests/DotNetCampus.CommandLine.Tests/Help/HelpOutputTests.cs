@@ -119,7 +119,7 @@ public class HelpOutputTests
 
         // Assert
         Assert.IsNotNull(helpText);
-        Assert.IsTrue(helpText.Contains("input_file"), $"Help text should contain positional arg name 'input_file'. Actual: {helpText}");
+        Assert.IsTrue(helpText.Contains("input_file"), $"Help text should contain positional argument name 'input_file'. Actual: {helpText}");
     }
 
     [TestMethod]
