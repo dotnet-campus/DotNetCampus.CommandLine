@@ -373,6 +373,121 @@ commandLine
 1. 如果多个命令处理器匹配同一个命令，会抛出 `CommandNameAmbiguityException`。
 1. 命令处理器中，有任何一个是异步时，你将必须使用 `RunAsync` 替代 `Run`，否则会编译不通过。
 
+## 帮助信息
+
+DotNetCampus.CommandLine 内置了帮助信息生成机制。当用户传入 `--help`、`-h`、`/?` 等帮助标志时，程序会自动输出帮助信息并退出。
+
+### 启用帮助
+
+调用 `AddHelpHandler()` 即可启用帮助（推荐放在处理器链末尾以保持格式统一，但实际上放在任意位置均可）：
+
+```csharp
+await CommandLine.Parse(args)
+    .AddHandler<DefaultOptions>(o => o.Run())
+    .AddHandler<ConvertHandler>()
+    .AddHandler<EditHandler>()
+    .AddHelpHandler()
+    .RunAsync();
+```
+
+### 为选项和命令添加描述
+
+通过 `Description` 属性为命令、选项和位置参数添加描述文本：
+
+```csharp
+[Command("convert", Description = "Convert input values and demonstrate type parsing.")]
+internal class ConvertHandler : ICommandHandler
+{
+    [Value(0, Description = "The input file to convert.")]
+    public required string InputFile { get; init; }
+
+    [Option('f', "format", Description = "Output format.")]
+    public OutputFormat Format { get; init; } = OutputFormat.Text;
+
+    [Option('n', "count", Description = "Maximum number of records to convert.")]
+    public int? Count { get; init; }
+
+    public Task<int> RunAsync() { /* ... */ }
+}
+```
+
+`OptionAttribute` 还有一个 `ValueName` 属性，用于在帮助中显示值占位符：
+
+```csharp
+[Option(Description = "Pass any directory into this option.", ValueName = "directory_path")]
+public string? DefaultDirectory { get; set; }
+```
+
+这会在帮助输出中显示为 `--default-directory <directory_path>` 而非默认的 `--default-directory <value>`。
+
+未设置 `ValueName` 时，帮助中的值占位符根据选项类型自动生成：
+
+| 选项类型 | 默认占位符         |
+| -------- | ------------------ |
+| 布尔选项 | （无）             |
+| 普通选项 | `<value>`          |
+| 集合选项 | `<value>...`       |
+| 字典选项 | `<key>=<value>...` |
+
+设置 `ValueName` 后，占位符中的 `value` 会被替换为你指定的名称（集合和字典仍保留 `...` 后缀）。
+
+### 帮助标志的自动检测
+
+库会根据当前的命令行风格自动检测对应的帮助标志：
+
+| 风格              | 支持的帮助标志                           |
+| ----------------- | ---------------------------------------- |
+| Flexible（默认）  | `--help` `-h` `/help` `/h` `/?` `-?`    |
+| DotNet / Gnu      | `--help` `-h`                            |
+| Posix             | `-h`                                     |
+| Windows           | `/help` `/h` `/?` `-help` `-h` `-?`     |
+| URL               | 不支持帮助检测                           |
+
+当用户传入子命令 + 帮助标志时（如 `myapp convert --help`），只显示该子命令的帮助；当直接传入帮助标志时（如 `myapp --help`），则显示全局帮助，包含所有子命令列表。
+
+帮助输出完成后程序会返回退出代码 `0`，不会继续执行命令处理器。
+
+### 自定义帮助行为
+
+通过 `HelpConfigurations` 可以自定义帮助的各个方面：
+
+```csharp
+.AddHelpHandler(new HelpConfigurations
+{
+    // 选项/命令名称列的最大宽度（默认 30），超过此宽度的项其描述换行显示
+    MaxColumnWidth = 40,
+
+    // 本地化：以 Description 的值为键，返回本地化文本
+    HelpTextLocalizer = key => MyResources.ResourceManager.GetString(key) ?? key,
+
+    // 自定义输出目标（默认写入 Console.Out）
+    HelpMessageWriter = text => File.WriteAllText("help.txt", text),
+
+    // 完全自定义帮助处理器（实现 IHelpHandler 接口）
+    HelpHandler = new MyCustomHelpHandler(),
+})
+```
+
+#### 帮助文本本地化
+
+如果你的程序需要多语言支持，可以将 `Description` 设置为资源键，然后通过 `HelpTextLocalizer` 委托进行翻译：
+
+```csharp
+// 定义命令时使用资源键作为 Description
+[Command(Description = nameof(LocalizableStrings.SampleCommandDescription))]
+internal class DefaultOptions
+{
+    [Option(Description = nameof(LocalizableStrings.SamplePropertyDescription))]
+    public string? DefaultText { get; set; }
+}
+
+// 启用帮助时提供本地化委托
+.AddHelpHandler(new HelpConfigurations
+{
+    HelpTextLocalizer = key => LocalizableStrings.ResourceManager.GetString(key) ?? key,
+})
+```
+
 ## URL协议支持
 
 DotNetCampus.CommandLine 支持解析 URL 协议字符串，格式如下：

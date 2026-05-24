@@ -364,6 +364,121 @@ commandLine
 3. 多個處理器匹配同一命令會擲出 `CommandNameAmbiguityException`。
 4. 若有任何處理器為非同步，必須使用 `RunAsync`（否則編譯失敗）。
 
+## 幫助資訊
+
+DotNetCampus.CommandLine 內建了幫助資訊產生機制。當使用者傳入 `--help`、`-h`、`/?` 等幫助旗標時，程式會自動輸出幫助資訊並結束。
+
+### 啟用幫助
+
+呼叫 `AddHelpHandler()` 即可啟用幫助（建議放在處理器鏈末尾以保持格式統一，但實際上放在任意位置均可）：
+
+```csharp
+await CommandLine.Parse(args)
+    .AddHandler<DefaultOptions>(o => o.Run())
+    .AddHandler<ConvertHandler>()
+    .AddHandler<EditHandler>()
+    .AddHelpHandler()
+    .RunAsync();
+```
+
+### 為選項和命令新增描述
+
+透過 `Description` 屬性為命令、選項和位置參數新增描述文字：
+
+```csharp
+[Command("convert", Description = "Convert input values and demonstrate type parsing.")]
+internal class ConvertHandler : ICommandHandler
+{
+    [Value(0, Description = "The input file to convert.")]
+    public required string InputFile { get; init; }
+
+    [Option('f', "format", Description = "Output format.")]
+    public OutputFormat Format { get; init; } = OutputFormat.Text;
+
+    [Option('n', "count", Description = "Maximum number of records to convert.")]
+    public int? Count { get; init; }
+
+    public Task<int> RunAsync() { /* ... */ }
+}
+```
+
+`OptionAttribute` 還有一個 `ValueName` 屬性，用於在幫助中顯示值佔位符：
+
+```csharp
+[Option(Description = "Pass any directory into this option.", ValueName = "directory_path")]
+public string? DefaultDirectory { get; set; }
+```
+
+這會在幫助輸出中顯示為 `--default-directory <directory_path>` 而非預設的 `--default-directory <value>`。
+
+未設定 `ValueName` 時，幫助中的值佔位符根據選項型別自動產生：
+
+| 選項型別 | 預設佔位符         |
+| -------- | ------------------ |
+| 布林選項 | （無）             |
+| 普通選項 | `<value>`          |
+| 集合選項 | `<value>...`       |
+| 字典選項 | `<key>=<value>...` |
+
+設定 `ValueName` 後，佔位符中的 `value` 會被替換為你指定的名稱（集合和字典仍保留 `...` 後綴）。
+
+### 幫助旗標的自動偵測
+
+程式庫會根據目前的命令列風格自動偵測對應的幫助旗標：
+
+| 風格              | 支援的幫助旗標                           |
+| ----------------- | ---------------------------------------- |
+| Flexible（預設）  | `--help` `-h` `/help` `/h` `/?` `-?`    |
+| DotNet / Gnu      | `--help` `-h`                            |
+| Posix             | `-h`                                     |
+| Windows           | `/help` `/h` `/?` `-help` `-h` `-?`     |
+| URL               | 不支援幫助偵測                           |
+
+當使用者傳入子命令 + 幫助旗標時（如 `myapp convert --help`），只顯示該子命令的幫助；當直接傳入幫助旗標時（如 `myapp --help`），則顯示全域幫助，包含所有子命令列表。
+
+幫助輸出完成後程式會回傳結束代碼 `0`，不會繼續執行命令處理器。
+
+### 自訂幫助行為
+
+透過 `HelpConfigurations` 可以自訂幫助的各個面向：
+
+```csharp
+.AddHelpHandler(new HelpConfigurations
+{
+    // 選項/命令名稱欄的最大寬度（預設 30），超過此寬度的項目其描述會換行顯示
+    MaxColumnWidth = 40,
+
+    // 本地化：以 Description 的值為鍵，回傳本地化文字
+    HelpTextLocalizer = key => MyResources.ResourceManager.GetString(key) ?? key,
+
+    // 自訂輸出目標（預設寫入 Console.Out）
+    HelpMessageWriter = text => File.WriteAllText("help.txt", text),
+
+    // 完全自訂幫助處理器（實作 IHelpHandler 介面）
+    HelpHandler = new MyCustomHelpHandler(),
+})
+```
+
+#### 幫助文字本地化
+
+如果你的程式需要多語言支援，可以將 `Description` 設定為資源鍵，然後透過 `HelpTextLocalizer` 委派進行翻譯：
+
+```csharp
+// 定義命令時使用資源鍵作為 Description
+[Command(Description = nameof(LocalizableStrings.SampleCommandDescription))]
+internal class DefaultOptions
+{
+    [Option(Description = nameof(LocalizableStrings.SamplePropertyDescription))]
+    public string? DefaultText { get; set; }
+}
+
+// 啟用幫助時提供本地化委派
+.AddHelpHandler(new HelpConfigurations
+{
+    HelpTextLocalizer = key => LocalizableStrings.ResourceManager.GetString(key) ?? key,
+})
+```
+
 ## URL 協議支援
 
 可解析 URL 協議字串：
