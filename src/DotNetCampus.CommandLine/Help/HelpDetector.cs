@@ -15,9 +15,9 @@ internal static class HelpDetector
             return false;
         }
 
-        foreach (var arg in args)
+        foreach (var argument in args)
         {
-            if (IsHelpOption(arg, style))
+            if (IsHelpOption(argument, style))
             {
                 return true;
             }
@@ -25,7 +25,7 @@ internal static class HelpDetector
         return false;
     }
 
-    private static bool IsHelpOption(string arg, CommandLineStyle style)
+    private static bool IsHelpOption(string argument, CommandLineStyle style)
     {
         var comparison = style.CaseSensitive
             ? StringComparison.Ordinal
@@ -36,7 +36,7 @@ internal static class HelpDetector
         // --help (DotNet, Gnu, Flexible)
         if (prefix is CommandOptionPrefix.DoubleDash or CommandOptionPrefix.Any)
         {
-            if (style.SupportsLongOption && arg.Equals("--help", comparison))
+            if (style.SupportsLongOption && argument.Equals("--help", comparison))
             {
                 return true;
             }
@@ -47,15 +47,15 @@ internal static class HelpDetector
         {
             if (style.SupportsShortOption)
             {
-                if (arg.Equals("-h", comparison))
+                if (argument.Equals("-h", comparison))
                 {
                     return true;
                 }
 
                 // 短选项组合 (Gnu, Posix): -hxxx contains -h
-                if (style.SupportsShortOptionCombination && arg.Length > 2 && arg[0] == '-' && arg[1] != '-')
+                if (style.SupportsShortOptionCombination && argument.Length > 2 && argument[0] == '-' && argument[1] != '-')
                 {
-                    var chars = arg.AsSpan(1);
+                    var chars = argument.AsSpan(1);
                     foreach (var c in chars)
                     {
                         if (c == 'h' || (!style.CaseSensitive && (c == 'H')))
@@ -70,15 +70,15 @@ internal static class HelpDetector
         // /help, /h (Flexible, Windows)
         if (prefix is CommandOptionPrefix.Slash or CommandOptionPrefix.SlashOrDash or CommandOptionPrefix.Any)
         {
-            if (arg.Equals("/help", comparison))
+            if (argument.Equals("/help", comparison))
             {
                 return true;
             }
-            if (arg.Equals("/h", comparison))
+            if (argument.Equals("/h", comparison))
             {
                 return true;
             }
-            if (arg.Equals("/?", StringComparison.Ordinal))
+            if (argument.Equals("/?", StringComparison.Ordinal))
             {
                 return true;
             }
@@ -87,7 +87,7 @@ internal static class HelpDetector
         // -? (Flexible, Windows)
         if (prefix is CommandOptionPrefix.SlashOrDash or CommandOptionPrefix.Any)
         {
-            if (arg.Equals("-?", StringComparison.Ordinal))
+            if (argument.Equals("-?", StringComparison.Ordinal))
             {
                 return true;
             }

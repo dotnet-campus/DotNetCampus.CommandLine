@@ -235,24 +235,24 @@ public class HelpHandler : IHelpHandler
 
         var maxColumnWidth = MaxColumnWidth;
         var columnWidth = 0;
-        foreach (var sub in subCommandMetadataList)
+        foreach (var metadata in subCommandMetadataList)
         {
-            var len = sub.CommandName!.Length;
-            if (len <= maxColumnWidth && len > columnWidth)
+            var nameLength = metadata.CommandName!.Length;
+            if (nameLength <= maxColumnWidth && nameLength > columnWidth)
             {
-                columnWidth = len;
+                columnWidth = nameLength;
             }
         }
 
-        foreach (var subCommandMetadata in subCommandMetadataList)
+        foreach (var metadata in subCommandMetadataList)
         {
-            var name = subCommandMetadata.CommandName!;
+            var name = metadata.CommandName!;
             var prefix = $"  {name}";
 
             if (name.Length > maxColumnWidth)
             {
                 builder.AppendLine(prefix);
-                if (subCommandMetadata.Description is { } description)
+                if (metadata.Description is { } description)
                 {
                     builder.Append(new string(' ', columnWidth + 4));
                     builder.AppendLine(ResolveLocalization(description));
@@ -261,7 +261,7 @@ public class HelpHandler : IHelpHandler
             else
             {
                 builder.Append(prefix.PadRight(columnWidth + 4));
-                if (subCommandMetadata.Description is { } description)
+                if (metadata.Description is { } description)
                 {
                     builder.Append(ResolveLocalization(description));
                 }
@@ -288,12 +288,12 @@ public class HelpHandler : IHelpHandler
 
         var maxColumnWidth = MaxColumnWidth;
         var columnWidth = 0;
-        foreach (var pos in defaultCommandMetadata.PositionalArguments)
+        foreach (var positionalArgument in defaultCommandMetadata.PositionalArguments)
         {
-            var len = pos.Name.Length + 2; // 2 = [ + ]
-            if (len <= maxColumnWidth && len > columnWidth)
+            var nameLength = positionalArgument.Name.Length + 2; // 2 = [ + ]
+            if (nameLength <= maxColumnWidth && nameLength > columnWidth)
             {
-                columnWidth = len;
+                columnWidth = nameLength;
             }
         }
 
@@ -398,31 +398,31 @@ public class HelpHandler : IHelpHandler
 
     private string FormatOptionName(OptionHelpInfo option)
     {
-        var sb = new StringBuilder();
+        var builder = new StringBuilder();
         var first = true;
         foreach (var shortName in option.ShortNames)
         {
-            if (!first) sb.Append('|');
-            sb.Append('-');
-            sb.Append(shortName);
+            if (!first) builder.Append('|');
+            builder.Append('-');
+            builder.Append(shortName);
             first = false;
         }
         foreach (var longName in option.LongNames)
         {
-            if (!first) sb.Append('|');
-            sb.Append("--");
-            sb.Append(longName);
+            if (!first) builder.Append('|');
+            builder.Append("--");
+            builder.Append(longName);
             first = false;
         }
 
         var valuePlaceholder = GetValuePlaceholder(option);
         if (valuePlaceholder is not null)
         {
-            sb.Append(' ');
-            sb.Append(valuePlaceholder);
+            builder.Append(' ');
+            builder.Append(valuePlaceholder);
         }
 
-        return sb.ToString();
+        return builder.ToString();
     }
 
     private static string? GetValuePlaceholder(OptionHelpInfo option)
