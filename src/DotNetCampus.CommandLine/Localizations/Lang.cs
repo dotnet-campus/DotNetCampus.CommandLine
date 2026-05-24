@@ -1,8 +1,12 @@
-using dotnetCampus.Localizations;
+using DotNetCampus.Localizations;
 
 namespace DotNetCampus.Cli.Localizations;
 
-[LocalizedConfiguration(Default = "en", EnsureKeysIdentical = true, SupportsNotification = false)]
+[LocalizedConfiguration(Default = "en",
+    EnsureKeysIdentical = true,
+    DependencyMode = DependencyMode.NestedSource,
+    GenerationMode = GenerationMode.Compiled,
+    NotificationMode = NotificationMode.InitOnly)]
 internal partial class Lang
 {
 }

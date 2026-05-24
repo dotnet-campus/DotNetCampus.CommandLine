@@ -7,7 +7,7 @@
       We add net5.0 to support OperatingSystem.IsWindows()/IsLinux()/IsMacOS().
       We add netcoreapp3.1 to support basic string methods and ValueTask.
     -->
-    <TargetFrameworks>net8.0;net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net8.0;net6.0;net5.0;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>DotNetCampus.CommandLine</PackageId>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

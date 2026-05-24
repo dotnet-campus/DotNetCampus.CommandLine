@@ -5,7 +5,7 @@
     <PackageVersion Include="DotNetCampus.CodeAnalysisUtils" Version="0.0.1-alpha.3" />
     <PackageVersion Include="DotNetCampus.CommandLine.Temp40" Version="4.0.1-benchmark.1" />
     <PackageVersion Include="DotNetCampus.LatestCSharpFeatures" Version="13.0.1" />
-    <PackageVersion Include="dotnetCampus.SourceLocalizations" Version="0.1.1-alpha.2" />
+    <PackageVersion Include="dotnetCampus.SourceLocalizations" Version="0.1.1-alpha.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0" />
