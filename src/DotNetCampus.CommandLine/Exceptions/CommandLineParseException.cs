@@ -1,4 +1,5 @@
-﻿using DotNetCampus.Cli.Utils.Parsers;
+﻿using DotNetCampus.Cli.Localizations;
+using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli.Exceptions;
 
@@ -7,7 +8,7 @@ namespace DotNetCampus.Cli.Exceptions;
 /// </summary>
 public class CommandLineParseException : CommandLineException
 {
-    private const string DefaultMessage = "Parse the command line failed.";
+    private static string DefaultMessage => Lang.Current.DotNetCampus.CommandLine.Error.ParseFailed;
 
     /// <summary>
     /// 获取导致异常的命令行解析错误类型。
@@ -54,7 +55,7 @@ public class CommandLineParseException : CommandLineException
 /// </summary>
 public class CommandLineParseValueException : CommandLineParseException
 {
-    private const string DefaultMessage = "Failed to parse the command line value.";
+    private static string DefaultMessage => Lang.Current.DotNetCampus.CommandLine.Error.ParseValueFailed;
 
     /// <summary>
     /// 初始化 <see cref="CommandLineException"/> 类的新实例。

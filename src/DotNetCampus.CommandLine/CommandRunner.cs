@@ -4,6 +4,7 @@ using System.Runtime.ExceptionServices;
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
 using DotNetCampus.Cli.Help;
+using DotNetCampus.Cli.Localizations;
 using DotNetCampus.Cli.Utils.Parsers;
 
 namespace DotNetCampus.Cli;
@@ -102,8 +103,8 @@ public class CommandRunner : ICommandRunnerBuilder, IAsyncCommandRunnerBuilder
         {
             throw new CommandNameNotFoundException(
                 string.IsNullOrEmpty(matched.PossibleCommandNames)
-                    ? "No command handler found. Please ensure that at least one command handler is registered by AddHandler(), especially a default command handler."
-                    : $"No command handler found for command '{matched.PossibleCommandNames}'. Please ensure that the command handler is registered by AddHandler().",
+                    ? Lang.Current.DotNetCampus.CommandLine.Error.CommandNotFound.ToString()
+                    : Lang.Current.DotNetCampus.CommandLine.Error.CommandNotFoundForName.ToString(matched.PossibleCommandNames),
                 matched.PossibleCommandNames);
         }
 

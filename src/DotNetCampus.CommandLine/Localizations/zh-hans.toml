@@ -1,3 +1,4 @@
+# Help
 DotNetCampus.CommandLine.Help.UsageHeader = "用法："
 DotNetCampus.CommandLine.Help.UsageOptions = "[选项]"
 DotNetCampus.CommandLine.Help.UsageCommand = "<命令>"
@@ -7,3 +8,28 @@ DotNetCampus.CommandLine.Help.OptionsHeader = "选项："
 DotNetCampus.CommandLine.Help.PositionalArgumentsHeader = "位置参数："
 DotNetCampus.CommandLine.Help.Required = "(必需)"
 DotNetCampus.CommandLine.Help.HelpDescription = "显示帮助信息"
+
+# Parse - Value conversion errors
+DotNetCampus.CommandLine.Parse.CannotConvertToNumber = "无法将 \"{value:string}\" 转换为数值。"
+DotNetCampus.CommandLine.Parse.CannotConvertToChar = "无法将 \"{value:string}\" 转换为字符，因为它的长度不为 1。"
+DotNetCampus.CommandLine.Parse.DictionaryCannotConvertToKeyValuePair = "字典包含多个元素，无法转换为 KeyValuePair。"
+DotNetCampus.CommandLine.Parse.PropertyAssignmentNotSupported = "命令行属性赋值不受支持。"
+DotNetCampus.CommandLine.Parse.CannotConvertToEnum = "无法将 \"{value:string}\" 转换为 {typeName:string} 枚举。"
+
+# Parse - Parsing diagnostic errors
+DotNetCampus.CommandLine.Parse.OptionNotFound = "命令行对象 {commandObjectName:string} 没有任何属性的选项名为 {optionName:string}。参数列表：{arguments:string}，索引 {index:string}，参数 {argument:string}。"
+DotNetCampus.CommandLine.Parse.OptionNotFoundInUrl = "命令行对象 {commandObjectName:string} 没有任何属性的选项名为 {optionName:string}，请注意解析 URL 时不支持短选项参数。URL={url:string}"
+DotNetCampus.CommandLine.Parse.OptionParseError = "命令行参数 {argument:string} 中不包含选项名称，解析失败。参数列表：{arguments:string}，索引 {index:string}。"
+DotNetCampus.CommandLine.Parse.OptionSeparatorNotSupported = "当前解析风格 {styleName:string} 不支持选项值分隔符 '{separator:string}'，因此无法识别参数 {argument:string}。参数列表：{arguments:string}，索引 {index:string}。"
+DotNetCampus.CommandLine.Parse.MultiCharShortOptionNotSupported = "当前解析风格 {styleName:string} 不支持多字符短选项，因此无法识别参数 {argument:string}。参数列表：{arguments:string}，索引 {index:string}。"
+DotNetCampus.CommandLine.Parse.CombinationIsNotBoolean = "命令行对象 {commandObjectName:string} 中，选项 {optionName:string} 的类型不是布尔类型，因此不支持使用短布尔选项组合的方式来表示此选项。参数列表：{arguments:string}，索引 {index:string}，参数 {argument:string}。"
+DotNetCampus.CommandLine.Parse.PositionalArgumentNotFound = "命令行对象 {commandObjectName:string} 位置参数范围不包含索引 {positionalIndex:string}。参数列表：{arguments:string}，索引 {index:string}，参数 {argument:string}。"
+DotNetCampus.CommandLine.Parse.CannotParseAsBoolean = "无法将 {value:string} 解析为布尔值。参数列表：{arguments:string}。"
+DotNetCampus.CommandLine.Parse.CannotParseAsDictionary = "无法将 {value:string} 解析为键值对。参数列表：{arguments:string}。"
+
+# Error - Exception default messages
+DotNetCampus.CommandLine.Error.CommandLineError = "命令行机制发生错误，操作失败。"
+DotNetCampus.CommandLine.Error.ParseFailed = "命令行解析失败。"
+DotNetCampus.CommandLine.Error.ParseValueFailed = "命令行参数值解析失败。"
+DotNetCampus.CommandLine.Error.CommandNotFound = "未找到命令处理器。请确保至少通过 AddHandler() 注册了一个命令处理器，尤其是默认命令处理器。"
+DotNetCampus.CommandLine.Error.CommandNotFoundForName = "未找到命令 '{commandName:string}' 的处理器。请确保该命令处理器已通过 AddHandler() 注册。"

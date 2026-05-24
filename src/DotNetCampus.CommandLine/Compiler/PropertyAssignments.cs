@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Localizations;
 
 namespace DotNetCampus.Cli.Compiler;
 
@@ -78,7 +79,7 @@ public readonly record struct NumberArgument
         }
         if (!IgnoreExceptions)
         {
-            throw new CommandLineParseValueException($"无法将 \"{value.ToString()}\" 转换为数值。");
+            throw new CommandLineParseValueException(Lang.Current.DotNetCampus.CommandLine.Parse.CannotConvertToNumber.ToString(value.ToString()));
         }
         return this;
     }
@@ -183,7 +184,7 @@ public readonly record struct StringArgument
         null => null,
         { Length: 1 } => Value[0],
         _ when IgnoreExceptions => null,
-        _ => throw new CommandLineParseValueException($"无法将 \"{Value}\" 转换为字符，因为它的长度不为 1。"),
+        _ => throw new CommandLineParseValueException(Lang.Current.DotNetCampus.CommandLine.Parse.CannotConvertToChar.ToString(Value)),
     };
 
     /// <summary>
@@ -368,7 +369,7 @@ public readonly record struct StringDictionaryArgument
 
         if (Value.Count > 1)
         {
-            throw new CommandLineParseValueException("字典包含多个元素，无法转换为 KeyValuePair。");
+            throw new CommandLineParseValueException(Lang.Current.DotNetCampus.CommandLine.Parse.DictionaryCannotConvertToKeyValuePair);
         }
 
         using var enumerator = Value.GetEnumerator();
@@ -434,7 +435,7 @@ public readonly record struct ErrorArgument
     [DoesNotReturn]
     public object ToUnknown()
     {
-        throw new CommandLineParseValueException("命令行属性赋值不受支持。");
+        throw new CommandLineParseValueException(Lang.Current.DotNetCampus.CommandLine.Parse.PropertyAssignmentNotSupported);
     }
 }
 
@@ -473,7 +474,7 @@ public readonly record struct RuntimeEnumArgument<T> where T : unmanaged, Enum
         }
         if (!IgnoreExceptions)
         {
-            throw new CommandLineParseValueException($"无法将 \"{value.ToString()}\" 转换为 {typeof(T).FullName} 枚举。");
+            throw new CommandLineParseValueException(Lang.Current.DotNetCampus.CommandLine.Parse.CannotConvertToEnum.ToString(value.ToString(), typeof(T).FullName!));
         }
         return this;
     }
