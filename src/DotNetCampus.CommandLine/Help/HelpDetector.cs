@@ -17,7 +17,7 @@ internal static class HelpDetector
 
         foreach (var arg in args)
         {
-            if (IsHelpArg(arg, style))
+            if (IsHelpOption(arg, style))
             {
                 return true;
             }
@@ -25,23 +25,7 @@ internal static class HelpDetector
         return false;
     }
 
-    /// <summary>
-    /// 从参数列表中过滤掉帮助写法，返回剩余参数。
-    /// </summary>
-    public static List<string> FilterOutHelpArgs(IReadOnlyList<string> args, CommandLineStyle style)
-    {
-        var result = new List<string>(args.Count);
-        foreach (var arg in args)
-        {
-            if (!IsHelpArg(arg, style))
-            {
-                result.Add(arg);
-            }
-        }
-        return result;
-    }
-
-    private static bool IsHelpArg(string arg, CommandLineStyle style)
+    private static bool IsHelpOption(string arg, CommandLineStyle style)
     {
         var comparison = style.CaseSensitive
             ? StringComparison.Ordinal
