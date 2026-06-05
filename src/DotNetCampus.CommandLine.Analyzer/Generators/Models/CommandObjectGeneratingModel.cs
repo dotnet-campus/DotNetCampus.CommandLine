@@ -18,6 +18,8 @@ internal record CommandObjectGeneratingModel
 
     public required string? CommandNames { get; init; }
 
+    public required string? Description { get; init; }
+
     public required bool UseFullStackParser { get; init; }
 
     public required bool IsHandler { get; init; }

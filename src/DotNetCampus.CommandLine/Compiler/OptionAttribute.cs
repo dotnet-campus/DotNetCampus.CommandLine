@@ -71,7 +71,7 @@ public sealed class OptionAttribute : CommandLineAttribute
     }
 
     /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// 标记一个属性为命令行选项，并具有指定的短名称和长名称。
     /// </summary>
     /// <param name="shortName">选项的短名称。必须是单个字符。</param>
     /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
@@ -82,54 +82,15 @@ public sealed class OptionAttribute : CommandLineAttribute
     }
 
     /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
-    /// </summary>
-    /// <param name="shortName">选项的短名称。必须是单个字符。</param>
-    /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
-    public OptionAttribute(char shortName, string[] longNames)
-    {
-        ShortNames = [shortName.ToString()];
-        LongNames = longNames;
-    }
-
-    /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
-    /// </summary>
-    /// <param name="shortName">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
-    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
-    public OptionAttribute(string shortName, string longName)
-    {
-        ShortNames = [shortName];
-        LongNames = [longName];
-    }
-
-    /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
-    /// </summary>
-    /// <param name="shortName">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
-    /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
-    public OptionAttribute(string shortName, string[] longNames)
-    {
-        ShortNames = [shortName];
-        LongNames = longNames;
-    }
-
-    /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
-    /// </summary>
-    /// <param name="shortNames">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
-    /// <param name="longName">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
-    public OptionAttribute(string[] shortNames, string longName)
-    {
-        ShortNames = shortNames;
-        LongNames = [longName];
-    }
-
-    /// <summary>
-    /// 标记一个属性为命令行选项，并具有指定的长名称和短名称。
+    /// 标记一个属性为命令行选项，并具有指定的短名称和长名称。<br/>
+    /// 如果希望指定多个字符的短名称（注意，只有部分风格支持此语法），则你只能使用此构造函数。
     /// </summary>
     /// <param name="shortNames">支持多字符的多个短名称，如用 -tl 来表示 --terminal-logger。</param>
     /// <param name="longNames">选项名称。必须使用 kebab-case 命名规则，且不带 -- 前缀。</param>
+    /// <remarks>
+    /// 我们使用先短名称后长名称的指定顺序，是因为主流命令行工具的 help 输出是这个顺序；
+    /// 我们采用相同的顺序以便给开发者带来最熟悉的体验。
+    /// </remarks>
     public OptionAttribute(string[] shortNames, string[] longNames)
     {
         ShortNames = shortNames;
@@ -153,4 +114,13 @@ public sealed class OptionAttribute : CommandLineAttribute
     /// 默认情况下使用 <see cref="CommandLine"/> 解析时所指定的大小写敏感性（而 <see cref="CommandLine"/> 默认为大小写不敏感）。
     /// </remarks>
     public bool CaseSensitive { get; init; }
+
+    /// <summary>
+    /// 获取或设置选项值在帮助文本中的占位符名称。
+    /// </summary>
+    /// <remarks>
+    /// 例如设置为 "file_path"，则帮助文本中显示为 --source &lt;file_path&gt;。<br/>
+    /// 如果未设置，则根据属性类型自动推断。
+    /// </remarks>
+    public string? ValueName { get; init; }
 }

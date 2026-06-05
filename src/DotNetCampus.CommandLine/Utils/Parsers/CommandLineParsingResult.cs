@@ -1,5 +1,6 @@
 using DotNetCampus.Cli.Compiler;
 using DotNetCampus.Cli.Exceptions;
+using DotNetCampus.Cli.Localizations;
 
 namespace DotNetCampus.Cli.Utils.Parsers;
 
@@ -138,8 +139,8 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
             CommandLineParsingError.ArgumentCombinationIsNotBoolean => new CommandLineParseException(ErrorType, ErrorMessage!),
             CommandLineParsingError.BooleanValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
             CommandLineParsingError.DictionaryValueParseError => new CommandLineParseValueException(ErrorType, ErrorMessage!),
-            CommandLineParsingError.None => throw new CommandLineException("解析过程中没有发生任何错误。"),
-            _ => throw new CommandLineException("未知的命令行解析错误类型。"),
+            CommandLineParsingError.None => throw new CommandLineException("Unreachable: no error occurred during parsing."),
+            _ => throw new CommandLineException("Unreachable: unknown parsing error type."),
         };
     }
 
@@ -180,15 +181,15 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         var message = reason switch
         {
             CommandLineParsingError.OptionalArgumentNotFound when isUrl =>
-                $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}，请注意解析 URL 时不支持短选项参数。URL={commandLine.ToRawString()}",
+                Lang.Current.DotNetCampus.CommandLine.Parse.OptionNotFoundInUrl.ToString(commandObjectName, optionName.ToString(), commandLine.ToRawString()),
             CommandLineParsingError.OptionalArgumentNotFound =>
-                $"命令行对象 {commandObjectName} 没有任何属性的选项名为 {optionName.ToString()}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+                Lang.Current.DotNetCampus.CommandLine.Parse.OptionNotFound.ToString(commandObjectName, optionName.ToString(), commandLine.ToString(), index.ToString(), commandLine.CommandLineArguments[index]),
             CommandLineParsingError.OptionalArgumentParseError =>
-                $"命令行参数 {commandLine.CommandLineArguments[index]} 中不包含选项名称，解析失败。参数列表：{commandLine}，索引 {index}。",
+                Lang.Current.DotNetCampus.CommandLine.Parse.OptionParseError.ToString(commandLine.CommandLineArguments[index], commandLine.ToString(), index.ToString()),
             CommandLineParsingError.OptionalArgumentSeparatorNotSupported =>
-                $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持选项值分隔符 '{optionName[possibleSeparatorIndex]}'，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+                Lang.Current.DotNetCampus.CommandLine.Parse.OptionSeparatorNotSupported.ToString(commandLine.ParsingOptions.Style.Name, optionName[possibleSeparatorIndex].ToString(), commandLine.CommandLineArguments[index], commandLine.ToString(), index.ToString()),
             CommandLineParsingError.MultiCharShortOptionalArgumentNotSupported =>
-                $"当前解析风格 {commandLine.ParsingOptions.Style.Name} 不支持多字符短选项，因此无法识别参数 {commandLine.CommandLineArguments[index]}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。",
+                Lang.Current.DotNetCampus.CommandLine.Parse.MultiCharShortOptionNotSupported.ToString(commandLine.ParsingOptions.Style.Name, commandLine.CommandLineArguments[index], commandLine.ToString(), index.ToString()),
             _ => throw new CommandLineException("Unreachable code."),
         };
         return new CommandLineParsingResult(reason, message);
@@ -206,7 +207,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
         ReadOnlySpan<char> optionName)
     {
         var message =
-            $"命令行对象 {commandObjectName} 中，选项 {optionName.ToString()} 的类型不是布尔类型，因此不支持使用短布尔选项组合的方式来表示此选项。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+            Lang.Current.DotNetCampus.CommandLine.Parse.CombinationIsNotBoolean.ToString(optionName.ToString(), commandObjectName, commandLine.ToString(), index.ToString(), commandLine.CommandLineArguments[index]);
         return new CommandLineParsingResult(CommandLineParsingError.ArgumentCombinationIsNotBoolean, message);
     }
 
@@ -219,7 +220,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <returns>表示选项未找到的解析结果。</returns>
     public static CommandLineParsingResult OptionalArgumentParseError(CommandLine commandLine, int index, string commandObjectName)
     {
-        var message = $"命令行参数 {commandLine.CommandLineArguments[index]} 中不包含选项名称，解析失败。参数列表：{commandLine}，索引 {index}。";
+        var message = Lang.Current.DotNetCampus.CommandLine.Parse.OptionParseError.ToString(commandLine.CommandLineArguments[index], commandLine.ToString(), index.ToString());
         return new CommandLineParsingResult(CommandLineParsingError.OptionalArgumentParseError, message);
     }
 
@@ -234,7 +235,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     public static CommandLineParsingResult PositionalArgumentNotFound(CommandLine commandLine, int index, string commandObjectName, int positionalArgumentIndex)
     {
         var message =
-            $"命令行对象 {commandObjectName} 位置参数范围不包含索引 {positionalArgumentIndex}。参数列表：{commandLine}，索引 {index}，参数 {commandLine.CommandLineArguments[index]}。";
+            Lang.Current.DotNetCampus.CommandLine.Parse.PositionalArgumentNotFound.ToString(commandObjectName, positionalArgumentIndex.ToString(), commandLine.ToString(), index.ToString(), commandLine.CommandLineArguments[index]);
         return new CommandLineParsingResult(CommandLineParsingError.PositionalArgumentNotFound, message);
     }
 
@@ -246,7 +247,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <returns>表示无法将值解析为布尔值的解析结果。</returns>
     public static CommandLineParsingResult BooleanValueParseError(CommandLine commandLine, ReadOnlySpan<char> value)
     {
-        var message = $"无法将 {value.ToString()} 解析为布尔值。参数列表：{commandLine}。";
+        var message = Lang.Current.DotNetCampus.CommandLine.Parse.CannotParseAsBoolean.ToString(value.ToString(), commandLine.ToString());
         return new CommandLineParsingResult(CommandLineParsingError.BooleanValueParseError, message);
     }
 
@@ -258,7 +259,7 @@ public readonly record struct CommandLineParsingResult(CommandLineParsingError E
     /// <returns>表示无法将值解析为键值对的解析结果。</returns>
     public static CommandLineParsingResult DictionaryValueParseError(CommandLine commandLine, ReadOnlySpan<char> value)
     {
-        var message = $"无法将 {value.ToString()} 解析为键值对。参数列表：{commandLine}。";
+        var message = Lang.Current.DotNetCampus.CommandLine.Parse.CannotParseAsDictionary.ToString(value.ToString(), commandLine.ToString());
         return new CommandLineParsingResult(CommandLineParsingError.DictionaryValueParseError, message);
     }
 }

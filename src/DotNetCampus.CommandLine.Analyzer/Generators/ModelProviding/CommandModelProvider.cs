@@ -71,6 +71,8 @@ internal static class CommandModelProvider
 
                 var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
                 var commandNames = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
+                var commandDescription = attribute?.NamedArguments
+                    .FirstOrDefault(kv => kv.Key == "Description").Value.Value?.ToString();
                 var useFullStackParser = attribute?.NamedArguments
                     .FirstOrDefault(kv => kv.Key == "ExperimentalUseFullStackParser").Value.Value as bool? ?? false;
                 var isPublic = typeSymbol.DeclaredAccessibility == Accessibility.Public;
@@ -91,6 +93,7 @@ internal static class CommandModelProvider
                     UseFullStackParser = useFullStackParser,
                     IsPublic = isPublic,
                     CommandNames = commandNames,
+                    Description = commandDescription,
                     IsHandler = isHandler,
                     OptionProperties = optionProperties,
                     PositionalArgumentProperties = valueProperties,

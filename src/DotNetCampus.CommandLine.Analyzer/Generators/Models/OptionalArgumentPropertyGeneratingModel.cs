@@ -18,6 +18,10 @@ internal sealed record OptionalArgumentPropertyGeneratingModel : PropertyGenerat
 
     public required bool? CaseSensitive { get; init; }
 
+    public required string? ValueName { get; init; }
+
+    public required string? Description { get; init; }
+
     public int PropertyIndex { get; set; } = -1;
 
     /// <summary>
@@ -172,12 +176,16 @@ internal sealed record OptionalArgumentPropertyGeneratingModel : PropertyGenerat
         }
 
         var caseSensitive = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.CaseSensitive)).Value.Value?.ToString();
+        var description = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(CommandLineAttribute.Description)).Value.Value?.ToString();
+        var valueName = optionAttribute.NamedArguments.FirstOrDefault(a => a.Key == nameof(OptionAttribute.ValueName)).Value.Value?.ToString();
 
         return new OptionalArgumentPropertyGeneratingModel(propertySymbol)
         {
             ShortNames = shortNames,
             LongNames = longNames,
             CaseSensitive = caseSensitive is not null && bool.TryParse(caseSensitive, out var result) ? result : null,
+            Description = description,
+            ValueName = valueName,
         };
     }
 }

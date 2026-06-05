@@ -226,7 +226,7 @@ public class OptionBooleanValueTests
 
     public record MultiCharShortOptions
     {
-        [Option("ab", "option-ab")]
+        [Option(["ab"], ["option-ab"])]
         public bool? OptionA { get; set; }
 
         [Option('b', "option-b")]

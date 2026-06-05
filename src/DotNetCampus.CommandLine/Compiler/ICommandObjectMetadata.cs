@@ -16,6 +16,11 @@ public interface ICommandObjectMetadata
     /// <param name="context">包含此命令行对象创建时，命令行运行命令的相关信息。</param>
     /// <returns>命令行对象实例。</returns>
     object Build(CommandRunningContext context);
+
+    /// <summary>
+    /// 获取此命令的帮助元数据。如果无法提供帮助信息，则返回 <see langword="null"/>。
+    /// </summary>
+    CommandHelpMetadata? GetHelp();
 }
 
 /// <summary>

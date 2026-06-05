@@ -11,6 +11,8 @@ internal sealed class AnonymousStatedCommandHandler<TState>(
         return factory.Build(context);
     }
 
+    public CommandHelpMetadata? GetHelp() => factory.GetHelp();
+
     public Task<int> RunAsync(object createdCommandObject)
     {
         var instance = (ICommandHandler<TState>)createdCommandObject;
@@ -27,6 +29,8 @@ internal sealed class AnonymousActionCommandHandler<T>(
     {
         return factory.Build(context);
     }
+
+    public CommandHelpMetadata? GetHelp() => factory.GetHelp();
 
     public Task<int> RunAsync(object createdCommandObject)
     {
@@ -46,6 +50,8 @@ internal sealed class AnonymousFuncInt32CommandHandler<T>(
         return factory.Build(context);
     }
 
+    public CommandHelpMetadata? GetHelp() => factory.GetHelp();
+
     public Task<int> RunAsync(object createdCommandObject)
     {
         var instance = (T)createdCommandObject;
@@ -63,6 +69,8 @@ internal sealed class AnonymousFuncTaskCommandHandler<T>(
     {
         return factory.Build(context);
     }
+
+    public CommandHelpMetadata? GetHelp() => factory.GetHelp();
 
     public Task<int> RunAsync(object createdCommandObject)
     {
@@ -87,6 +95,8 @@ internal sealed class AnonymousFuncTaskInt32CommandHandler<T>(
     {
         return factory.Build(context);
     }
+
+    public CommandHelpMetadata? GetHelp() => factory.GetHelp();
 
     public Task<int> RunAsync(object createdCommandObject)
     {

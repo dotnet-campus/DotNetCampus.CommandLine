@@ -365,6 +365,121 @@ commandLine
 3. If multiple handlers match the same command, `CommandNameAmbiguityException` is thrown.
 4. If any handler is asynchronous, you must use `RunAsync` instead of `Run` (otherwise compilation fails).
 
+## Help Information
+
+DotNetCampus.CommandLine has a built-in help message generation mechanism. When users pass help flags such as `--help`, `-h`, or `/?`, the program automatically outputs help information and exits.
+
+### Enabling Help
+
+Call `AddHelpHandler()` to enable help (it is recommended to place it at the end of the handler chain for consistency, but it can actually be placed at any position):
+
+```csharp
+await CommandLine.Parse(args)
+    .AddHandler<DefaultOptions>(o => o.Run())
+    .AddHandler<ConvertHandler>()
+    .AddHandler<EditHandler>()
+    .AddHelpHandler()
+    .RunAsync();
+```
+
+### Adding Descriptions to Options and Commands
+
+Use the `Description` property to add description text to commands, options, and positional arguments:
+
+```csharp
+[Command("convert", Description = "Convert input values and demonstrate type parsing.")]
+internal class ConvertHandler : ICommandHandler
+{
+    [Value(0, Description = "The input file to convert.")]
+    public required string InputFile { get; init; }
+
+    [Option('f', "format", Description = "Output format.")]
+    public OutputFormat Format { get; init; } = OutputFormat.Text;
+
+    [Option('n', "count", Description = "Maximum number of records to convert.")]
+    public int? Count { get; init; }
+
+    public Task<int> RunAsync() { /* ... */ }
+}
+```
+
+`OptionAttribute` also has a `ValueName` property for customizing the value placeholder displayed in help:
+
+```csharp
+[Option(Description = "Pass any directory into this option.", ValueName = "directory_path")]
+public string? DefaultDirectory { get; set; }
+```
+
+This displays as `--default-directory <directory_path>` in help output instead of the default `--default-directory <value>`.
+
+When `ValueName` is not set, the value placeholder is automatically generated based on the option type:
+
+| Option Type       | Default Placeholder |
+| ----------------- | ------------------- |
+| Boolean option    | (none)              |
+| Regular option    | `<value>`           |
+| Collection option | `<value>...`        |
+| Dictionary option | `<key>=<value>...`  |
+
+After setting `ValueName`, the `value` in the placeholder is replaced with your specified name (collections and dictionaries still retain the `...` suffix).
+
+### Automatic Detection of Help Flags
+
+The library automatically detects help flags based on the current command line style:
+
+| Style             | Supported Help Flags                     |
+| ----------------- | ---------------------------------------- |
+| Flexible (default)| `--help` `-h` `/help` `/h` `/?` `-?`    |
+| DotNet / Gnu      | `--help` `-h`                            |
+| Posix             | `-h`                                     |
+| Windows           | `/help` `/h` `/?` `-help` `-h` `-?`     |
+| URL               | Help detection not supported             |
+
+When users pass a subcommand + help flag (e.g., `myapp convert --help`), only the help for that subcommand is displayed; when a help flag is passed directly (e.g., `myapp --help`), global help is displayed, including the list of all subcommands.
+
+After help output completes, the program returns exit code `0` and does not continue executing command handlers.
+
+### Customizing Help Behavior
+
+Use `HelpConfigurations` to customize various aspects of help:
+
+```csharp
+.AddHelpHandler(new HelpConfigurations
+{
+    // Maximum width of the option/command name column (default 30); items exceeding this width have their description on the next line
+    MaxColumnWidth = 40,
+
+    // Localization: use the Description value as a key and return localized text
+    HelpTextLocalizer = key => MyResources.ResourceManager.GetString(key) ?? key,
+
+    // Custom output target (defaults to Console.Out)
+    HelpMessageWriter = text => File.WriteAllText("help.txt", text),
+
+    // Fully custom help handler (implement IHelpHandler interface)
+    HelpHandler = new MyCustomHelpHandler(),
+})
+```
+
+#### Help Text Localization
+
+If your program needs multilingual support, you can set `Description` to a resource key and use the `HelpTextLocalizer` delegate for translation:
+
+```csharp
+// Use a resource key as Description when defining a command
+[Command(Description = nameof(LocalizableStrings.SampleCommandDescription))]
+internal class DefaultOptions
+{
+    [Option(Description = nameof(LocalizableStrings.SamplePropertyDescription))]
+    public string? DefaultText { get; set; }
+}
+
+// Provide the localization delegate when enabling help
+.AddHelpHandler(new HelpConfigurations
+{
+    HelpTextLocalizer = key => LocalizableStrings.ResourceManager.GetString(key) ?? key,
+})
+```
+
 ## URL Protocol Support
 
 DotNetCampus.CommandLine can parse a URL protocol string:

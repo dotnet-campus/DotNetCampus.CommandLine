@@ -1,11 +1,13 @@
-﻿namespace DotNetCampus.Cli.Exceptions;
+﻿using DotNetCampus.Cli.Localizations;
+
+namespace DotNetCampus.Cli.Exceptions;
 
 /// <summary>
 /// 表示命令行解析或执行过程中发生的异常。
 /// </summary>
 public class CommandLineException : Exception
 {
-    private const string DefaultMessage = "Operation failed due to an error in the command line mechanism.";
+    private static string DefaultMessage => Lang.Current.DotNetCampus.CommandLine.Error.CommandLineError;
 
     /// <summary>
     /// 初始化 <see cref="CommandLineException"/> 类的新实例。

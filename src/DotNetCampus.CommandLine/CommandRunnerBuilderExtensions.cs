@@ -308,4 +308,73 @@ public static class CommandRunnerBuilderExtensions
     {
         throw new NotSupportedException("Considering that almost no developer thinks the behavior of this method meets expectations, we removed this feature.");
     }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static ICommandRunnerBuilder AddHelpHandler(this CommandLine builder)
+    {
+        ((ICoreCommandRunnerBuilder)builder).AsRunner().EnableHelp(new HelpConfigurations());
+        return builder;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="configurations">定制帮助行为的配置项。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static ICommandRunnerBuilder AddHelpHandler(this CommandLine builder, HelpConfigurations configurations)
+    {
+        ((ICoreCommandRunnerBuilder)builder).AsRunner().EnableHelp(configurations);
+        return builder;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static ICommandRunnerBuilder AddHelpHandler(this ICommandRunnerBuilder builder)
+    {
+        builder.AsRunner().EnableHelp(new HelpConfigurations());
+        return builder;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="configurations">定制帮助行为的配置项。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static ICommandRunnerBuilder AddHelpHandler(this ICommandRunnerBuilder builder, HelpConfigurations configurations)
+    {
+        builder.AsRunner().EnableHelp(configurations);
+        return builder;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static IAsyncCommandRunnerBuilder AddHelpHandler(this IAsyncCommandRunnerBuilder builder)
+    {
+        builder.AsRunner().EnableHelp(new HelpConfigurations());
+        return builder;
+    }
+
+    /// <summary>
+    /// 启用内置帮助支持。启用后，当检测到帮助请求（如 --help、-h、/? 等）时，将自动输出帮助信息并返回退出码 0。
+    /// </summary>
+    /// <param name="builder">命令行执行器构造的链式调用。</param>
+    /// <param name="configurations">定制帮助行为的配置项。</param>
+    /// <returns>命令行执行器构造的链式调用。</returns>
+    public static IAsyncCommandRunnerBuilder AddHelpHandler(this IAsyncCommandRunnerBuilder builder, HelpConfigurations configurations)
+    {
+        builder.AsRunner().EnableHelp(configurations);
+        return builder;
+    }
 }

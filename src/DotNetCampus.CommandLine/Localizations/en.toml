@@ -1,0 +1,35 @@
+# Help
+DotNetCampus.CommandLine.Help.UsageHeader = "Usage: "
+DotNetCampus.CommandLine.Help.UsageOptions = "[options]"
+DotNetCampus.CommandLine.Help.UsageCommand = "<command>"
+DotNetCampus.CommandLine.Help.UsagePositionalArguments = "[arguments]"
+DotNetCampus.CommandLine.Help.CommandHeader = "Commands:"
+DotNetCampus.CommandLine.Help.OptionsHeader = "Options:"
+DotNetCampus.CommandLine.Help.PositionalArgumentsHeader = "Arguments:"
+DotNetCampus.CommandLine.Help.Required = "(required)"
+DotNetCampus.CommandLine.Help.HelpDescription = "Show help information"
+
+# Parse - Value conversion errors
+DotNetCampus.CommandLine.Parse.CannotConvertToNumber = "Cannot convert \"{value:string}\" to a number."
+DotNetCampus.CommandLine.Parse.CannotConvertToChar = "Cannot convert \"{value:string}\" to a character because its length is not 1."
+DotNetCampus.CommandLine.Parse.DictionaryCannotConvertToKeyValuePair = "The dictionary contains more than one element and cannot be converted to a KeyValuePair."
+DotNetCampus.CommandLine.Parse.PropertyAssignmentNotSupported = "Command line property assignment is not supported."
+DotNetCampus.CommandLine.Parse.CannotConvertToEnum = "Cannot convert \"{value:string}\" to enum {typeName:string}."
+
+# Parse - Parsing diagnostic errors
+DotNetCampus.CommandLine.Parse.OptionNotFound = "Command object {commandObjectName:string} has no option named {optionName:string}. Arguments: {arguments:string}, index {index:string}, argument {argument:string}."
+DotNetCampus.CommandLine.Parse.OptionNotFoundInUrl = "Command object {commandObjectName:string} has no option named {optionName:string}. Note that short options are not supported when parsing URLs. URL={url:string}"
+DotNetCampus.CommandLine.Parse.OptionParseError = "The argument {argument:string} does not contain an option name. Arguments: {arguments:string}, index {index:string}."
+DotNetCampus.CommandLine.Parse.OptionSeparatorNotSupported = "The style {styleName:string} does not support the separator '{separator:string}' in argument {argument:string}. Arguments: {arguments:string}, index {index:string}."
+DotNetCampus.CommandLine.Parse.MultiCharShortOptionNotSupported = "The style {styleName:string} does not support multi-character short options in argument {argument:string}. Arguments: {arguments:string}, index {index:string}."
+DotNetCampus.CommandLine.Parse.CombinationIsNotBoolean = "Option {optionName:string} in command object {commandObjectName:string} is not a boolean type and cannot be used with short boolean option combination. Arguments: {arguments:string}, index {index:string}, argument {argument:string}."
+DotNetCampus.CommandLine.Parse.PositionalArgumentNotFound = "Command object {commandObjectName:string} positional argument range does not contain index {positionalIndex:string}. Arguments: {arguments:string}, index {index:string}, argument {argument:string}."
+DotNetCampus.CommandLine.Parse.CannotParseAsBoolean = "Cannot parse {value:string} as a boolean. Arguments: {arguments:string}."
+DotNetCampus.CommandLine.Parse.CannotParseAsDictionary = "Cannot parse {value:string} as a key-value pair. Arguments: {arguments:string}."
+
+# Error - Exception default messages
+DotNetCampus.CommandLine.Error.CommandLineError = "Operation failed due to an error in the command line mechanism."
+DotNetCampus.CommandLine.Error.ParseFailed = "Failed to parse the command line."
+DotNetCampus.CommandLine.Error.ParseValueFailed = "Failed to parse the command line value."
+DotNetCampus.CommandLine.Error.CommandNotFound = "No command handler found. Please ensure that at least one command handler is registered by AddHandler(), especially a default command handler."
+DotNetCampus.CommandLine.Error.CommandNotFoundForName = "No command handler found for command '{commandName:string}'. Please ensure that the command handler is registered by AddHandler()."
