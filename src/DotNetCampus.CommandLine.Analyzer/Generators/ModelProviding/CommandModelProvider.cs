@@ -69,7 +69,7 @@ internal static class CommandModelProvider
                     return null;
                 }
 
-                var @namespace = typeSymbol.ContainingNamespace.ToDisplayString();
+                var @namespace = typeSymbol.GetNamespaceOrNull();
                 var commandNames = attribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
                 var commandDescription = attribute?.NamedArguments
                     .FirstOrDefault(kv => kv.Key == "Description").Value.Value?.ToString();

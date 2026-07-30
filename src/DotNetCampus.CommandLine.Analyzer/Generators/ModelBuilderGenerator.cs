@@ -128,7 +128,7 @@ public class ModelBuilderGenerator : IIncrementalGenerator
     {
         builder
             .AddMethodDeclaration("public object Build(global::DotNetCampus.Cli.Compiler.CommandRunningContext context)", m => m
-                .AddRawStatement($"return new {model.Namespace}.{model.GetBuilderTypeName()}().Build(context);"))
+                .AddRawStatement($"return new {model.GetGlobalBuilderTypeName()}().Build(context);"))
             .AddMethodDeclaration("public global::DotNetCampus.Cli.Compiler.CommandHelpMetadata? GetHelp()", m => m
                 .AddRawStatement(GenerateGetHelpReturnStatement(model)));
     }

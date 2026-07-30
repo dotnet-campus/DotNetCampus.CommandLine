@@ -151,7 +151,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.AsRunner().AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
+                return commandLine.AsRunner().AddHandler<T>({model.GetGlobalBuilderTypeName()}.CommandNameGroup, new {model.GetGlobalBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -166,7 +166,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return commandLine.AsRunner().AddHandler<T>(handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
+                return commandLine.AsRunner().AddHandler<T>(handler, {model.GetGlobalBuilderTypeName()}.CommandNameGroup, new {model.GetGlobalBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -265,7 +265,7 @@ public class InterceptorGenerator : IIncrementalGenerator
                 .AddRawStatement(GenerateComment(model))
                 .AddRawStatements($$"""""
                     var context = new global::DotNetCampus.Cli.Compiler.CommandRunningContext { CommandLine = commandLine };
-                    var instance = new global::{{model.CommandObjectType.ContainingNamespace}}.{{model.GetBuilderTypeName()}}().Build(context);
+                    var instance = new {{model.GetGlobalBuilderTypeName()}}().Build(context);
                     {{(
                         model.UseFullStackParser
                             ? $"""
@@ -293,7 +293,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, {model.GetGlobalBuilderTypeName()}.CommandNameGroup, new {model.GetGlobalBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -310,7 +310,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class, global::DotNetCampus.Cli.ICommandHandler<TState>")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return builder.AddHandler<T>(global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
+                return builder.AddHandler<T>({model.GetGlobalBuilderTypeName()}.CommandNameGroup, new {model.GetGlobalBuilderTypeName()}.Metadata());
                 """));
     }
 
@@ -327,7 +327,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .AddTypeConstraints("where T : class")
             .AddRawStatement(GenerateComment(model))
             .AddRawStatements($"""
-                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.CommandNameGroup, new global::{model.CommandObjectType.ContainingNamespace}.{model.GetBuilderTypeName()}.Metadata());
+                return global::DotNetCampus.Cli.CommandRunnerBuilderExtensions.AddHandler<T>(builder, handler, {model.GetGlobalBuilderTypeName()}.CommandNameGroup, new {model.GetGlobalBuilderTypeName()}.Metadata());
                 """));
     }
 

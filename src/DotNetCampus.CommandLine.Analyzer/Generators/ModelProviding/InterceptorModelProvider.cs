@@ -169,6 +169,11 @@ internal record InterceptorGeneratingModel(
 
     public string GetBuilderTypeName() => CommandObjectGeneratingModel.GetBuilderTypeName(CommandObjectType);
 
+    /// <summary>
+    /// 获取创建器类型带 global:: 前缀的完整名称。支持命令行对象位于全局命名空间的情况（如使用顶级语句时）。
+    /// </summary>
+    public string GetGlobalBuilderTypeName() => CommandObjectGeneratingModel.GetGlobalBuilderTypeName(CommandObjectType);
+
     internal static IEqualityComparer<InterceptorGeneratingModel> CommandObjectTypeEqualityComparer { get; } =
         new PrivateTypeSymbolEqualityComparer();
 

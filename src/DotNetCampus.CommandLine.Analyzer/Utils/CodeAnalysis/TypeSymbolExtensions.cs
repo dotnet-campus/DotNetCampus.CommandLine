@@ -8,6 +8,15 @@ namespace DotNetCampus.CommandLine.Utils.CodeAnalysis;
 internal static class TypeSymbolExtensions
 {
     /// <summary>
+    /// 获取一个符号所在的命名空间。如果此符号位于全局命名空间（例如使用顶级语句时定义的类型），则返回 <see langword="null"/>。
+    /// </summary>
+    /// <param name="symbol">要获取命名空间的符号。</param>
+    /// <returns>命名空间的字符串形式；如果位于全局命名空间，则返回 <see langword="null"/>。</returns>
+    public static string? GetNamespaceOrNull(this ISymbol symbol) => symbol.ContainingNamespace is { IsGlobalNamespace: false } @namespace
+        ? @namespace.ToDisplayString()
+        : null;
+
+    /// <summary>
     /// 判断一个类型是否是指定类型的子类或实现了指定接口。
     /// </summary>
     /// <param name="type">要判断的类型。</param>
