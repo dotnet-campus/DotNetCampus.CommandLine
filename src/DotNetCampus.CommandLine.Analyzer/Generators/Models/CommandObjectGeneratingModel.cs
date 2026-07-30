@@ -1,4 +1,5 @@
 using DotNetCampus.Cli.Utils;
+using DotNetCampus.CommandLine.Utils.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 
 namespace DotNetCampus.CommandLine.Generators.Models;
@@ -10,7 +11,10 @@ internal record CommandObjectGeneratingModel
         typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
         genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
-    public required string Namespace { get; init; }
+    /// <summary>
+    /// 命令行对象类型所在的命名空间。如果类型位于全局命名空间（例如顶级语句所在的项目中未声明命名空间的类型），则为 <see langword="null"/>。
+    /// </summary>
+    public required string? Namespace { get; init; }
 
     public required INamedTypeSymbol CommandObjectType { get; init; }
 
@@ -39,6 +43,25 @@ internal record CommandObjectGeneratingModel
     {
         var name = commandObjectType.ToDisplayString(SimpleContainingTypeFormat).Replace('.', '_');
         return $"{name}Builder";
+    }
+
+    /// <summary>
+    /// 获取创建器类型带 global:: 前缀的完整名称。支持命令行对象位于全局命名空间的情况。
+    /// </summary>
+    public string GetGlobalBuilderTypeName()
+    {
+        return GetGlobalBuilderTypeName(CommandObjectType);
+    }
+
+    /// <summary>
+    /// 获取创建器类型带 global:: 前缀的完整名称。支持命令行对象位于全局命名空间的情况。
+    /// </summary>
+    public static string GetGlobalBuilderTypeName(INamedTypeSymbol commandObjectType)
+    {
+        var typeName = GetBuilderTypeName(commandObjectType);
+        return commandObjectType.GetNamespaceOrNull() is { } @namespace
+            ? $"global::{@namespace}.{typeName}"
+            : $"global::{typeName}";
     }
 
     public int GetCommandLevel() => CommandNames switch
